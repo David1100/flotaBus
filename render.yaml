@@ -3,7 +3,7 @@ services:
     name: flotabus-backend
     runtime: node
     rootDir: backend
-    buildCommand: npm ci && npm run build
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run start:render
     healthCheckPath: /health
     envVars:
