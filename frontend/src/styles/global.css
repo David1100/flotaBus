@@ -36,7 +36,7 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
 *::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); background-clip: padding-box; }
 *::-webkit-scrollbar-thumb:active { background: var(--scrollbar-thumb-active); background-clip: padding-box; }
 *::-webkit-scrollbar-corner { background: transparent; }
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
 .font-display, h1, h2, h3, .brand-copy strong, .page-header h1 { font-family: 'Outfit', sans-serif; }
 .glass { background: linear-gradient(135deg, rgba(27, 37, 40, .88), rgba(11, 17, 21, .82)); border: 1px solid var(--line); box-shadow: 0 26px 90px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.07); backdrop-filter: blur(20px); }
@@ -61,6 +61,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .fb-alert-title { font-family: 'Outfit', sans-serif; } .fb-alert-confirm { color: #101813!important; font-weight: 800!important; } .fb-alert-cancel { color: #dce8e6!important; font-weight: 700!important; } .swal2-loader { border-color: var(--cyan) transparent var(--cyan) transparent; }
 
 @media (max-width: 760px) { .page-header { align-items: start; flex-direction: column; } .page-header .btn { width: 100%; } .form-grid { grid-template-columns: 1fr; } }
+@media (max-width: 760px) {
+  input:not([type='hidden']):not(.switch-input):not(.photo-input), select, textarea, .input { font-size: 16px; }
+}
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms!important; animation-iteration-count: 1!important; scroll-behavior: auto!important; transition-duration: .01ms!important; } *::-webkit-scrollbar-thumb { transition: none; } }
 
 /* flotaBus console: one source of truth for the dark editorial shell. */
