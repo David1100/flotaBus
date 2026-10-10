@@ -18,8 +18,25 @@ Para aplicar la corrección tras cambiar entorno o dependencias: detén todos lo
 
 ## API
 
-`POST /auth/login`, `POST /auth/logout`, `GET /auth/me`; CRUD protegido de administrador en `/drivers` y `/buses`. Los buses exponen `GET /buses?search=&page=1&limit=20` con `{data,total,page,limit}`, además de `POST`, `PATCH /buses/:id` y `DELETE /buses/:id`. Las mutaciones requieren la cookie CSRF y header `x-csrf-token`; solo `ADMINISTRADOR` puede acceder.
+`GET /health` devuelve únicamente `{ "status": "ok" }` y se puede usar como health check público de Render. `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`; CRUD protegido de administrador en `/drivers` y `/buses`. Los buses exponen `GET /buses?search=&page=1&limit=20` con `{data,total,page,limit}`, además de `POST`, `PATCH /buses/:id` y `DELETE /buses/:id`. Las mutaciones requieren la cookie CSRF y header `x-csrf-token`; solo `ADMINISTRADOR` puede acceder.
 
 ## Migraciones
 
 La migración aditiva `20261009010000_add_buses` crea únicamente `buses` y su índice único de placa. Aplicar con `cd backend && npx prisma migrate deploy && npx prisma generate`. No uses `migrate reset`; cualquier rollback debe ser una migración controlada que afecte exclusivamente a `buses`.
+
+## PWA y despliegue Vercel/Render
+
+El frontend incluye un manifest instalable y un service worker manual (`frontend/public/sw.js`). El worker solo guarda assets públicos versionados (`/_astro/`, `/icons/`, el manifest) y las navegaciones públicas `/` y `/login` con network-first. Nunca guarda `/auth`, `/admin`, `/api`, peticiones cross-origin ni respuestas de mutaciones.
+
+### Producción
+
+1. En Vercel selecciona `frontend` como **Root Directory**, usa `npm run build` y `dist` como output. Configura `PUBLIC_API_URL=https://<backend-en-render>.onrender.com` (sin `/` final) como variable de producción. No necesita rewrites: las rutas Astro son archivos estáticos y `frontend/vercel.json` solo ajusta cache de PWA.
+2. En Render selecciona `backend` como **Root Directory**, usa `npm ci && npm run build` como Build Command y `npm run start:render` como Start Command. Configura `GET /health` como Health Check Path. `build` ejecuta `prisma generate` antes de compilar; `start:render` ejecuta `prisma migrate deploy` antes de iniciar Nest.
+3. En Render configura `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` (secreto de al menos 32 caracteres), `CORS_ORIGIN=https://<frontend-en-vercel>.vercel.app` (o el dominio personalizado exacto, sin una ruta final), `COOKIE_SECURE=true` y `NODE_ENV=production`. `CORS_ORIGIN` admite una lista separada por comas de orígenes HTTPS explícitos; nunca uses `*` con cookies.
+4. La sesión usa cookies `httpOnly`, `Secure` y `SameSite=None` en producción para permitir `fetch` con credenciales entre Vercel y Render; la protección CSRF exige que el token de la cookie coincida con `x-csrf-token`. En local usa `COOKIE_SECURE=false` y `SameSite=Lax` automáticamente.
+
+Variables requeridas en producción: `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `CORS_ORIGIN`, `COOKIE_SECURE=true`, `NODE_ENV=production`. `PORT` es opcional: Render lo inyecta. `ADMIN_*` solo es necesario si se ejecuta el seed manualmente.
+
+### Validación de instalación
+
+Después del despliegue abre el frontend en HTTPS, verifica en DevTools > Application que el manifest es válido, que aparecen los dos iconos y que el worker está `activated`. Comprueba también que `https://<frontend>/manifest.webmanifest`, `/sw.js` y `/icons/icon-192.svg` responden 200; inicia sesión y confirma en Network que `/auth/*` y cualquier llamada a Render no aparecen en Cache Storage. La instalación requiere HTTPS (localhost es la excepción de desarrollo).

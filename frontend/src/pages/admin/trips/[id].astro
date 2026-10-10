@@ -1,0 +1,114 @@
+---
+import AdminShell from '../../../components/AdminShell.astro';
+
+// The detail page is intentionally generated once. The trip id is supplied by
+// /admin/trips/detail?id=123 so Astro's static output remains universal.
+export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
+---
+
+<AdminShell title="Detalle de viaje · flotaBus" active="trips">
+  <div class="buses-page trip-detail-page">
+    <section class="page-header buses-hero fade-in">
+      <div>
+        <div class="eyebrow">SEGUIMIENTO OPERATIVO</div>
+        <h1 id="trip-title">Viaje <em>cargando.</em></h1>
+        <p id="trip-summary">Consultando planificación e historial…</p>
+      </div>
+      <a class="back-link" href="/admin/trips" data-spa-link><span aria-hidden="true">←</span> Volver a viajes</a>
+    </section>
+
+    <div id="trip-error" class="state error-state" role="alert" hidden></div>
+    <section id="trip-content" class="trip-detail-grid" hidden>
+      <article class="glass fleet-card trip-overview-card">
+        <div class="trip-detail-heading"><div><div class="eyebrow">RESUMEN DEL VIAJE</div><h2>Información principal</h2></div><span id="trip-status" class="status-pill"><i></i>—</span></div>
+        <div class="trip-facts">
+          <div><span>Origen / base</span><strong id="trip-origin">—</strong></div>
+          <div><span>Salida inicial</span><strong id="trip-start">—</strong></div>
+          <div><span>Zona operativa</span><strong id="trip-timezone">—</strong></div>
+          <div><span>Observaciones generales</span><strong id="trip-notes">Sin observaciones</strong></div>
+        </div>
+        <div class="trip-resources"><div class="trip-subheading"><div><div class="eyebrow">RECURSOS</div><h3>Bus y chofer asignados</h3></div></div><div id="trip-assignments" class="assignment-list"></div></div>
+      </article>
+
+      <article class="glass fleet-card trip-legs-card">
+        <div class="trip-detail-heading"><div><div class="eyebrow">PLANIFICACIÓN DE RUTA</div><h2>Trayectos ordenados</h2></div><span id="leg-count" class="muted">—</span></div>
+        <div id="trip-legs" class="trip-legs-detail"></div>
+      </article>
+
+      <article class="glass fleet-card trip-history-card">
+        <div class="trip-detail-heading"><div><div class="eyebrow">AUDITORÍA DE OPERACIÓN</div><h2>Historial operativo</h2></div></div>
+        <ol id="timeline" class="trip-timeline"></ol>
+        <div class="trip-event-toolbar"><label class="form-label" for="event-type">Registrar nuevo evento<select id="event-type" class="input" aria-label="Tipo de evento"></select></label><button id="event" class="btn btn-primary" type="button">Registrar evento</button></div>
+      </article>
+    </section>
+  </div>
+</AdminShell>
+
+<script>
+  import { api, ApiError } from '../../../lib/api';
+  import { feedback, Swal } from '../../../lib/feedback';
+  import { OPERATION_EVENT_OPTIONS, operationEventLabel, tripStatusClass, tripStatusLabel } from '../../../lib/trip-labels';
+
+  const init = () => {
+     const content = document.querySelector<HTMLElement>('#trip-content');
+    if (!content || content.dataset.ready === 'true') return;
+    content.dataset.ready = 'true';
+    const requestedId = new URLSearchParams(window.location.search).get('id');
+     // This route is intentionally generated at /admin/trips/detail. The real
+     // trip id always comes from the query string so the same page works for
+     // direct loads and the AdminShell partial router.
+     const tripId = requestedId || 'detail';
+     const error = document.querySelector<HTMLElement>('#trip-error');
+     const title = document.querySelector<HTMLElement>('#trip-title');
+     const summary = document.querySelector<HTMLElement>('#trip-summary');
+     const timeline = document.querySelector<HTMLOListElement>('#timeline');
+     const eventType = document.querySelector<HTMLSelectElement>('#event-type');
+     const eventButton = document.querySelector<HTMLButtonElement>('#event');
+    if (!error || !title || !summary || !timeline || !eventType || !eventButton) return;
+
+     const formatDate = (value: unknown) => value ? new Date(value as string | number | Date).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+     const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character] ?? character));
+     const setError = (message: string) => { error.hidden = false; error.textContent = message; content.hidden = true; };
+    if (!/^\d+$/.test(tripId)) { setError('No se indicó un viaje válido.'); return; }
+
+    eventType.innerHTML = OPERATION_EVENT_OPTIONS.map(({ value, label }) => `<option value="${value}">${label}</option>`).join('');
+    const renderAssignments = (assignments = []) => {
+      const active = assignments.filter(item => !item.status || item.status === 'ACTIVE');
+      const target = document.querySelector('#trip-assignments');
+      if (!target) return;
+      target.innerHTML = active.length ? active.map(item => `<div class="assignment-item"><span class="assignment-icon" aria-hidden="true">▣</span><div><span>Bus</span><strong>${escape(item.bus?.placa || 'Sin asignar')}</strong><small>${escape([item.bus?.marca, item.bus?.modelo].filter(Boolean).join(' · ') || 'Sin datos del vehículo')}</small></div><div><span>Chofer</span><strong>${escape(item.driver?.nombres || item.driver?.username || 'Sin asignar')}</strong><small>${escape(item.driver?.username || '')}</small></div></div>`).join('') : '<p class="empty-state">Este viaje todavía no tiene bus ni chofer asignados.</p>';
+    };
+    const renderTimeline = (events = []) => {
+      timeline.innerHTML = events.length ? events.map(item => `<li><span class="timeline-marker" aria-hidden="true"></span><div class="timeline-content"><div class="timeline-meta"><strong>${escape(operationEventLabel(item.type))}</strong><time>${escape(formatDate(item.occurredAt))}</time></div><p>${escape(item.notes || 'Sin observaciones')}</p><small>Actor: ${escape(item.actor?.nombres || item.actor?.username || 'No disponible')}</small></div></li>`).join('') : '<li class="timeline-empty"><span aria-hidden="true">◷</span><div><strong>Aún no hay eventos operativos</strong><p>El historial aparecerá aquí cuando se registre el primer cambio de estado.</p></div></li>';
+    };
+     const render = (raw: any) => {
+      const trip = raw.data ?? raw;
+      const legs = [...(trip.legs ?? [])].sort((a, b) => a.sequence - b.sequence);
+      title.innerHTML = `${escape(trip.code)} <em>${escape(tripStatusLabel(trip.status))}.</em>`;
+      summary.textContent = `${trip.origin} · salida ${formatDate(trip.initialStartAt)} · ${legs.length} trayecto${legs.length === 1 ? '' : 's'}`;
+      const status = document.querySelector('#trip-status');
+      const origin = document.querySelector('#trip-origin');
+      const start = document.querySelector('#trip-start');
+      const timezone = document.querySelector('#trip-timezone');
+      const notes = document.querySelector('#trip-notes');
+      const legCount = document.querySelector('#leg-count');
+      const legsTarget = document.querySelector('#trip-legs');
+      status.className = `status-pill ${tripStatusClass(trip.status)}`;
+      status.innerHTML = `<i></i>${escape(tripStatusLabel(trip.status))}`;
+      origin.textContent = trip.origin || '—';
+      start.textContent = formatDate(trip.initialStartAt);
+      timezone.textContent = trip.timezone || 'No definida';
+      notes.textContent = trip.notes || 'Sin observaciones';
+      legCount.textContent = `${legs.length} trayecto${legs.length === 1 ? '' : 's'}`;
+      legsTarget.innerHTML = legs.length ? legs.map(leg => `<div class="trip-leg-detail"><span class="trip-leg-number">${leg.sequence}</span><div class="trip-leg-route"><strong>${escape(leg.origin)} <span aria-hidden="true">→</span> ${escape(leg.destination)}</strong><div class="trip-leg-times"><span><small>Salida</small>${escape(formatDate(leg.plannedDepartureAt))}</span><span><small>Duración</small>${escape(String(leg.durationDays))} día${leg.durationDays === 1 ? '' : 's'}</span><span><small>Llegada estimada</small>${escape(formatDate(leg.plannedArrivalAt))}</span></div>${leg.notes ? `<p>${escape(leg.notes)}</p>` : ''}</div></div>`).join('') : '<p class="empty-state">No hay trayectos registrados para este viaje.</p>';
+      renderAssignments(trip.assignments);
+      renderTimeline(trip.events);
+      content.hidden = false;
+    };
+    const load = async () => { try { render(await api(`/trips/${tripId}`)); } catch (cause) { setError(cause instanceof ApiError && cause.status === 403 ? 'No tienes permiso para consultar este viaje.' : 'No pudimos cargar el detalle del viaje. Intenta actualizar.'); } };
+    eventButton.addEventListener('click', async () => { try { eventButton.disabled = true; feedback.loading('Registrando evento…'); await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type: eventType.value }) }); Swal.close(); await feedback.success('El evento fue registrado.'); await load(); } catch (cause) { Swal.close(); await feedback.error(cause instanceof Error ? cause.message : 'No se pudo registrar el evento.'); } finally { eventButton.disabled = false; } });
+    void load();
+  };
+  document.addEventListener('astro:page-load', init);
+  init();
+</script>

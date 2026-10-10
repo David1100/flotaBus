@@ -1,0 +1,1 @@
+ALTER TABLE "buses" ADD COLUMN "is_active" BOOLEAN NOT NULL DEFAULT true;

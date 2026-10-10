@@ -1,0 +1,4 @@
+import { Module } from '@nestjs/common'; import { JwtModule } from '@nestjs/jwt'; import { AuthService } from './auth.service'; import { AuthController } from './auth.controller'; import { JwtAuthGuard } from './auth.guard'; import { RolesGuard } from './roles.guard'; import { CsrfGuard } from './csrf.guard'; import { PrismaModule } from '../prisma/prisma.module';
+const secret = process.env.JWT_SECRET;
+if (!secret || secret.length < 32) throw new Error('JWT_SECRET must be configured with at least 32 characters');
+@Module({ imports: [PrismaModule, JwtModule.register({ secret, signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '8h' } })], providers: [AuthService, JwtAuthGuard, RolesGuard, CsrfGuard], controllers: [AuthController], exports: [JwtModule, JwtAuthGuard, RolesGuard, CsrfGuard] }) export class AuthModule {}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="flotaBus">
+  <rect width="192" height="192" rx="42" fill="#080d11"/>
+  <rect x="20" y="20" width="152" height="152" rx="34" fill="#111a1f" stroke="#48e4e0" stroke-width="3"/>
+  <path d="M53 126V70c0-10 8-18 18-18h50c10 0 18 8 18 18v56M53 98h86M69 126v12M123 126v12" fill="none" stroke="#f5ad4b" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M70 78h52" stroke="#48e4e0" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="73" cy="122" r="7" fill="#48e4e0"/><circle cx="119" cy="122" r="7" fill="#48e4e0"/>
+</svg>

@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+  // This deployment connects directly to PostgreSQL; it does not use Accelerate.
+  engineType = "library"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+enum Role {
+  ADMINISTRADOR
+  CHOFER
+}
+enum BusType {
+  DOBLE_PISO
+  NORMAL
+}
+enum BusOperationalStatus {
+  AVAILABLE
+  ASSIGNED
+  IN_TRANSIT
+  MAINTENANCE
+  OUT_OF_ROUTE
+  STOPPED
+  REFUELING
+  INCIDENT
+}
+enum TripStatus {
+  PLANNED
+  ASSIGNED
+  IN_TRANSIT
+  STOPPED
+  PAUSED_LUNCH
+  INCIDENT
+  ARRIVED
+  RETURNED
+  CANCELLED
+}
+enum AssignmentStatus {
+  ACTIVE
+  REVOKED
+}
+enum LegExecutionStatus {
+  NOT_STARTED
+  RUNNING
+  PAUSED
+  FINISHED
+}
+enum MaintenanceArea {
+  CAJA
+  TRANSMISION
+  RETARDADOR
+  LLANTAS
+  AIRE_ACONDICIONADO
+  MOTOR
+}
+enum OperationEventType {
+  STARTED
+  STOPPED
+  LUNCH_STARTED
+  LUNCH_ENDED
+  INCIDENT
+  INCIDENT_RESOLVED
+  ARRIVED
+  RETURNED
+  CANCELLED
+}
+model User {
+  id Int @id @default(autoincrement())
+  username String @unique @db.VarChar(32)
+  nombres String @db.VarChar(120)
+  telefono String @db.VarChar(24)
+  passwordHash String @map("password_hash")
+  rol Role @default(CHOFER)
+  isActive Boolean @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdTrips Trip[] @relation("TripCreator")
+  assignments Assignment[]
+  assignedAssignments Assignment[] @relation("AssignmentActor")
+  operationEvents OperationEvent[]
+  manualBusStatuses Bus[] @relation("BusManualStatusActor")
+  @@index([rol, isActive])
+  @@map("users")
+}
+
+model MaintenanceRecord {
+  id Int @id @default(autoincrement())
+  busId Int @map("bus_id")
+  area MaintenanceArea
+  cost Decimal @db.Decimal(14, 2)
+  detail String @db.VarChar(2000)
+  photoUrl String? @map("photo_url") @db.VarChar(500)
+  recordedAt DateTime @default(now()) @map("recorded_at")
+  bus Bus @relation(fields: [busId], references: [id], onDelete: Cascade)
+
+  @@index([busId, area, recordedAt])
+  @@map("maintenance_records")
+}
+
+model Bus {
+  id          Int      @id @default(autoincrement())
+  placa       String   @unique @db.VarChar(16)
+  kilometraje Int
+  modelo      String   @db.VarChar(80)
+  marca       String   @db.VarChar(80)
+  busType     BusType  @default(NORMAL) @map("bus_type")
+  isActive    Boolean  @default(true) @map("is_active")
+  manualStatus BusOperationalStatus? @map("manual_status")
+  manualStatusUpdatedAt DateTime? @map("manual_status_updated_at")
+  manualStatusUpdatedById Int? @map("manual_status_updated_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  assignments Assignment[]
+  maintenanceRecords MaintenanceRecord[]
+  manualStatusUpdatedBy User? @relation("BusManualStatusActor", fields: [manualStatusUpdatedById], references: [id], onDelete: SetNull)
+
+  @@map("buses")
+}
+
+model Trip {
+  id Int @id @default(autoincrement())
+  code String @unique @db.VarChar(32)
+  origin String @db.VarChar(160)
+  timezone String @default("America/Bogota") @db.VarChar(64)
+  initialStartAt DateTime @map("initial_start_at")
+  notes String? @db.VarChar(1000)
+  status TripStatus @default(PLANNED)
+  createdById Int @map("created_by_id")
+  cancelledAt DateTime? @map("cancelled_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdBy User @relation("TripCreator", fields: [createdById], references: [id])
+  legs TripLeg[]
+  assignments Assignment[]
+  events OperationEvent[]
+  @@index([status, initialStartAt])
+  @@map("trips")
+}
+
+model TripLeg {
+  id Int @id @default(autoincrement())
+  tripId Int @map("trip_id")
+  sequence Int
+  origin String @db.VarChar(160)
+  destination String @db.VarChar(160)
+  plannedDepartureAt DateTime @map("planned_departure_at")
+  durationDays Int @map("duration_days")
+  plannedArrivalAt DateTime @map("planned_arrival_at")
+  notes String? @db.VarChar(1000)
+  trip Trip @relation(fields: [tripId], references: [id])
+  execution LegExecution?
+  assignments Assignment[]
+  @@unique([tripId, sequence])
+  @@index([tripId, plannedDepartureAt])
+  @@map("trip_legs")
+}
+
+model Assignment {
+  id Int @id @default(autoincrement())
+  tripId Int @map("trip_id")
+  legId Int? @map("leg_id")
+  busId Int @map("bus_id")
+  driverId Int @map("driver_id")
+  assignedById Int @map("assigned_by_id")
+  status AssignmentStatus @default(ACTIVE)
+  assignedAt DateTime @default(now()) @map("assigned_at")
+  revokedAt DateTime? @map("revoked_at")
+  trip Trip @relation(fields: [tripId], references: [id])
+  leg TripLeg? @relation(fields: [legId], references: [id])
+  bus Bus @relation(fields: [busId], references: [id])
+  driver User @relation(fields: [driverId], references: [id])
+  assignedBy User @relation("AssignmentActor", fields: [assignedById], references: [id])
+  @@index([busId, status, assignedAt])
+  @@index([driverId, status, assignedAt])
+  @@map("trip_assignments")
+}
+
+model LegExecution {
+  id Int @id @default(autoincrement())
+  legId Int @unique @map("leg_id")
+  status LegExecutionStatus @default(NOT_STARTED)
+  actualDepartureAt DateTime? @map("actual_departure_at")
+  actualArrivalAt DateTime? @map("actual_arrival_at")
+  leg TripLeg @relation(fields: [legId], references: [id])
+  events OperationEvent[]
+  @@map("leg_executions")
+}
+
+model OperationEvent {
+  id Int @id @default(autoincrement())
+  tripId Int @map("trip_id")
+  executionId Int? @map("execution_id")
+  type OperationEventType
+  occurredAt DateTime @map("occurred_at")
+  resumedAt DateTime? @map("resumed_at")
+  notes String? @db.VarChar(1000)
+  metadata Json?
+  actorId Int @map("actor_id")
+  trip Trip @relation(fields: [tripId], references: [id])
+  execution LegExecution? @relation(fields: [executionId], references: [id])
+  actor User @relation(fields: [actorId], references: [id])
+  @@index([tripId, occurredAt])
+  @@map("operation_events")
+}

@@ -1,0 +1,185 @@
+---
+import Base from '../layouts/Base.astro';
+const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
+---
+<Base title={title}>
+  <div class="admin-layout" data-admin-shell data-auth-pending="true">
+    <div class="admin-sidebar-frame" transition:persist="admin-sidebar-frame">
+      <aside class="admin-sidebar glass" transition:persist="admin-sidebar">
+      <a href="/admin" class="brand" data-spa-link aria-label="Ir al inicio de flotaBus">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 10h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <span class="brand-copy"><strong>flotaBus</strong><small>Control de flota</small></span>
+      </a>
+      <div class="nav-label">Operaciones</div>
+      <nav aria-label="Navegación administrativa">
+        <a class:list:active={active === 'dashboard'} href="/admin" data-spa-link>
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19V9.5L12 4l8 5.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 20v-6h6v6" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><span>Choferes</span><span class="nav-arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class:list:active={active === 'buses'} href="/admin/buses" data-spa-link>
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 9h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="16" r=".8" fill="currentColor"/><circle cx="16" cy="16" r=".8" fill="currentColor"/></svg></span><span>Buses</span><span class="nav-arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class:list:active={active === 'trips'} href="/admin/trips" data-spa-link><span class="nav-icon" aria-hidden="true">↝</span><span>Viajes</span><span class="nav-arrow" aria-hidden="true">↗</span></a>
+       </nav>
+       <button id="logout" class="logout" type="button"><span class="logout-icon" aria-hidden="true">↪</span><span>Cerrar sesión</span></button>
+       </aside>
+     </div>
+     <header class="admin-topbar" transition:persist="admin-topbar" aria-label="Estado de la sesión">
+       <div class="topbar-status">
+         <span class="status-dot" aria-hidden="true"></span>
+         <span><strong>Sistema operativo</strong><small>Sesión protegida</small></span>
+       </div>
+     </header>
+    <main class="admin-content"><slot /></main>
+  </div>
+</Base>
+
+<style>
+  [data-admin-shell][data-auth-pending] { visibility: hidden; }
+  [data-admin-shell] { view-transition-name: admin-shell; }
+  .admin-sidebar-frame { min-width: 0; grid-column: 1; }
+  .admin-topbar { grid-column: 2; grid-row: 1; display: flex; align-items: center; justify-content: flex-end; min-height: 25px; height: 25px; padding: 4rem clamp(1.2rem, 4vw, 4.5rem) 0; background: transparent; border: 0; }
+  .topbar-status { display: flex; align-items: center; gap: .65rem; }
+  .topbar-status > span:last-child { display: grid; gap: .2rem; text-align: right; }
+  .topbar-status strong { color: var(--ink); font: 700 .78rem/1 'Outfit', sans-serif; letter-spacing: -.01em; }
+  .topbar-status small { color: var(--subtle); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; }
+  .topbar-status .status-dot { width: .48rem; height: .48rem; border-radius: 999px; background: var(--cyan); box-shadow: 0 0 0 4px rgba(72,228,224,.1), 0 0 14px rgba(72,228,224,.75); animation: status-breathe 2.8s ease-in-out infinite; }
+  @keyframes status-breathe { 50% { box-shadow: 0 0 0 5px rgba(72,228,224,.06), 0 0 16px rgba(72,228,224,.85); } }
+  .admin-content { grid-column: 2; grid-row: 2; align-self: start; }
+  @media (max-width: 760px) { .admin-sidebar-frame { width: 100%; grid-column: 1; grid-row: 1; } .admin-topbar { grid-column: 1; grid-row: 2; min-height: 25px; height: 25px; padding: 1.5rem 1rem 0; } .admin-content { grid-column: 1; grid-row: 3; } .topbar-status { margin-right: auto; } .topbar-status strong { font-size: .7rem; } .topbar-status small { font-size: .58rem; } }
+  @media (prefers-reduced-motion: reduce) { .topbar-status .status-dot { animation: none; } }
+</style>
+
+<script>
+  import { api, ApiError } from '../lib/api';
+  import { feedback, Swal } from '../lib/feedback';
+
+  async function protectAdminShell() {
+    const shell = document.querySelector<HTMLElement>('[data-admin-shell]');
+    if (!shell || shell.dataset.authVerified === 'true' || shell.dataset.authChecking === 'true') return;
+    shell.dataset.authChecking = 'true';
+    shell.setAttribute('data-auth-pending', 'true');
+    try {
+      const user = await api('/auth/me');
+      if (user?.rol !== 'ADMINISTRADOR') {
+        throw new ApiError('Esta sección es exclusiva para administradores.', 403, 'INSUFFICIENT_ROLE');
+      }
+      shell.removeAttribute('data-auth-pending');
+      shell.dataset.authVerified = 'true';
+    } catch (cause) {
+      shell.removeAttribute('data-auth-pending');
+      const message = cause instanceof ApiError && cause.status === 403
+        ? cause.message
+        : 'Tu sesión no permite acceder a esta sección.';
+      await feedback.error(message, 'Acceso no autorizado');
+      Swal.close();
+      window.location.assign('/login');
+    } finally {
+      shell.dataset.authChecking = 'false';
+    }
+  }
+
+  async function bindLogout() {
+    const logout = document.querySelector<HTMLButtonElement>('#logout');
+    if (!logout || logout.dataset.bound === 'true') return;
+    logout.dataset.bound = 'true';
+    logout.addEventListener('click', async () => {
+    try {
+      feedback.loading('Cerrando sesión…');
+      await api('/auth/logout', { method: 'POST' });
+      Swal.close();
+      await feedback.success('Hasta pronto.');
+      window.location.assign('/login');
+    } catch (cause) {
+      Swal.close();
+      await feedback.error(cause instanceof Error ? cause.message : 'No pudimos cerrar la sesión.', 'No se pudo cerrar la sesión');
+    }
+    });
+  }
+
+  function syncNavigation() {
+     const current = window.location.pathname.startsWith('/admin/buses') ? '/admin/buses' : window.location.pathname.startsWith('/admin/trips') ? '/admin/trips' : '/admin';
+    document.querySelectorAll<HTMLAnchorElement>('.admin-sidebar nav a').forEach((link) => {
+      link.classList.toggle('active', link.pathname === current);
+      link.setAttribute('aria-current', link.pathname === current ? 'page' : 'false');
+    });
+  }
+
+  async function loadPageAssets(next: Document) {
+    const currentScriptSources = new Set(Array.from(document.scripts).map((script) => script.src).filter(Boolean));
+    const scripts = Array.from(next.scripts).filter((script) => script.src && !currentScriptSources.has(script.src));
+    // Load page modules only after the new content is live.  Astro's generated
+    // module can already be present when the user visits a route a second time;
+    // in that case the page's astro:page-load listener is reused below.
+    await Promise.all(scripts.map((source) => new Promise<void>((resolve, reject) => {
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = source.src;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Could not load ${source.src}`));
+      currentScriptSources.add(source.src);
+      document.body.append(script);
+    })));
+
+    const currentStyles = new Set(Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')).map((link) => link.href));
+    next.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]').forEach((source) => {
+      if (source.href && !currentStyles.has(source.href)) document.head.append(source.cloneNode(true));
+    });
+  }
+
+  let navigationToken = 0;
+
+  async function navigateAdmin(href: string, addHistory = true) {
+    const token = ++navigationToken;
+    const url = new URL(href, window.location.href);
+      const adminRoutes = new Set(['/admin', '/admin/buses', '/admin/buses/mantenimiento', '/admin/buses/mantenimiento/historial', '/admin/trips', '/admin/trips/detail']);
+     const isAdminRoute = adminRoutes.has(url.pathname);
+     if (url.origin !== window.location.origin || !isAdminRoute) return;
+
+    try {
+      const response = await fetch(url, { headers: { Accept: 'text/html' }, credentials: 'include' });
+      if (!response.ok) throw new Error(`Navigation failed with ${response.status}`);
+      const html = await response.text();
+      if (token !== navigationToken) return;
+      const next = new DOMParser().parseFromString(html, 'text/html');
+       const nextContent = next.querySelector<HTMLElement>('.admin-content');
+      const currentContent = document.querySelector<HTMLElement>('.admin-content');
+       if (!nextContent || !currentContent) throw new Error('Admin content is unavailable');
+
+        if (addHistory) history.pushState({}, '', url.pathname + url.search + url.hash);
+        const importedChildren = Array.from(nextContent.childNodes).map((node) => document.importNode(node, true));
+        // The order is intentional: insert first, load destination modules
+        // second, and notify lifecycle listeners last. This prevents a static
+        // build fallback from winning over state derived from location.search.
+         currentContent.replaceChildren(...importedChildren);
+         await loadPageAssets(next);
+        if (token !== navigationToken) return;
+        document.title = next.title || document.title;
+       document.dispatchEvent(new CustomEvent('astro:page-load'));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      window.location.assign(url.href);
+    }
+  }
+
+  function bindClientRouter() {
+    const shell = document.querySelector<HTMLElement>('[data-admin-shell]');
+    if (!shell || shell.dataset.routerBound === 'true') return;
+    shell.dataset.routerBound = 'true';
+    shell.addEventListener('click', (event) => {
+      const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[data-spa-link]');
+      if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      void navigateAdmin(link.href);
+    });
+    window.addEventListener('popstate', () => {
+      void navigateAdmin(window.location.href, false);
+    });
+  }
+
+  document.addEventListener('astro:page-load', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindClientRouter(); });
+  document.addEventListener('astro:after-swap', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindClientRouter(); });
+  protectAdminShell();
+  bindLogout();
+  syncNavigation();
+  bindClientRouter();
+</script>

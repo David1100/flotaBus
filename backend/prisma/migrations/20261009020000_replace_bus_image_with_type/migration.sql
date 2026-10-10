@@ -1,0 +1,7 @@
+CREATE TYPE "BusType" AS ENUM ('DOBLE_PISO', 'NORMAL');
+
+ALTER TABLE "buses"
+  ADD COLUMN "bus_type" "BusType" NOT NULL DEFAULT 'NORMAL';
+
+ALTER TABLE "buses"
+  DROP COLUMN "url_image";
