@@ -1,33 +1,83 @@
 ---
 import AdminShell from '../../components/AdminShell.astro';
 ---
-<AdminShell title="Consola · flotaBus" active="dashboard">
-  <div class="drivers-page">
-     <section class="page-header drivers-hero fade-in"><div><div class="eyebrow">PANEL ADMINISTRATIVO · 01</div><h1>Tripulación <em>activa.</em></h1><p>Gestiona los perfiles que mantienen la ruta en movimiento.</p></div></section>
-     <section class="glass fleet-card drivers-table-card fade-in" style="animation-delay:.08s"><div class="toolbar"><label class="search-field"><span aria-hidden="true">⌕</span><input id="search" class="input" placeholder="Buscar por nombre o usuario…" aria-label="Buscar choferes" /></label><button id="new" class="btn btn-primary">+ Añadir chofer</button></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Chofer</th><th>Teléfono</th><th>Estado</th><th class="table-actions">Acciones</th></tr></thead><tbody id="rows"><tr><td class="table-state" colspan="4">Cargando tripulación…</td></tr></tbody></table></div></section>
+<AdminShell title="Dashboard · flotaBus" active="dashboard">
+  <div class="dashboard-page">
+    <section class="page-header dashboard-hero fade-in"><div><div class="eyebrow">CENTRO DE CONTROL · 01</div><h1>La flota, <em>en foco.</em></h1><p>Una lectura rápida de operación, asignaciones y mantenimiento.</p></div><div class="period-note" id="period-note">Periodo actual</div></section>
+    <section class="glass dashboard-toolbar fade-in" style="animation-delay:.05s" aria-label="Filtros del dashboard">
+      <label><span>Desde</span><input class="input" id="from" type="date" /></label><label><span>Hasta</span><input class="input" id="to" type="date" /></label><label><span>Bus</span><select class="input" id="bus"><option value="">Todos los buses</option></select></label><label><span>Estado</span><select class="input" id="status"><option value="">Todos</option><option value="AVAILABLE">Disponible</option><option value="ASSIGNED">Asignado</option><option value="IN_TRANSIT">En ruta</option><option value="MAINTENANCE">Mantenimiento</option><option value="STOPPED">Detenido</option><option value="INCIDENT">Incidente</option></select></label><button class="btn btn-primary" id="apply" type="button">Actualizar</button>
+    </section>
+    <div id="dashboard-state" class="dashboard-state" role="status">Cargando resumen…</div>
+    <section class="kpi-grid" id="kpis" hidden></section>
+    <section class="dashboard-grid" id="dashboard-content" hidden>
+      <article class="glass dashboard-card maintenance-cost-card"><div class="card-heading"><div><div class="eyebrow">INVERSIÓN</div><h2>Mantenimiento por bus</h2></div><span class="card-mark">$</span></div><div class="admin-table-wrap"><table class="admin-table compact-table"><thead><tr><th>Bus</th><th>Registros</th><th class="align-right">Costo</th></tr></thead><tbody id="maintenance-rows"></tbody></table></div></article>
+      <article class="glass dashboard-card"><div class="card-heading"><div><div class="eyebrow">ATENCIÓN</div><h2>Buses en mantenimiento</h2></div><span class="card-mark">⌁</span></div><div class="stack-list" id="maintenance-buses"></div></article>
+      <article class="glass dashboard-card trips-card"><div class="card-heading"><div><div class="eyebrow">OPERACIÓN</div><h2>Viajes activos</h2></div><span class="card-mark">↝</span></div><div class="stack-list" id="active-trips"></div></article>
+      <article class="glass dashboard-card"><div class="card-heading"><div><div class="eyebrow">COBERTURA</div><h2>Sin asignación activa</h2></div><span class="card-mark">○</span></div><div class="stack-list" id="unassigned-buses"></div></article>
+    </section>
   </div>
-    <div id="modal" class="modal-backdrop" hidden aria-hidden="true"><div class="glass modal-card admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-heading"><div><div class="eyebrow">PERFIL DE CHOFER</div><h2 id="modal-title" class="font-display">Nuevo chofer</h2></div><button id="close" class="icon-button" type="button" aria-label="Cerrar">×</button></div><form id="driver-form" class="space-y-4"><input type="hidden" id="driver-id"/><label class="form-label">Usuario<input id="driver-username" class="input mt-2" required minlength="3"/></label><label class="form-label">Nombres<input id="driver-name" class="input mt-2" required minlength="2"/></label><label class="form-label">Teléfono<input id="driver-phone" class="input mt-2"/></label><label class="form-label">Contraseña<input id="driver-password" type="password" class="input mt-2" minlength="8"/><small id="password-help" class="muted">Mínimo 8 caracteres.</small></label><div class="form-actions flex justify-end gap-3 pt-3"><button id="cancel" class="btn btn-secondary" type="button">Cancelar</button><button id="save" class="btn btn-primary" type="submit">Guardar cambios</button></div></form></div></div>
 </AdminShell>
+
+<style>
+  .dashboard-page { max-width: 1240px; margin: 0 auto; }
+  .dashboard-hero { align-items: end; margin-bottom: 2rem; }
+  .dashboard-hero h1 { margin: .5rem 0 .7rem; font-size: clamp(2.8rem, 6vw, 5.4rem); line-height: .88; letter-spacing: -.065em; }
+  .dashboard-hero h1 em { color: var(--cyan); font-style: normal; }
+  .dashboard-hero p { margin: 0; color: var(--muted); }
+  .period-note { color: var(--subtle); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+  .dashboard-toolbar { display: grid; grid-template-columns: repeat(4, minmax(8rem, 1fr)) auto; gap: .7rem; align-items: end; padding: .9rem; margin-bottom: 1rem; border-radius: 1.1rem; }
+  .dashboard-toolbar label { display: grid; gap: .35rem; color: var(--muted); font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .dashboard-toolbar .input { min-height: 2.7rem; padding: .62rem .75rem; font-size: .79rem; color-scheme: dark; }
+  .dashboard-toolbar .btn { min-height: 2.7rem; }
+  .dashboard-state { margin: 1rem 0; color: var(--muted); text-align: center; font-size: .82rem; }
+  .dashboard-state.error { color: #ff9daa; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .7rem; margin: 1rem 0; }
+  .kpi { min-height: 8rem; padding: 1rem; border: 1px solid var(--line); border-radius: 1rem; background: linear-gradient(145deg, rgba(27,37,40,.9), rgba(11,17,21,.78)); box-shadow: inset 0 1px rgba(255,255,255,.05); }
+  .kpi-label { color: var(--subtle); font-size: .62rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+  .kpi-value { display: block; margin-top: .85rem; color: var(--ink); font: 700 clamp(1.5rem, 2.5vw, 2rem)/1 'Outfit', sans-serif; letter-spacing: -.05em; }
+  .kpi-value.accent { color: var(--cyan); }
+  .dashboard-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: .9rem; }
+  .dashboard-card { min-width: 0; overflow: hidden; border-radius: 1.15rem; }
+  .card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: .8rem; padding: 1.1rem 1.15rem .75rem; }
+  .card-heading h2 { margin: .35rem 0 0; color: var(--ink); font: 600 1.2rem/1.1 'Outfit', sans-serif; letter-spacing: -.03em; }
+  .card-mark { display: grid; place-items: center; width: 2rem; height: 2rem; border: 1px solid rgba(72,228,224,.2); border-radius: .7rem; color: var(--cyan); background: rgba(72,228,224,.08); font-weight: 800; }
+  .trips-card { grid-column: 1 / -1; }
+  .compact-table { min-width: 0; }
+  .compact-table th, .compact-table td { padding: .72rem 1.15rem; }
+  .align-right { text-align: right!important; }
+  .stack-list { display: grid; gap: .5rem; padding: .35rem 1.15rem 1.15rem; }
+  .stack-item { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding: .75rem .8rem; border: 1px solid rgba(234,239,226,.08); border-radius: .8rem; background: rgba(5,11,14,.28); }
+  .stack-item strong, .stack-item small { display: block; }
+  .stack-item strong { color: var(--ink); font-size: .8rem; }
+  .stack-item small { margin-top: .2rem; color: var(--muted); font-size: .68rem; }
+  .stack-item .tag { flex: 0 0 auto; color: var(--cyan); font-size: .68rem; font-weight: 800; }
+  .empty-state { padding: 1.8rem .8rem; color: var(--subtle); text-align: center; font-size: .78rem; }
+  @media (max-width: 1050px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 760px) { .dashboard-hero { align-items: flex-start; } .dashboard-toolbar { grid-template-columns: repeat(2, 1fr); } .dashboard-toolbar .btn { grid-column: 1 / -1; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } .dashboard-grid { grid-template-columns: 1fr; } .trips-card { grid-column: auto; } }
+</style>
+
 <script>
   import { api } from '../../lib/api';
-  import { feedback, Swal } from '../../lib/feedback';
-  type Driver = { id: number; username: string; fullName?: string; nombres?: string; phone?: string; telefono?: string; isActive: boolean };
-  function initDrivers() {
-    if (!document.querySelector('#rows') || document.querySelector('#rows')?.getAttribute('data-ready') === 'true') return;
-    document.querySelector('#rows')?.setAttribute('data-ready', 'true');
-    const $ = <T extends Element>(selector: string) => document.querySelector<T>(selector);
-    const rows = $('#rows')!, modal = $('#modal')!, form = $('#driver-form') as HTMLFormElement, save = $('#save') as HTMLButtonElement;
-    let drivers: Driver[] = [];
-    const showError = (cause: unknown, title = 'No se pudo completar la acción') => feedback.error(cause instanceof Error ? cause.message : 'Error inesperado.', title);
-     function render() { const query = ($('#search') as HTMLInputElement).value.toLowerCase(); const filtered = drivers.filter((d) => `${d.username} ${d.fullName ?? d.nombres ?? ''}`.toLowerCase().includes(query)); rows.innerHTML = filtered.length ? filtered.map((d) => { const name = d.fullName ?? d.nombres ?? '—'; const initials = name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase(); return `<tr><td><div class="person-cell"><span class="avatar">${initials}</span><span><strong>${name}</strong><small>@${d.username}</small></span></div></td><td>${d.phone ?? d.telefono ?? 'Sin teléfono'}</td><td><span class="status-pill ${d.isActive ? 'is-active' : 'is-inactive'}"><i></i>${d.isActive ? 'Activo' : 'Inactivo'}</span></td><td class="table-actions"><button class="link-button" data-edit="${d.id}">Editar</button>${d.isActive ? `<button class="danger-link" data-delete="${d.id}">Desactivar</button>` : ''}</td></tr>`; }).join('') : '<tr><td class="table-state" colspan="4">No hay perfiles que coincidan.</td></tr>'; }
-    async function load() { rows.innerHTML = '<tr><td class="table-state" colspan="4">Actualizando tripulación…</td></tr>'; try { const result = await api('/drivers'); drivers = result.data ?? result; render(); } catch (cause) { rows.innerHTML = '<tr><td class="table-state error" colspan="4">No pudimos cargar los choferes. Intenta actualizar.</td></tr>'; await showError(cause, 'Error al cargar la tripulación'); } }
-      let lastFocused: HTMLElement | null = null; let closeTimer: number | undefined; let closeFinish: ((event?: TransitionEvent) => void) | null = null; let transitionVersion = 0;
-      function open(driver?: Driver) { if(closeTimer !== undefined){ window.clearTimeout(closeTimer); closeTimer=undefined; } if(closeFinish){ modal.removeEventListener('transitionend',closeFinish); closeFinish=null; } const openVersion=++transitionVersion; lastFocused=document.activeElement as HTMLElement; (modal as HTMLElement).classList.remove('is-closing'); (modal as HTMLElement).hidden=false; modal.setAttribute('aria-hidden','false'); requestAnimationFrame(()=>{ if(!(modal as HTMLElement).hidden && openVersion===transitionVersion) modal.classList.add('is-open'); }); $('#modal-title')!.textContent = driver ? 'Editar chofer' : 'Nuevo chofer'; ($('#driver-id') as HTMLInputElement).value = driver ? String(driver.id) : ''; ($('#driver-username') as HTMLInputElement).value = driver?.username ?? ''; ($('#driver-username') as HTMLInputElement).disabled = !!driver; ($('#driver-name') as HTMLInputElement).value = driver?.fullName ?? driver?.nombres ?? ''; ($('#driver-phone') as HTMLInputElement).value = driver?.phone ?? driver?.telefono ?? ''; ($('#driver-password') as HTMLInputElement).value = ''; $('#password-help')!.textContent = driver ? 'Déjalo vacío para conservar la actual.' : 'Mínimo 8 caracteres.'; setTimeout(()=>($('#driver-username') as HTMLInputElement).focus(),40); }
-      function close() { if((modal as HTMLElement).hidden || modal.classList.contains('is-closing')) return; const closeVersion=++transitionVersion; modal.classList.remove('is-open'); modal.classList.add('is-closing'); const finish=(event?:TransitionEvent)=>{ if(closeVersion!==transitionVersion || (event && (event.target!==modal || event.propertyName!=='opacity'))) return; modal.removeEventListener('transitionend',finish); closeFinish=null; if(closeTimer !== undefined){ window.clearTimeout(closeTimer); closeTimer=undefined; } modal.classList.remove('is-open','is-closing'); (modal as HTMLElement).hidden=true; modal.setAttribute('aria-hidden','true'); lastFocused?.focus(); }; closeFinish=finish; modal.addEventListener('transitionend',finish); closeTimer=window.setTimeout(finish,260); }
-     $('#new')?.addEventListener('click', () => open()); $('#close')?.addEventListener('click', close); $('#cancel')?.addEventListener('click', close); $('#search')?.addEventListener('input', render); modal.addEventListener('click',(event)=>{if(event.target===modal)close();}); document.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&!((modal as HTMLElement).hidden))close();});
-    rows.addEventListener('click', async (event) => { const target = event.target as HTMLElement; const id = Number(target.dataset.edit ?? target.dataset.delete); const driver = drivers.find((item) => item.id === id); if (!driver) return; if (target.dataset.edit) return open(driver); const confirmation = await feedback.confirm(`Se desactivará a @${driver.username}. Podrás conservar su trazabilidad, pero ya no podrá iniciar sesión.`, '¿Desactivar chofer?'); if (!confirmation.isConfirmed) return; try { feedback.loading('Desactivando perfil…'); await api(`/drivers/${id}`, { method: 'DELETE' }); Swal.close(); await feedback.success('El perfil fue desactivado.'); await load(); } catch (cause) { Swal.close(); await showError(cause, 'No se pudo desactivar'); } });
-    form.addEventListener('submit', async (event) => { event.preventDefault(); save.disabled = true; save.textContent = 'Guardando…'; const id = ($('#driver-id') as HTMLInputElement).value; const password = ($('#driver-password') as HTMLInputElement).value; const payload = { username: ($('#driver-username') as HTMLInputElement).value.trim(), nombres: ($('#driver-name') as HTMLInputElement).value.trim(), telefono: ($('#driver-phone') as HTMLInputElement).value.trim(), ...(password ? { password } : {}) }; try { feedback.loading(id ? 'Guardando cambios…' : 'Creando perfil…'); await api(id ? `/drivers/${id}` : '/drivers', { method: id ? 'PATCH' : 'POST', body: JSON.stringify(id ? { nombres: payload.nombres, telefono: payload.telefono, ...(password ? { password } : {}) } : payload) }); Swal.close(); close(); await feedback.success(id ? 'Los cambios fueron guardados.' : 'El nuevo chofer ya está en la tripulación.', id ? 'Perfil actualizado' : 'Chofer creado'); await load(); } catch (cause) { Swal.close(); await showError(cause, id ? 'No se pudo actualizar' : 'No se pudo crear'); } finally { save.disabled = false; save.textContent = 'Guardar cambios'; } });
-    load();
+  type Overview = { period: { from: string; to: string; defaulted: boolean }; kpis: { totalBuses: number; availableBuses: number; operationalBuses: number; maintenanceBuses: number; activeDrivers: number; activeTrips: number; maintenanceCost: number }; maintenanceByBus: Array<{ busId: number; placa: string; total: number; records: number }>; busesInMaintenance: Array<{ id: number; placa: string; marca: string; modelo: string }>; activeTrips: Array<{ code: string; origin: string; status: string; initialStartAt: string; assignments: Array<{ bus: { placa: string }; driver: { nombres: string } }> }>; unassignedBuses: Array<{ id: number; placa: string; status: string; defaultDriver: { nombres: string } | null }> };
+  type Bus = { id: number; placa: string };
+  const $ = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
+  const currency = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+  const date = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
+  const statusLabel: Record<string, string> = { PLANNED: 'Planeado', ASSIGNED: 'Asignado', IN_TRANSIT: 'En ruta', STOPPED: 'Detenido', PAUSED_LUNCH: 'Pausa', INCIDENT: 'Incidente', AVAILABLE: 'Disponible', MAINTENANCE: 'Mantenimiento' };
+  const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char] ?? char));
+  const empty = (message: string) => `<div class="empty-state">${message}</div>`;
+  function render(data: Overview) {
+    const k = data.kpis;
+    const cards = [['Buses totales', k.totalBuses], ['Disponibles', k.availableBuses], ['En ruta / operativos', k.operationalBuses], ['En mantenimiento', k.maintenanceBuses], ['Choferes activos', k.activeDrivers], ['Viajes activos', k.activeTrips], ['Gasto del periodo', currency.format(k.maintenanceCost)]];
+    $('#kpis').innerHTML = cards.map(([label, value], index) => `<div class="kpi"><span class="kpi-label">${label}</span><strong class="kpi-value ${index === 6 ? 'accent' : ''}">${value}</strong></div>`).join('');
+    $('#maintenance-rows').innerHTML = data.maintenanceByBus.length ? data.maintenanceByBus.map((row) => `<tr><td><strong>${escapeHtml(row.placa)}</strong><small>Bus #${row.busId}</small></td><td>${row.records}</td><td class="align-right"><strong>${currency.format(row.total)}</strong></td></tr>`).join('') : `<tr><td class="table-state" colspan="3">No hay mantenimientos en este periodo.</td></tr>`;
+    $('#maintenance-buses').innerHTML = data.busesInMaintenance.length ? data.busesInMaintenance.map((bus) => `<div class="stack-item"><span><strong>${escapeHtml(bus.placa)}</strong><small>${escapeHtml(bus.marca)} · ${escapeHtml(bus.modelo)}</small></span><span class="tag">Mantenimiento</span></div>`).join('') : empty('No hay buses en mantenimiento.');
+    $('#active-trips').innerHTML = data.activeTrips.length ? data.activeTrips.map((trip) => { const assignment = trip.assignments[0]; return `<div class="stack-item"><span><strong>${escapeHtml(trip.code)} · ${escapeHtml(trip.origin)}</strong><small>${assignment ? `${escapeHtml(assignment.bus.placa)} · ${escapeHtml(assignment.driver.nombres)}` : 'Pendiente de asignación'} · ${date.format(new Date(trip.initialStartAt))}</small></span><span class="tag">${statusLabel[trip.status] ?? trip.status}</span></div>`; }).join('') : empty('No hay viajes activos para mostrar.');
+    $('#unassigned-buses').innerHTML = data.unassignedBuses.length ? data.unassignedBuses.map((bus) => `<div class="stack-item"><span><strong>${escapeHtml(bus.placa)}</strong><small>${bus.defaultDriver ? `Chofer por defecto: ${escapeHtml(bus.defaultDriver.nombres)}` : 'Sin chofer por defecto'}</small></span><span class="tag">${statusLabel[bus.status] ?? bus.status}</span></div>`).join('') : empty('Todos los buses tienen una asignación activa.');
+    $('#period-note').textContent = `Periodo: ${date.format(new Date(data.period.from))} — ${date.format(new Date(data.period.to))}`;
   }
-  document.addEventListener('astro:page-load', initDrivers); initDrivers();
+  async function loadBuses() { try { const result = await api('/buses/catalog'); const buses: Bus[] = result.data ?? result; $('#bus').innerHTML += buses.map((bus) => `<option value="${bus.id}">${escapeHtml(bus.placa)}</option>`).join(''); } catch { /* El filtro sigue disponible aunque el catálogo falle. */ } }
+  async function load() { const state = $('#dashboard-state'); state.hidden = false; state.textContent = 'Actualizando resumen…'; state.classList.remove('error'); const params = new URLSearchParams(); for (const id of ['from', 'to', 'bus', 'status']) { const value = ($(`#${id}`) as HTMLInputElement | HTMLSelectElement).value; if (value) params.set(id === 'bus' ? 'busId' : id, value); } try { const data: Overview = await api(`/dashboard/overview?${params}`); render(data); $('#kpis').hidden = false; $('#dashboard-content').hidden = false; state.hidden = true; } catch (error) { state.textContent = error instanceof Error ? error.message : 'No se pudo cargar el dashboard.'; state.classList.add('error'); } }
+  function init() { const apply = $('#apply'); if (apply.dataset.bound === 'true') return; apply.dataset.bound = 'true'; apply.addEventListener('click', load); loadBuses(); load(); }
+  document.addEventListener('astro:page-load', init); init();
 </script>

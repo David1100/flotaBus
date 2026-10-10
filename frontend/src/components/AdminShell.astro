@@ -6,14 +6,17 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
   <div class="admin-layout" data-admin-shell data-auth-pending="true">
     <div class="admin-sidebar-frame" transition:persist="admin-sidebar-frame">
       <aside class="admin-sidebar glass" transition:persist="admin-sidebar">
-      <a href="/admin" class="brand" data-spa-link aria-label="Ir al inicio de flotaBus">
+       <a href="/admin" class="brand" data-spa-link aria-label="Ir al inicio de flotaBus">
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 10h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
         <span class="brand-copy"><strong>flotaBus</strong><small>Control de flota</small></span>
       </a>
       <div class="nav-label">Operaciones</div>
       <nav aria-label="Navegación administrativa">
-        <a class:list:active={active === 'dashboard'} href="/admin" data-spa-link>
-          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19V9.5L12 4l8 5.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 20v-6h6v6" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><span>Choferes</span><span class="nav-arrow" aria-hidden="true">↗</span>
+          <a class:list:active={active === 'dashboard'} href="/admin" data-spa-link>
+           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19V9.5L12 4l8 5.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 20v-6h6v6" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><span>Dashboard</span><span class="nav-arrow" aria-hidden="true">↗</span>
+         </a>
+         <a class:list:active={active === 'drivers'} href="/admin/drivers" data-spa-link>
+           <span class="nav-icon" aria-hidden="true">♙</span><span>Conductores</span><span class="nav-arrow" aria-hidden="true">↗</span>
         </a>
         <a class:list:active={active === 'buses'} href="/admin/buses" data-spa-link>
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 9h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="16" r=".8" fill="currentColor"/><circle cx="16" cy="16" r=".8" fill="currentColor"/></svg></span><span>Buses</span><span class="nav-arrow" aria-hidden="true">↗</span>
@@ -97,7 +100,7 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
   }
 
   function syncNavigation() {
-     const current = window.location.pathname.startsWith('/admin/buses') ? '/admin/buses' : window.location.pathname.startsWith('/admin/trips') ? '/admin/trips' : '/admin';
+     const current = window.location.pathname.startsWith('/admin/drivers') ? '/admin/drivers' : window.location.pathname.startsWith('/admin/buses') ? '/admin/buses' : window.location.pathname.startsWith('/admin/trips') ? '/admin/trips' : '/admin';
     document.querySelectorAll<HTMLAnchorElement>('.admin-sidebar nav a').forEach((link) => {
       link.classList.toggle('active', link.pathname === current);
       link.setAttribute('aria-current', link.pathname === current ? 'page' : 'false');
@@ -131,7 +134,7 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
   async function navigateAdmin(href: string, addHistory = true) {
     const token = ++navigationToken;
     const url = new URL(href, window.location.href);
-      const adminRoutes = new Set(['/admin', '/admin/buses', '/admin/buses/mantenimiento', '/admin/buses/mantenimiento/historial', '/admin/trips', '/admin/trips/detail']);
+      const adminRoutes = new Set(['/admin', '/admin/drivers', '/admin/buses', '/admin/buses/mantenimiento', '/admin/buses/mantenimiento/historial', '/admin/trips', '/admin/trips/detail']);
      const isAdminRoute = adminRoutes.has(url.pathname);
      if (url.origin !== window.location.origin || !isAdminRoute) return;
 

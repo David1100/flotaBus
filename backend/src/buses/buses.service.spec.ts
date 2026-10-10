@@ -36,12 +36,44 @@ describe('BusesService', () => {
   });
 
   it('marks an active bus without a current assignment as available', async () => {
-    db.bus.findMany.mockResolvedValue([{ id: 1, placa: 'ABC-1', isActive: true, manualStatus: null, assignments: [] }]);
+    db.bus.findMany.mockResolvedValue([{ id: 1, placa: 'ABC-1', isActive: true, manualStatus: null, assignments: [], defaultDrivers: [] }]);
     db.bus.count.mockResolvedValue(1);
 
     const result = await service.list();
 
-    expect(result.data[0]).toEqual(expect.objectContaining({ status: 'AVAILABLE', currentAssignment: null }));
+    expect(result.data[0]).toEqual(expect.objectContaining({ status: 'AVAILABLE', currentAssignment: null, defaultDrivers: [] }));
+  });
+
+  it('returns an empty default driver collection without exposing user secrets', async () => {
+    db.bus.findMany.mockResolvedValue([{ id: 1, placa: 'ABC-1', isActive: true, manualStatus: null, assignments: [], defaultDrivers: [] }]);
+    db.bus.count.mockResolvedValue(1);
+
+    const result = await service.list();
+
+    expect(result.data[0].defaultDrivers).toEqual([]);
+    expect(db.bus.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      include: expect.objectContaining({
+        defaultDrivers: expect.objectContaining({
+          where: { rol: 'CHOFER' },
+          select: { id: true, codigo: true, nombres: true, username: true, photoUrl: true },
+        }),
+      }),
+    }));
+  });
+
+  it('returns multiple default drivers separately from the current assignment', async () => {
+    const defaultDrivers = [
+      { id: 2, codigo: 'COND-002', nombres: 'Ana Pérez', username: 'aperez', photoUrl: '/ana.jpg' },
+      { id: 3, codigo: 'COND-003', nombres: 'Luis Gómez', username: 'lgomez', photoUrl: null },
+    ];
+    db.bus.findMany.mockResolvedValue([{ id: 1, placa: 'ABC-1', isActive: true, manualStatus: null, assignments: [], defaultDrivers }]);
+    db.bus.count.mockResolvedValue(1);
+
+    const result = await service.list();
+
+    expect(result.data[0].defaultDrivers).toEqual(defaultDrivers);
+    expect(result.data[0].currentAssignment).toBeNull();
+    expect(result.data[0].defaultDrivers[0]).not.toHaveProperty('passwordHash');
   });
 
   it('normalizes plate and text before creating', async () => {

@@ -7,6 +7,18 @@ import { BusOperationalStatus, CreateBusDto, UpdateBusDto } from './dto/bus.dto'
 export class BusesService {
   constructor(private readonly db: PrismaService) {}
 
+  async listAvailable() {
+    return this.db.bus.findMany({
+      where: {
+        isActive: true,
+        OR: [{ manualStatus: null }, { manualStatus: 'AVAILABLE' }],
+        assignments: { none: { status: 'ACTIVE', trip: { status: { notIn: ['RETURNED', 'CANCELLED'] } } } },
+      },
+      select: { id: true, marca: true, modelo: true, placa: true },
+      orderBy: [{ marca: 'asc' }, { modelo: 'asc' }, { placa: 'asc' }],
+    });
+  }
+
   async list(search = '', page = 1, limit = 20) {
     const safePage = Math.max(1, page || 1);
     const safeLimit = Math.min(100, Math.max(1, limit || 20));
@@ -36,25 +48,31 @@ export class BusesService {
               driver: { select: { id: true, nombres: true, username: true } },
             },
           },
+          defaultDrivers: {
+            where: { rol: 'CHOFER' },
+            orderBy: [{ nombres: 'asc' }, { username: 'asc' }],
+            select: { id: true, codigo: true, nombres: true, username: true, photoUrl: true },
+          },
         },
       }),
       this.db.bus.count({ where }),
     ]);
     return {
-      data: data.map(({ assignments, ...bus }) => {
+      data: data.map(({ assignments, defaultDrivers, ...bus }) => {
         const assignment = assignments[0];
         return {
           ...bus,
           // Keep the response additive: existing bus fields remain unchanged.
            status: !bus.isActive ? 'INACTIVE' : assignment?.trip.status ?? bus.manualStatus ?? 'AVAILABLE',
-          currentAssignment: assignment ? {
+           currentAssignment: assignment ? {
             id: assignment.id,
             tripId: assignment.tripId,
             assignedAt: assignment.assignedAt,
             trip: assignment.trip,
-            driver: assignment.driver,
-          } : null,
-        };
+             driver: assignment.driver,
+           } : null,
+           defaultDrivers: defaultDrivers ?? [],
+         };
       }),
       total,
       page: safePage,
@@ -66,6 +84,16 @@ export class BusesService {
     const bus = await this.db.bus.findUnique({ where: { id }, select: { id: true, placa: true } });
     if (!bus) throw new NotFoundException('Bus no encontrado.');
     return bus;
+  }
+
+  async getPhoto(id: number) {
+    const bus = await this.db.bus.findUnique({ where: { id }, select: { photoPublicId: true } });
+    if (!bus) throw new NotFoundException('Bus no encontrado.');
+    return bus;
+  }
+
+  async setPhoto(id: number, photo: { photoUrl: string; photoPublicId: string }) {
+    try { return await this.db.bus.update({ where: { id }, data: photo }); } catch (error: any) { if (error?.code === 'P2025') throw new NotFoundException('Bus no encontrado.'); throw error; }
   }
 
   private normalize(dto: CreateBusDto | UpdateBusDto) {

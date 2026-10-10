@@ -10,6 +10,10 @@ Consola Astro/Tailwind para autenticación y CRUD de choferes, con API NestJS, P
 
 `DATABASE_URL` y `DIRECT_URL` son obligatorias para `prisma migrate deploy` y el seed. `DATABASE_URL` puede ser una URL pooler PostgreSQL para la aplicación y `DIRECT_URL` una URL PostgreSQL directa para migraciones. En producción configura ambas como secretos del entorno, nunca en código.
 
+### Fotos de buses y choferes
+
+Las fotos se suben desde el backend a Cloudinary mediante `POST /buses/:id/photo` y `POST /drivers/:id/photo`, autenticados con JWT/cookie, CSRF y rol `ADMINISTRADOR`. Solo se aceptan JPG, PNG, WEBP o GIF de hasta **5 MB**; la base de datos guarda únicamente `photoUrl` y `photoPublicId`. Configura en el backend `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` y opcionalmente `CLOUDINARY_FOLDER`. Durante la transición también se aceptan los aliases `CLOUDINARY_NAME`, `CLOUDINARY_KEY` y `CLOUDINARY_SECRET`. Nunca copies estas variables al frontend ni expongas el secret. Si el secret fue compartido previamente, rótalo en Cloudinary.
+
 ### Prisma: reinicio y regeneración segura
 
 Este backend usa el engine `library` de Prisma para PostgreSQL directo. Los scripts `prisma:*` ejecutan primero un guard que rechaza variables heredadas de Data Proxy/Accelerate (`PRISMA_GENERATE_DATAPROXY`, `PRISMA_GENERATE_ACCELERATE`, `PRISMA_ACCELERATE_URL`) y tipos de engine distintos de `library`/`binary`. Si el guard falla, elimina esas variables del proceso/servicio y no conviertas `DATABASE_URL` a `prisma://`.
@@ -19,6 +23,8 @@ Para aplicar la corrección tras cambiar entorno o dependencias: detén todos lo
 ## API
 
 `GET /health` devuelve únicamente `{ "status": "ok" }` y se puede usar como health check público de Render. `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`; CRUD protegido de administrador en `/drivers` y `/buses`. Los buses exponen `GET /buses?search=&page=1&limit=20` con `{data,total,page,limit}`, además de `POST`, `PATCH /buses/:id` y `DELETE /buses/:id`. Las mutaciones requieren la cookie CSRF y header `x-csrf-token`; solo `ADMINISTRADOR` puede acceder.
+
+`GET /dashboard/overview?from=YYYY-MM-DD&to=YYYY-MM-DD&busId=&status=` devuelve los KPI y listas agregadas del dashboard administrativo. Si no se envían fechas usa el mes calendario actual hasta el momento de la consulta (`period.defaulted=true`). El endpoint está protegido por JWT y rol `ADMINISTRADOR`; incluye únicamente costos de `MaintenanceRecord` y no calcula combustible ni peajes.
 
 ## Migraciones
 

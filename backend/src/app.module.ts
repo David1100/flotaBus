@@ -7,9 +7,11 @@ import { BusesModule } from './buses/buses.module';
 import { TripsModule } from './trips/trips.module';
 import { MaintenanceRecordsModule } from './maintenance-records/maintenance-records.module';
 import { HealthController } from './health.controller';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, DriversModule, BusesModule, TripsModule, MaintenanceRecordsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), CloudinaryModule, PrismaModule, AuthModule, DriversModule, BusesModule, TripsModule, MaintenanceRecordsModule, DashboardModule],
   controllers: [HealthController],
 })
 export class AppModule {}

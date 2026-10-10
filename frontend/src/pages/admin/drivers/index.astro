@@ -1,0 +1,144 @@
+---
+import AdminShell from '../../../components/AdminShell.astro';
+---
+
+<AdminShell title="Conductores · flotaBus" active="drivers">
+  <div class="drivers-page">
+    <section class="page-header drivers-hero fade-in">
+      <div><div class="eyebrow">PANEL ADMINISTRATIVO · 01</div><h1>Tripulación <em>activa.</em></h1><p>Gestiona los perfiles que mantienen la ruta en movimiento.</p></div>
+    </section>
+    <section class="glass fleet-card drivers-table-card fade-in" style="animation-delay:.08s">
+      <div class="toolbar"><label class="search-field"><span aria-hidden="true">⌕</span><input id="search" class="input" placeholder="Buscar por código, nombre o usuario…" aria-label="Buscar choferes" /></label><button id="new" class="btn btn-primary" type="button">+ Añadir chofer</button></div>
+      <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Chofer</th><th>Código</th><th>Bus por defecto</th><th>Teléfono</th><th>Estado</th><th class="table-actions">Acciones</th></tr></thead><tbody id="rows"><tr><td class="table-state" colspan="6">Cargando tripulación…</td></tr></tbody></table></div>
+    </section>
+  </div>
+
+    <div id="modal" class="modal-backdrop" hidden aria-hidden="true">
+    <div class="glass modal-card admin-modal-card modal-bus" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-heading"><div><div class="eyebrow">PERFIL DE CHOFER</div><h2 id="modal-title" class="font-display">Nuevo chofer</h2></div><button id="close" class="icon-button" type="button" aria-label="Cerrar">×</button></div>
+      <form id="driver-form" class="form-grid">
+        <input type="hidden" id="driver-id" />
+        <label> Código único <input id="driver-code" class="input" required minlength="3" maxlength="20" pattern="[A-Za-z0-9][A-Za-z0-9-]{2,19}" placeholder="COND-001" /><small class="field-help">3–20 caracteres: letras, números y guiones.</small></label>
+        <label> Usuario <input id="driver-username" class="input" required minlength="3" maxlength="64" pattern="[A-Za-z0-9._-]+" /><small id="username-help" class="field-help">Se usa para iniciar sesión.</small></label>
+        <label> Nombres <input id="driver-name" class="input" required minlength="3" maxlength="120" /></label>
+        <label> Teléfono <input id="driver-phone" class="input" required pattern="\+?[0-9 ()-]{7,24}" maxlength="24" placeholder="+57 300 000 0000" /></label>
+        <label class="full"> Bus por defecto <select id="driver-bus" class="input"><option value="">Sin bus por defecto</option></select><small id="bus-help" class="field-help">Solo aparecen buses activos y disponibles.</small></label>
+        <div class="active-toggle full"><input id="driver-active" class="switch-input" type="checkbox" role="switch" aria-checked="true" checked /><label class="switch-label" for="driver-active"><span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span><span class="switch-copy"><strong>Conductor activo</strong><small id="driver-active-help">Puede iniciar sesión y recibir asignaciones.</small></span></label></div>
+        <label class="full"> Contraseña <input id="driver-password" type="password" class="input" minlength="8" maxlength="128" autocomplete="new-password" /><small id="password-help" class="field-help">Mínimo 8 caracteres.</small></label>
+        <div class="form-actions full flex justify-end gap-3 pt-3"><button id="cancel" class="btn btn-secondary" type="button">Cancelar</button><button id="save" class="btn btn-primary" type="submit">Guardar cambios</button></div>
+      </form>
+    </div>
+  </div>
+</AdminShell>
+
+<script>
+  import { api } from '../../../lib/api';
+  import { feedback, Swal } from '../../../lib/feedback';
+  import { setupPhotoPicker, getPhotoPicker } from '../../../lib/photo-picker';
+
+  type Bus = { id: number; marca: string; modelo: string; placa: string };
+  type Driver = { id: number; codigo?: string | null; username: string; nombres?: string; fullName?: string; telefono?: string; phone?: string; isActive: boolean; photoUrl?: string | null; defaultBusId?: number | null; defaultBus?: Bus | null };
+  type PhotoForm = HTMLFormElement & { photoPicker?: ReturnType<typeof setupPhotoPicker> };
+
+  const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char] ?? char));
+
+  function initDrivers() {
+    const rows = document.querySelector<HTMLTableSectionElement>('#rows');
+    const form = document.querySelector<HTMLFormElement>('#driver-form');
+    if (!rows || !form || rows.dataset.ready === 'true') return;
+    rows.dataset.ready = 'true';
+    const $ = <T extends Element>(selector: string) => document.querySelector<T>(selector)!;
+    const modal = $('#modal') as HTMLElement;
+    const save = $('#save') as HTMLButtonElement;
+    const busSelect = $('#driver-bus') as HTMLSelectElement;
+    let drivers: Driver[] = [];
+    let buses: Bus[] = [];
+    let lastFocused: HTMLElement | null = null;
+    let closeTimer: number | undefined;
+    let closeFinish: ((event?: TransitionEvent) => void) | null = null;
+    let transitionVersion = 0;
+
+    const showError = (cause: unknown, title = 'No se pudo completar la acción') => feedback.error(cause instanceof Error ? cause.message : 'Error inesperado.', title);
+    const busLabel = (bus?: Bus | null) => bus ? `${bus.marca} · ${bus.modelo} · ${bus.placa}` : 'Sin bus por defecto';
+    const updateSwitch = () => { const input = $('#driver-active') as HTMLInputElement; input.setAttribute('aria-checked', String(input.checked)); $('#driver-active-help').textContent = input.checked ? 'Puede iniciar sesión y recibir asignaciones.' : 'No puede iniciar sesión ni recibir asignaciones.'; };
+
+    function render() {
+      const query = ($('#search') as HTMLInputElement).value.trim().toLowerCase();
+      const filtered = drivers.filter((driver) => `${driver.codigo ?? ''} ${driver.username} ${driver.nombres ?? driver.fullName ?? ''}`.toLowerCase().includes(query));
+      rows.innerHTML = filtered.length ? filtered.map((driver) => {
+        const name = driver.nombres ?? driver.fullName ?? '—';
+        const initials = name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+        const avatar = driver.photoUrl ? `<img class="avatar avatar-photo" src="${escapeHtml(driver.photoUrl)}" alt="Foto de ${escapeHtml(name)}">` : `<span class="avatar">${escapeHtml(initials)}</span>`;
+        return `<tr><td><div class="person-cell">${avatar}<span><strong>${escapeHtml(name)}</strong><small>@${escapeHtml(driver.username)}</small></span></div></td><td><strong class="driver-code">${escapeHtml(driver.codigo ?? '—')}</strong></td><td><span>${escapeHtml(busLabel(driver.defaultBus))}</span></td><td>${escapeHtml(driver.telefono ?? driver.phone ?? 'Sin teléfono')}</td><td><span class="status-pill ${driver.isActive ? 'is-active' : 'is-inactive'}"><i></i>${driver.isActive ? 'Activo' : 'Inactivo'}</span></td><td class="table-actions"><button class="link-button" type="button" data-edit="${driver.id}">Editar</button>${driver.isActive ? `<button class="danger-link" type="button" data-delete="${driver.id}">Desactivar</button>` : ''}</td></tr>`;
+      }).join('') : '<tr><td class="table-state" colspan="6">No hay perfiles que coincidan.</td></tr>';
+    }
+
+    async function load() {
+      rows.innerHTML = '<tr><td class="table-state" colspan="6">Actualizando tripulación…</td></tr>';
+      try { const result = await api('/drivers'); drivers = result.data ?? result; render(); }
+      catch (cause) { rows.innerHTML = '<tr><td class="table-state error" colspan="6">No pudimos cargar los choferes. Intenta actualizar.</td></tr>'; await showError(cause, 'Error al cargar la tripulación'); }
+    }
+
+    async function loadBuses() {
+      try {
+        const result = await api('/buses/catalog');
+        buses = result.data ?? result;
+        busSelect.innerHTML = '<option value="">Sin bus por defecto</option>' + buses.map((bus) => `<option value="${bus.id}">${escapeHtml(bus.marca)} · ${escapeHtml(bus.modelo)} · ${escapeHtml(bus.placa)}</option>`).join('');
+        busSelect.disabled = false;
+      } catch (cause) {
+        busSelect.disabled = true;
+        $('#bus-help').textContent = 'No se pudo cargar el catálogo de buses. Intenta actualizar.';
+        $('#bus-help').classList.add('error');
+        await showError(cause, 'Error al cargar los buses');
+      }
+    }
+
+    function open(driver?: Driver) {
+      if (closeTimer !== undefined) { window.clearTimeout(closeTimer); closeTimer = undefined; }
+      if (closeFinish) { modal.removeEventListener('transitionend', closeFinish); closeFinish = null; }
+      const version = ++transitionVersion; lastFocused = document.activeElement as HTMLElement; modal.classList.remove('is-closing'); modal.hidden = false; modal.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(() => { if (!modal.hidden && version === transitionVersion) modal.classList.add('is-open'); });
+      $('#modal-title').textContent = driver ? 'Editar chofer' : 'Nuevo chofer';
+      ($('#driver-id') as HTMLInputElement).value = driver ? String(driver.id) : '';
+      ($('#driver-code') as HTMLInputElement).value = driver?.codigo ?? '';
+      ($('#driver-username') as HTMLInputElement).value = driver?.username ?? '';
+      ($('#driver-username') as HTMLInputElement).disabled = Boolean(driver);
+      ($('#driver-name') as HTMLInputElement).value = driver?.nombres ?? driver?.fullName ?? '';
+      ($('#driver-phone') as HTMLInputElement).value = driver?.telefono ?? driver?.phone ?? '';
+      busSelect.value = driver?.defaultBusId ? String(driver.defaultBusId) : '';
+      ($('#driver-active') as HTMLInputElement).checked = driver?.isActive ?? true; updateSwitch();
+      ($('#driver-password') as HTMLInputElement).value = '';
+      $('#password-help').textContent = driver ? 'Déjala vacía para conservar la actual.' : 'Mínimo 8 caracteres.';
+      (form as PhotoForm).photoPicker?.setCurrent(driver?.photoUrl ?? '');
+      setTimeout(() => ($('#driver-code') as HTMLInputElement).focus(), 40);
+    }
+
+    function close() {
+      if (modal.hidden || modal.classList.contains('is-closing')) return;
+      const version = ++transitionVersion; modal.classList.remove('is-open'); modal.classList.add('is-closing');
+      const finish = (event?: TransitionEvent) => { if (version !== transitionVersion || (event && (event.target !== modal || event.propertyName !== 'opacity'))) return; modal.removeEventListener('transitionend', finish); closeFinish = null; if (closeTimer !== undefined) { window.clearTimeout(closeTimer); closeTimer = undefined; } modal.classList.remove('is-open', 'is-closing'); modal.hidden = true; modal.setAttribute('aria-hidden', 'true'); lastFocused?.focus(); };
+      closeFinish = finish; modal.addEventListener('transitionend', finish); closeTimer = window.setTimeout(finish, 260);
+    }
+
+    setupPhotoPicker(form, { inputId: 'driver-photo', title: 'Foto del conductor' });
+    $('#new').addEventListener('click', () => open()); $('#close').addEventListener('click', close); $('#cancel').addEventListener('click', close); $('#search').addEventListener('input', render); ($('#driver-active') as HTMLInputElement).addEventListener('change', updateSwitch);
+    modal.addEventListener('click', (event) => { if (event.target === modal) close(); });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !modal.hidden) close(); });
+    rows.addEventListener('click', async (event) => { const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button'); if (!button) return; const id = Number(button.dataset.edit ?? button.dataset.delete); const driver = drivers.find((item) => item.id === id); if (!driver) return; if (button.dataset.edit) return open(driver); const answer = await feedback.confirm(`Se desactivará a @${driver.username}. Podrás conservar su trazabilidad, pero ya no podrá iniciar sesión.`, '¿Desactivar chofer?'); if (!answer.isConfirmed) return; try { feedback.loading('Desactivando perfil…'); await api(`/drivers/${id}`, { method: 'DELETE' }); Swal.close(); await feedback.success('El perfil fue desactivado.'); await load(); } catch (cause) { Swal.close(); await showError(cause, 'No se pudo desactivar'); } });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault(); if (!form.reportValidity()) return; save.disabled = true; save.textContent = 'Guardando…';
+      const id = ($('#driver-id') as HTMLInputElement).value; const password = ($('#driver-password') as HTMLInputElement).value; const selectedBus = busSelect.value;
+      const common = { codigo: ($('#driver-code') as HTMLInputElement).value.trim().toUpperCase(), nombres: ($('#driver-name') as HTMLInputElement).value.trim(), telefono: ($('#driver-phone') as HTMLInputElement).value.trim(), defaultBusId: selectedBus ? Number(selectedBus) : null, isActive: ($('#driver-active') as HTMLInputElement).checked };
+      const payload = id ? { ...common, ...(password ? { password } : {}) } : { ...common, username: ($('#driver-username') as HTMLInputElement).value.trim(), ...(password ? { password } : {}) };
+      try {
+        feedback.loading(id ? 'Guardando cambios…' : 'Creando perfil…'); const saved = await api(id ? `/drivers/${id}` : '/drivers', { method: id ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
+        const photo = getPhotoPicker(form)?.getState().file; if (photo) { const data = new FormData(); data.append('photo', photo); await api(`/drivers/${id || saved.id}/photo`, { method: 'POST', body: data }); }
+        Swal.close(); close(); await feedback.success(photo ? 'Perfil y foto guardados.' : (id ? 'Los cambios fueron guardados.' : 'El nuevo chofer ya está en la tripulación.'), id ? 'Perfil actualizado' : 'Chofer creado'); await load();
+      } catch (cause) { Swal.close(); await showError(cause, id ? 'No se pudo actualizar' : 'No se pudo crear'); } finally { save.disabled = false; save.textContent = 'Guardar cambios'; }
+    });
+    loadBuses(); load();
+  }
+
+  document.addEventListener('astro:page-load', initDrivers); initDrivers();
+</script>
