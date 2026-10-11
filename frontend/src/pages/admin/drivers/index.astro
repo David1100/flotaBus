@@ -17,6 +17,7 @@ import AdminShell from '../../../components/AdminShell.astro';
     <div class="glass modal-card admin-modal-card modal-bus" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-heading"><div><div class="eyebrow">PERFIL DE CHOFER</div><h2 id="modal-title" class="font-display">Nuevo chofer</h2></div><button id="close" class="icon-button" type="button" aria-label="Cerrar">×</button></div>
       <form id="driver-form" class="form-grid">
+        <div class="modal-form-scroll">
         <input type="hidden" id="driver-id" />
         <label> Código único <input id="driver-code" class="input" required minlength="3" maxlength="20" pattern="[A-Za-z0-9][A-Za-z0-9-]{2,19}" placeholder="COND-001" /><small class="field-help">3–20 caracteres: letras, números y guiones.</small></label>
         <label> Usuario <input id="driver-username" class="input" required minlength="3" maxlength="64" pattern="[A-Za-z0-9._-]+" /><small id="username-help" class="field-help">Se usa para iniciar sesión.</small></label>
@@ -25,8 +26,9 @@ import AdminShell from '../../../components/AdminShell.astro';
         <label class="full"> Bus por defecto <select id="driver-bus" class="input"><option value="">Sin bus por defecto</option></select><small id="bus-help" class="field-help">Solo aparecen buses activos y disponibles.</small></label>
         <div class="active-toggle full"><input id="driver-active" class="switch-input" type="checkbox" role="switch" aria-checked="true" checked /><label class="switch-label" for="driver-active"><span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span><span class="switch-copy"><strong>Conductor activo</strong><small id="driver-active-help">Puede iniciar sesión y recibir asignaciones.</small></span></label></div>
         <label class="full"> Contraseña <input id="driver-password" type="password" class="input" minlength="8" maxlength="128" autocomplete="new-password" /><small id="password-help" class="field-help">Mínimo 8 caracteres.</small></label>
-        <div class="form-actions full flex justify-end gap-3 pt-3"><button id="cancel" class="btn btn-secondary" type="button">Cancelar</button><button id="save" class="btn btn-primary" type="submit">Guardar cambios</button></div>
+        </div>
       </form>
+      <div class="form-actions" aria-label="Acciones del formulario"><button id="cancel" class="btn btn-secondary" type="button">Cancelar</button><button id="save" class="btn btn-primary" type="submit" form="driver-form">Guardar cambios</button></div>
     </div>
   </div>
 </AdminShell>

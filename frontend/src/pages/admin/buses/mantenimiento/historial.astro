@@ -47,8 +47,8 @@ import AdminShell from '../../../../components/AdminShell.astro';
           <section class="maintenance-form-section"><div class="maintenance-section-title"><span class="section-index">02</span><div><h3>Detalle del trabajo</h3><p>Describe la intervención realizada.</p></div></div><label class="form-label full">Detalle<textarea id="maintenance-detail" class="input" required minlength="1" maxlength="2000" rows="5" placeholder="Ej. Cambio y calibración de…"></textarea></label></section>
           <section class="maintenance-form-section"><div class="maintenance-section-title"><span class="section-index">03</span><div><h3>Soporte visual</h3><p>Adjunta una referencia si está disponible.</p></div></div><label class="form-label full photo-input-label"><span class="photo-input-control"><span class="photo-input-icon" aria-hidden="true">⌁</span><span><strong>Seleccionar foto</strong><small>JPG, PNG o WEBP · máximo 5 MB</small></span></span><input id="maintenance-photo" class="input photo-input" type="file" accept="image/jpeg,image/png,image/webp" /><small class="photo-note">La evidencia se conserva junto al registro.</small></label></section>
         </div>
-        <div class="form-actions"><button id="cancel-maintenance" class="btn btn-secondary" type="button">Cancelar</button><button id="save-maintenance" class="btn btn-primary" type="submit">Guardar registro</button></div>
       </form>
+      <div class="form-actions" aria-label="Acciones del formulario"><button id="cancel-maintenance" class="btn btn-secondary" type="button">Cancelar</button><button id="save-maintenance" class="btn btn-primary" type="submit" form="maintenance-form">Guardar registro</button></div>
     </div>
   </div>
 </AdminShell>
@@ -180,7 +180,6 @@ import AdminShell from '../../../../components/AdminShell.astro';
     .maintenance-modal .modal-heading { flex:0 0 auto; }
     .maintenance-form { flex:1 1 auto; overflow:hidden; }
     .maintenance-form-scroll { flex:1 1 auto; max-height:none; }
-    .maintenance-form .form-actions { flex:0 0 auto; margin-inline:-.1rem; padding-inline:.1rem; }
     .photo-input-control { align-items:flex-start; flex-wrap:wrap; min-height:3.25rem; }
     .photo-input-control > span:nth-child(2) { min-width:0; flex:1 1 9rem; }
   }

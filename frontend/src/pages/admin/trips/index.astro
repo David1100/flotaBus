@@ -44,8 +44,8 @@ import AdminShell from '../../../components/AdminShell.astro';
             </div>
           </section>
         </div>
-        <div class="form-actions"><button id="trip-cancel" class="btn btn-secondary" type="button">Cancelar</button><div class="trip-navigation"><button id="trip-back" class="btn btn-secondary" type="button" hidden>Atrás</button><button id="trip-next" class="btn btn-primary" type="button">Continuar</button><button id="trip-save" class="btn btn-primary" type="submit" hidden>Guardar viaje</button></div></div>
       </form>
+      <div class="form-actions" aria-label="Acciones del formulario"><button id="trip-cancel" class="btn btn-secondary" type="button">Cancelar</button><div class="trip-navigation"><button id="trip-back" class="btn btn-secondary" type="button" hidden>Atrás</button><button id="trip-next" class="btn btn-primary" type="button">Continuar</button><button id="trip-save" class="btn btn-primary" type="submit" form="trip-form" hidden>Guardar viaje</button></div></div>
     </div>
   </div>
 </AdminShell>
