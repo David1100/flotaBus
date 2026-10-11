@@ -64,7 +64,7 @@ import AdminShell from '../../components/AdminShell.astro';
 </AdminShell>
 
 <style>
-  .dashboard-page { --dashboard-radius: 1.25rem; --dashboard-radius-sm: .8rem; max-width: 1260px; margin: 0 auto; }
+  .dashboard-page { --dashboard-radius: 1.25rem; --dashboard-radius-sm: .8rem; min-width: 0; max-width: 1260px; margin: 0 auto; }
   .command-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin: .5rem 0 2.2rem; padding-bottom: 1.75rem; border-bottom: 1px solid var(--line); }
   .header-copy h1 { margin: .6rem 0 .8rem; color: var(--ink); font: 600 clamp(3.2rem, 7vw, 6.4rem)/.84 'Outfit', sans-serif; letter-spacing: -.08em; }
   .header-copy h1 em, .readiness-heading h2 em { color: var(--cyan); font-style: normal; }
@@ -75,7 +75,7 @@ import AdminShell from '../../components/AdminShell.astro';
   .header-readout strong { color: var(--ink); font: 500 1rem 'Outfit', sans-serif; }
   .header-readout small { color: var(--subtle); font-size: .64rem; }
   .dashboard-toolbar { display: grid; grid-template-columns: 1.15fr repeat(4, minmax(7rem, 1fr)) auto; gap: .9rem; align-items: end; margin-bottom: 1.15rem; padding: .8rem 0 1rem; border-bottom: 1px solid var(--line); }
-  .toolbar-title { display: grid; align-content: center; gap: .25rem; padding-left: .2rem; }
+  .toolbar-title { display: grid; min-width: 0; align-content: center; gap: .25rem; padding-left: .2rem; }
   .toolbar-title strong { color: var(--ink); font: 500 1rem 'Outfit', sans-serif; }
   .dashboard-toolbar label { display: grid; gap: .35rem; color: var(--subtle); font-size: .61rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
   .dashboard-toolbar .input { min-height: 2.6rem; padding: .55rem .65rem; border-radius: .65rem; color-scheme: dark; font-size: .76rem; }
@@ -91,10 +91,11 @@ import AdminShell from '../../components/AdminShell.astro';
   .section-kicker i { width: 2.3rem; height: 1px; background: rgba(234,239,226,.15); }
   .section-kicker time { color: var(--cyan); }
   .readiness-heading, .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .readiness-heading > div, .panel-heading > div { min-width: 0; }
   .readiness-heading { margin-top: 2.2rem; }
   .readiness-heading h2, .panel-heading h2 { margin: 0; color: var(--ink); font: 500 clamp(1.65rem, 3vw, 2.5rem)/.94 'Outfit', sans-serif; letter-spacing: -.06em; }
   .readiness-heading p, .panel-heading p { margin: .6rem 0 0; color: var(--muted); font-size: .74rem; line-height: 1.45; }
-  .signal-mark { color: var(--cyan); font-size: 4rem; line-height: .6; opacity: .75; }
+  .signal-mark { flex: 0 0 auto; color: var(--cyan); font-size: 4rem; line-height: .6; opacity: .75; }
   .readiness-number { display: flex; align-items: baseline; gap: 1rem; margin: 2.6rem 0 1.3rem; }
   .readiness-number strong { color: var(--cyan); font: 500 clamp(5rem, 12vw, 9rem)/.7 'Outfit', sans-serif; letter-spacing: -.1em; }
   .readiness-number span { color: var(--muted); font-size: .68rem; line-height: 1.3; text-transform: uppercase; letter-spacing: .1em; }
@@ -116,7 +117,7 @@ import AdminShell from '../../components/AdminShell.astro';
   .signal-mark-mini { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border: 1px solid color-mix(in srgb, var(--signal-accent, var(--cyan)) 35%, transparent); border-radius: .55rem; color: var(--signal-accent, var(--cyan)); background: color-mix(in srgb, var(--signal-accent, var(--cyan)) 9%, transparent); font: 700 .58rem/1 'Outfit', sans-serif; letter-spacing: .04em; }
   .signal-item small { grid-column: 2; align-self: center; color: var(--subtle); font-size: .56rem; font-weight: 800; letter-spacing: .08em; line-height: 1.1; text-transform: uppercase; }
   .signal-value { display: inline-grid; grid-column: 1 / -1; place-items: center; align-self: end; justify-self: start; min-width: 2.7rem; min-height: 2.25rem; padding: .2rem .55rem; border-radius: .65rem; color: #101813; background: var(--amber); box-shadow: 0 8px 18px rgba(245,173,75,.14); font: 600 clamp(1.8rem, 3vw, 2.35rem)/.9 'Outfit', sans-serif; letter-spacing: -.07em; }
-  .signal-item p { grid-column: 1 / -1; align-self: end; margin: 0; overflow: hidden; color: var(--muted); font-size: .62rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+  .signal-item p { grid-column: 1 / -1; align-self: end; min-width: 0; margin: 0; overflow-wrap: anywhere; color: var(--muted); font-size: .62rem; line-height: 1.25; }
   .signal-item.is-zero strong { color: var(--muted); }
   .signal-item.is-zero p::before { content: '— '; color: var(--subtle); }
   .assignments-panel { grid-column: 1; padding: 1.35rem clamp(1.1rem, 3vw, 2.25rem) 1.6rem; }
@@ -125,12 +126,14 @@ import AdminShell from '../../components/AdminShell.astro';
   .panel-heading { margin-top: 1.35rem; } .panel-heading h2 { font-size: 1.6rem; } .panel-index { color: var(--subtle); font: .7rem 'Outfit', sans-serif; }
   .assignment-list, .stack-list { display: grid; gap: .55rem; margin-top: 1.4rem; }
   .assignment-row { display: grid; grid-template-columns: 2.2rem minmax(8rem, 1fr) minmax(8rem, 1fr) auto; align-items: center; gap: .9rem; padding: .85rem; border: 1px solid rgba(234,239,226,.1); border-radius: var(--dashboard-radius-sm); background: rgba(5,11,14,.24); }
+  .assignment-row > * { min-width: 0; }
   .assignment-icon { display: grid; place-items: center; width: 2rem; height: 2rem; border-left: 2px solid var(--cyan); border-radius: .55rem; color: var(--cyan); background: rgba(72,228,224,.06); font-weight: 800; }
   .assignment-meta { min-width: 0; } .assignment-meta strong, .assignment-meta small, .assignment-label { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .assignment-meta strong { color: var(--ink); font-size: .78rem; } .assignment-meta small { margin-top: .25rem; color: var(--muted); font-size: .66rem; }
   .assignment-label { margin-bottom: .25rem; color: var(--subtle); font-size: .57rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
   .tag { flex: 0 0 auto; color: var(--cyan); font-size: .61rem; font-weight: 800; } .tag.is-amber { color: var(--amber); }
-  .stack-item { display: flex; justify-content: space-between; gap: .7rem; padding: .85rem .8rem; border: 1px solid rgba(245,173,75,.12); border-radius: var(--dashboard-radius-sm); background: rgba(5,11,14,.24); }
+  .stack-item { display: flex; min-width: 0; justify-content: space-between; gap: .7rem; padding: .85rem .8rem; border: 1px solid rgba(245,173,75,.12); border-radius: var(--dashboard-radius-sm); background: rgba(5,11,14,.24); }
+  .stack-item > span:first-child { min-width: 0; }
   .stack-item strong, .stack-item small { display: block; } .stack-item strong { color: var(--ink); font: 500 1rem 'Outfit', sans-serif; } .stack-item small { margin-top: .25rem; color: var(--muted); font-size: .66rem; }
   .spend-panel .panel-heading { align-items: end; } .period-cost { color: var(--amber); font: 500 1.8rem 'Outfit', sans-serif; letter-spacing: -.05em; }
   .admin-table-wrap { margin-top: 1.25rem; overflow: hidden auto; border: 1px solid rgba(234,239,226,.1); border-radius: var(--dashboard-radius-sm); } .compact-table { min-width: 34rem; }
@@ -139,10 +142,10 @@ import AdminShell from '../../components/AdminShell.astro';
   .spend-empty { display: grid; grid-template-columns: auto 1fr; gap: .1rem .8rem; align-items: center; margin-top: 1.25rem; padding: 1rem; border: 1px dashed rgba(245,173,75,.3); border-radius: var(--dashboard-radius-sm); background: rgba(245,173,75,.035); }
   .spend-empty > span { grid-row: span 2; color: var(--amber); font: 2rem 'Outfit', sans-serif; } .spend-empty strong { color: var(--ink); font-size: .8rem; } .spend-empty p { margin: 0; color: var(--muted); font-size: .68rem; }
   .empty-state { padding: 1.35rem 0; color: var(--subtle); font-size: .73rem; }
-  @media (max-width: 960px) { .dashboard-toolbar { grid-template-columns: repeat(4, 1fr); } .toolbar-title { grid-column: 1 / -1; } .dashboard-toolbar .btn { grid-column: 4; } }
-  @media (max-width: 700px) { .command-header { align-items: flex-start; flex-direction: column; gap: 1.4rem; margin-bottom: 1.5rem; } .header-readout { width: 100%; min-width: 0; padding-left: .8rem; } .dashboard-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; } .dashboard-toolbar .btn { grid-column: 1 / -1; } .command-center { display: block; } .signal-rail, .watch-panel { margin-top: .85rem; border-left: 1px solid rgba(234,239,226,.1); border-top: 1px solid rgba(234,239,226,.1); } .assignments-panel, .watch-panel, .spend-panel { padding: 1.15rem 1rem 1.35rem; } .readiness-panel { min-height: 21rem; padding: 1.15rem 1rem 1.35rem; } .readiness-heading { margin-top: 1.8rem; } .readiness-number { margin: 2rem 0 1.1rem; } .readiness-number strong { font-size: clamp(4.5rem, 25vw, 7rem); } .assignment-row { grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .65rem; } .assignment-row .assignment-meta:nth-child(3) { grid-column: 2 / -1; } .assignment-row .tag { grid-column: 3; grid-row: 1; } .panel-heading h2 { font-size: 1.45rem; } }
-  @media (max-width: 430px) { .header-copy h1 { font-size: clamp(2.9rem, 15vw, 4.4rem); } .header-copy p { max-width: 28ch; } .dashboard-toolbar .input { padding-inline: .5rem; } .coverage-foot { display: grid; gap: .55rem; } .signal-rail { padding-inline: .9rem; } .signal-item { min-height: 7.4rem; } .signal-value { font-size: 1.65rem; } .spend-panel .panel-heading { align-items: flex-start; flex-direction: column; gap: .7rem; } .period-cost { font-size: 1.5rem; } }
-  @media (max-width: 379px) { .signal-list { grid-template-columns: 1fr; } }
+  @media (max-width: 960px) { .dashboard-toolbar { grid-template-columns: repeat(4, minmax(0, 1fr)); } .toolbar-title { grid-column: 1 / -1; } .dashboard-toolbar .btn { grid-column: 4; } }
+  @media (max-width: 700px) { .command-header { align-items: flex-start; flex-direction: column; gap: 1.4rem; margin-bottom: 1.5rem; } .header-copy, .header-readout { min-width: 0; } .header-readout { width: 100%; min-width: 0; padding-left: .8rem; } .dashboard-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; } .dashboard-toolbar label { min-width: 0; } .dashboard-toolbar .btn { grid-column: 1 / -1; } .command-center { display: block; } .signal-rail, .watch-panel { margin-top: .85rem; border-left: 1px solid rgba(234,239,226,.1); border-top: 1px solid rgba(234,239,226,.1); } .assignments-panel, .watch-panel, .spend-panel { padding: 1.15rem 1rem 1.35rem; } .readiness-panel { min-height: 21rem; padding: 1.15rem 1rem 1.35rem; } .readiness-heading { margin-top: 1.8rem; } .readiness-number { margin: 2rem 0 1.1rem; } .readiness-number strong { font-size: clamp(4.5rem, 25vw, 7rem); } .assignment-row { grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .65rem; } .assignment-row .assignment-meta:nth-child(3) { grid-column: 2 / -1; } .assignment-row .tag { grid-column: 3; grid-row: 1; max-width: 7rem; overflow-wrap: anywhere; text-align: right; } .panel-heading h2 { font-size: 1.45rem; } }
+  @media (max-width: 430px) { .header-copy h1 { font-size: clamp(2.9rem, 15vw, 4.4rem); overflow-wrap: anywhere; } .header-copy p { max-width: 28ch; line-height: 1.45; } .dashboard-toolbar .input { min-width: 0; padding-inline: .5rem; } .coverage-foot { display: grid; gap: .55rem; } .signal-rail { padding-inline: .9rem; } .signal-item { min-height: 7.4rem; } .signal-value { font-size: 1.65rem; } .spend-panel .panel-heading { align-items: flex-start; flex-direction: column; gap: .7rem; } .period-cost { font-size: 1.5rem; } }
+  @media (max-width: 379px) { .readiness-heading { gap: .55rem; } .readiness-heading h2 { font-size: 1.55rem; } .readiness-heading p { max-width: 24ch; } .readiness-number { gap: .65rem; } .readiness-number strong { font-size: clamp(4rem, 24vw, 5.5rem); } .readiness-number span { font-size: .58rem; } .signal-list { grid-template-columns: 1fr; } .assignment-row { grid-template-columns: 1.8rem minmax(0, 1fr); } .assignment-row .tag { grid-column: 2; grid-row: auto; justify-self: start; max-width: none; text-align: left; } }
 </style>
 
 <script>

@@ -27,15 +27,19 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
        </aside>
      </div>
       <header class="admin-topbar" transition:persist="admin-topbar" aria-label="Estado de la sesión">
-        <button class="sidebar-toggle" type="button" aria-expanded="false" aria-controls="admin-sidebar" data-sidebar-toggle>
-          <span class="sidebar-toggle-icon" aria-hidden="true"><i></i><i></i><i></i></span>
-          <span>Menú</span>
-        </button>
-        <div class="topbar-status">
+        <a href="/admin" class="brand mobile-brand" data-spa-link aria-label="Ir al inicio de flotaBus, Control de flota">
+          <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 10h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+          <span class="brand-copy"><strong>flotaBus</strong><small>Control de flota</small></span>
+        </a>
+         <div class="topbar-status">
          <span class="status-dot" aria-hidden="true"></span>
          <span><strong>Sistema operativo</strong><small>Sesión protegida</small></span>
        </div>
       </header>
+      <button class="sidebar-toggle" type="button" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="admin-sidebar" data-sidebar-toggle>
+        <span class="sidebar-toggle-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="sr-only">Menú</span>
+      </button>
       <button class="sidebar-backdrop" type="button" aria-label="Cerrar menú" data-sidebar-backdrop hidden></button>
      <main class="admin-content"><slot /></main>
   </div>
@@ -54,8 +58,20 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
   .topbar-status .status-dot { width: .48rem; height: .48rem; border-radius: 999px; background: var(--cyan); box-shadow: 0 0 0 4px rgba(72,228,224,.1), 0 0 14px rgba(72,228,224,.75); animation: status-breathe 2.8s ease-in-out infinite; }
   @keyframes status-breathe { 50% { box-shadow: 0 0 0 5px rgba(72,228,224,.06), 0 0 16px rgba(72,228,224,.85); } }
   .admin-content { grid-column: 2; grid-row: 2; align-self: start; }
-   @media (max-width: 760px) { .admin-sidebar-frame { width: 100%; grid-column: 1; grid-row: 1; } .admin-topbar { grid-column: 1; grid-row: 2; min-height: 3.7rem; height: auto; padding: 1.25rem 1rem .35rem; } .admin-content { grid-column: 1; grid-row: 3; } .topbar-status { margin-right: 0; } .topbar-status strong { font-size: .7rem; } .topbar-status small { font-size: .58rem; } .sidebar-toggle { display: inline-flex; align-items: center; gap: .55rem; min-height: 2.75rem; margin-right: auto; padding: .65rem .8rem; border: 1px solid rgba(72,228,224,.2); border-radius: .8rem; color: var(--ink); background: rgba(17,26,31,.78); font-size: .72rem; font-weight: 800; cursor: pointer; } .sidebar-toggle-icon { display: grid; gap: .22rem; width: 1.05rem; } .sidebar-toggle-icon i { display: block; height: 2px; border-radius: 999px; background: var(--cyan); transition: transform .2s, opacity .2s; } .sidebar-toggle[aria-expanded='true'] .sidebar-toggle-icon i:first-child { transform: translateY(4px) rotate(45deg); } .sidebar-toggle[aria-expanded='true'] .sidebar-toggle-icon i:nth-child(2) { opacity: 0; } .sidebar-toggle[aria-expanded='true'] .sidebar-toggle-icon i:last-child { transform: translateY(-4px) rotate(-45deg); } .sidebar-backdrop { position: fixed; inset: 0; z-index: 24; display: block; border: 0; background: rgba(2,7,9,.7); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .22s ease; } .sidebar-backdrop[hidden] { display: none; } .sidebar-backdrop.is-visible { opacity: 1; pointer-events: auto; } }
-  @media (prefers-reduced-motion: reduce) { .topbar-status .status-dot { animation: none; } }
+   @media (max-width: 760px) { .admin-sidebar-frame { width: 100%; grid-column: 1; grid-row: 1; } .admin-topbar { grid-column: 1; grid-row: 2; min-height: 3.7rem; height: auto; padding: 1.25rem 1rem .35rem; } .admin-content { grid-column: 1; grid-row: 3; } .topbar-status { margin-right: 0; } .topbar-status strong { font-size: .7rem; } .topbar-status small { font-size: .58rem; } .sidebar-toggle { position: fixed; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom)); z-index: 40; display: grid; place-items: center; width: 3.5rem; height: 3.5rem; margin: 0; padding: .8rem; border: 1px solid rgba(72,228,224,.42); border-radius: 1.15rem; color: var(--ink); background: linear-gradient(145deg, rgba(28,143,153,.96), rgba(17,26,31,.98)); box-shadow: 0 14px 32px rgba(0,0,0,.38), 0 0 0 5px rgba(72,228,224,.08), inset 0 1px rgba(255,255,255,.16); cursor: pointer; transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; } .sidebar-toggle:hover { border-color: var(--amber); box-shadow: 0 17px 36px rgba(0,0,0,.45), 0 0 0 5px rgba(245,173,75,.12), inset 0 1px rgba(255,255,255,.18); transform: translateY(-2px); } .sidebar-toggle:active { transform: translateY(1px); } .sidebar-toggle:focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; } .sidebar-toggle-icon { display: grid; gap: .22rem; width: 1.15rem; } .sidebar-toggle-icon i { display: block; height: 2px; border-radius: 999px; background: var(--ink); transition: transform .2s, opacity .2s; } .sidebar-toggle[aria-expanded='true'] .sidebar-toggle-icon i:first-child { transform: translateY(4px) rotate(45deg); } .sidebar-toggle[aria-expanded='true'] .sidebar-toggle-icon i:nth-child(2) { opacity: 0; } .sidebar-toggle[aria-expanded='true'] .sidebar-toggle-icon i:last-child { transform: translateY(-4px) rotate(-45deg); } .sidebar-backdrop { position: fixed; inset: 0; z-index: 24; display: block; border: 0; background: rgba(2,7,9,.7); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .22s ease; } .sidebar-backdrop[hidden] { display: none; } .sidebar-backdrop.is-visible { opacity: 1; pointer-events: auto; } }
+   @media (max-width: 760px) { .sidebar-toggle { right: calc(1rem + env(safe-area-inset-right)); bottom: calc(1rem + env(safe-area-inset-bottom)); } }
+   .mobile-brand { display: none; }
+   @media (max-width: 760px) {
+     .admin-topbar { min-height: 4.65rem; padding: calc(1.25rem + env(safe-area-inset-top)) calc(1rem + env(safe-area-inset-right)) .55rem calc(1rem + env(safe-area-inset-left)); justify-content: space-between; gap: .8rem; }
+     .mobile-brand { display: flex; min-width: 0; flex: 1 1 auto; gap: .55rem; padding: .2rem 0; }
+     .mobile-brand .brand-mark { width: 2.15rem; height: 2.15rem; border-radius: .72rem; }
+     .mobile-brand .brand-mark svg { width: 1.2rem; height: 1.2rem; }
+     .mobile-brand .brand-copy { min-width: 0; gap: .12rem; }
+     .mobile-brand .brand-copy strong { font-size: .98rem; }
+     .mobile-brand .brand-copy small { overflow: hidden; font-size: .56rem; text-overflow: ellipsis; white-space: nowrap; }
+     .topbar-status { flex: 0 1 auto; }
+   }
+   @media (prefers-reduced-motion: reduce) { .topbar-status .status-dot { animation: none; } }
 </style>
 
 <script>
@@ -124,14 +140,16 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
     const close = () => {
       shell.classList.remove('menu-open');
       toggle.setAttribute('aria-expanded', 'false');
-      backdrop.classList.remove('is-visible');
+      toggle.setAttribute('aria-label', 'Abrir menú de navegación');
+       backdrop.classList.remove('is-visible');
       backdrop.hidden = true;
       document.body.classList.remove('menu-lock');
     };
     const open = () => {
       shell.classList.add('menu-open');
       toggle.setAttribute('aria-expanded', 'true');
-      backdrop.hidden = false;
+      toggle.setAttribute('aria-label', 'Cerrar menú de navegación');
+       backdrop.hidden = false;
       requestAnimationFrame(() => backdrop.classList.add('is-visible'));
       document.body.classList.add('menu-lock');
     };
