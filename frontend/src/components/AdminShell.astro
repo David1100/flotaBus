@@ -3,9 +3,9 @@ import Base from '../layouts/Base.astro';
 const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
 ---
 <Base title={title}>
-  <div class="admin-layout" data-admin-shell data-auth-pending="true">
-    <div class="admin-sidebar-frame" transition:persist="admin-sidebar-frame">
-       <aside id="admin-sidebar" class="admin-sidebar glass" transition:persist="admin-sidebar">
+  <div class="admin-layout grid min-h-screen min-w-0 grid-cols-[248px_minmax(0,1fr)] grid-rows-[25px_1fr] max-md:block" data-admin-shell data-auth-pending="true">
+    <div class="admin-sidebar-frame min-w-0 max-md:col-start-1 max-md:row-start-1 max-md:w-full" transition:persist="admin-sidebar-frame">
+        <aside id="admin-sidebar" class="admin-sidebar glass fixed inset-y-4 left-4 z-[30] flex h-[calc(100vh-2rem)] w-[216px] flex-col overflow-y-auto rounded-[1.4rem] border border-[var(--line)] bg-[rgba(13,21,25,.9)] px-3 py-[1.1rem] pb-3 shadow-[0_24px_70px_rgba(0,0,0,.34),inset_0_1px_rgba(255,255,255,.07)] transition-[transform,visibility] duration-200 max-md:inset-y-4 max-md:h-auto max-md:max-h-[calc(100dvh-2rem)] max-md:w-[min(18rem,calc(100vw-2rem))] max-md:-translate-x-[calc(100%+1.5rem)] max-md:invisible max-md:rounded-[1.25rem] max-md:py-4" transition:persist="admin-sidebar">
        <a href="/admin" class="brand" data-spa-link aria-label="Ir al inicio de flotaBus">
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 10h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
         <span class="brand-copy"><strong>flotaBus</strong><small>Control de flota</small></span>
@@ -26,22 +26,22 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
        <button id="logout" class="logout" type="button"><span class="logout-icon" aria-hidden="true">↪</span><span>Cerrar sesión</span></button>
        </aside>
      </div>
-      <header class="admin-topbar" transition:persist="admin-topbar" aria-label="Estado de la sesión">
-        <a href="/admin" class="brand mobile-brand" data-spa-link aria-label="Ir al inicio de flotaBus, Control de flota">
+        <header class="admin-topbar col-[2] row-[1] flex h-[25px] min-h-[25px] items-center justify-end border-0 bg-transparent px-[clamp(1.2rem,4vw,4.5rem)] pt-16 max-md:col-start-1 max-md:row-start-2 max-md:h-auto max-md:min-h-[4.65rem] max-md:justify-between max-md:gap-3 max-md:px-[calc(1rem+env(safe-area-inset-right))] max-md:pb-2 max-md:pl-[calc(1rem+env(safe-area-inset-left))] max-md:pt-[calc(1.25rem+env(safe-area-inset-top))]" transition:persist="admin-topbar" aria-label="Estado de la sesión">
+          <a href="/admin" class="brand mobile-brand hidden min-w-0 flex-1 items-center gap-2 py-1 max-md:!flex" data-spa-link aria-label="Ir al inicio de flotaBus, Control de flota">
           <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 10h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
           <span class="brand-copy"><strong>flotaBus</strong><small>Control de flota</small></span>
         </a>
-         <div class="topbar-status">
-         <span class="status-dot" aria-hidden="true"></span>
-         <span><strong>Sistema operativo</strong><small>Sesión protegida</small></span>
+          <div class="topbar-status flex flex-[0_1_auto] items-center gap-[.65rem]">
+          <span class="status-dot h-[.48rem] w-[.48rem] shrink-0 rounded-full bg-[var(--cyan)] shadow-[0_0_0_4px_rgba(72,228,224,.1),0_0_14px_rgba(72,228,224,.75)]" aria-hidden="true"></span>
+           <span class="grid gap-[.2rem] text-right"><strong class="font-display text-[.78rem] font-bold leading-none tracking-[-.01em] text-[var(--ink)] max-md:text-[.7rem]">Sistema operativo</strong><small class="text-[.64rem] uppercase tracking-[.1em] text-[var(--subtle)] max-md:text-[.58rem]">Sesión protegida</small></span>
        </div>
       </header>
-      <button class="sidebar-toggle" type="button" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="admin-sidebar" data-sidebar-toggle>
-        <span class="sidebar-toggle-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+        <button class="sidebar-toggle fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] z-40 hidden h-14 w-14 place-items-center rounded-2xl border border-[rgba(72,228,224,.42)] bg-[linear-gradient(145deg,rgba(28,143,153,.96),rgba(17,26,31,.98))] p-3 text-[var(--ink)] shadow-[0_14px_32px_rgba(0,0,0,.38),0_0_0_5px_rgba(72,228,224,.08),inset_0_1px_rgba(255,255,255,.16)] transition hover:-translate-y-0.5 hover:border-[var(--amber)] active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--amber)] focus-visible:outline-offset-4 max-md:grid" type="button" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="admin-sidebar" data-sidebar-toggle>
+         <span class="sidebar-toggle-icon grid w-[1.15rem] gap-[.22rem]" aria-hidden="true"><i class="block h-0.5 rounded-full bg-[var(--ink)]"></i><i class="block h-0.5 rounded-full bg-[var(--ink)]"></i><i class="block h-0.5 rounded-full bg-[var(--ink)]"></i></span>
         <span class="sr-only">Menú</span>
       </button>
-      <button class="sidebar-backdrop" type="button" aria-label="Cerrar menú" data-sidebar-backdrop hidden></button>
-     <main class="admin-content"><slot /></main>
+       <button class="sidebar-backdrop fixed inset-0 z-[24] hidden border-0 bg-[rgba(2,7,9,.7)] opacity-0 backdrop-blur-[4px] transition-opacity duration-200" type="button" aria-label="Cerrar menú" data-sidebar-backdrop hidden></button>
+       <main class="admin-content col-[2] row-[2] w-full max-w-[1380px] self-start px-[clamp(1.2rem,4vw,4.5rem)] py-8 pb-[2.6rem] max-md:col-start-1 max-md:row-start-3 max-md:min-w-0 max-md:px-4 max-md:pb-[calc(6.25rem+env(safe-area-inset-bottom))] max-md:pt-7"><slot /></main>
   </div>
 </Base>
 
@@ -137,20 +137,22 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
     const sidebar = document.querySelector<HTMLElement>('#admin-sidebar');
     if (!shell || !toggle || !backdrop || !sidebar || toggle.dataset.bound === 'true') return;
     toggle.dataset.bound = 'true';
-    const close = () => {
-      shell.classList.remove('menu-open');
-      toggle.setAttribute('aria-expanded', 'false');
+     const close = () => {
+       shell.classList.remove('menu-open');
+        sidebar.classList.remove('max-md:translate-x-0', 'max-md:visible');
+       toggle.setAttribute('aria-expanded', 'false');
       toggle.setAttribute('aria-label', 'Abrir menú de navegación');
-       backdrop.classList.remove('is-visible');
+        backdrop.classList.remove('is-visible', 'opacity-100', 'pointer-events-auto');
       backdrop.hidden = true;
       document.body.classList.remove('menu-lock');
     };
-    const open = () => {
-      shell.classList.add('menu-open');
+     const open = () => {
+       shell.classList.add('menu-open');
+        sidebar.classList.add('max-md:translate-x-0', 'max-md:visible');
       toggle.setAttribute('aria-expanded', 'true');
       toggle.setAttribute('aria-label', 'Cerrar menú de navegación');
        backdrop.hidden = false;
-      requestAnimationFrame(() => backdrop.classList.add('is-visible'));
+       requestAnimationFrame(() => backdrop.classList.add('is-visible', 'opacity-100', 'pointer-events-auto'));
       document.body.classList.add('menu-lock');
     };
     toggle.addEventListener('click', () => toggle.getAttribute('aria-expanded') === 'true' ? close() : open());
@@ -159,7 +161,7 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
       if ((event.target as HTMLElement).closest('a')) close();
     });
     document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') close(); });
-    window.addEventListener('resize', () => { if (window.innerWidth > 760) close(); }, { passive: true });
+     window.addEventListener('resize', () => { if (window.innerWidth >= 768) close(); }, { passive: true });
   }
 
   async function loadPageAssets(next: Document) {

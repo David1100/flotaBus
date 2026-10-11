@@ -2,60 +2,60 @@
 import AdminShell from '../../components/AdminShell.astro';
 ---
 <AdminShell title="Dashboard · flotaBus" active="dashboard">
-  <div class="dashboard-page">
-    <header class="command-header fade-in">
-      <div class="header-copy">
+  <div class="dashboard-page mx-auto min-w-0 max-w-[1260px]">
+     <header class="command-header fade-in mb-[2.2rem] flex items-end justify-between gap-8 border-b border-[var(--line)] pb-7 max-md:mb-6 max-md:flex-col max-md:items-start max-md:gap-[1.4rem]">
+        <div class="header-copy min-w-0">
         <div class="eyebrow">CONTROL DE FLOTA <span>/</span> TURNO 01</div>
-        <h1>La operación<br /><em>en una mirada.</em></h1>
-        <p>Lectura en tiempo real de disponibilidad, cobertura y asignaciones.</p>
+         <h1 class="max-[430px]:text-[clamp(2.9rem,15vw,4.4rem)] max-[430px]:[overflow-wrap:anywhere]">La operación<br /><em>en una mirada.</em></h1>
+         <p class="max-[430px]:max-w-[28ch] max-[430px]:leading-[1.45]">Lectura en tiempo real de disponibilidad, cobertura y asignaciones.</p>
       </div>
-      <div class="header-readout" aria-label="Estado del sistema">
+        <div class="header-readout grid min-w-56 gap-[.45rem] border-l border-[var(--amber)] py-0 pb-[.2rem] pl-4 max-md:w-full max-md:min-w-0 max-md:pl-3" aria-label="Estado del sistema">
         <span class="readout-line"><i class="status-dot" aria-hidden="true"></i> Sistema operativo</span>
         <strong id="period-note">Periodo actual</strong>
         <small>Última consulta del centro de control</small>
       </div>
     </header>
 
-    <section class="dashboard-toolbar fade-in" style="animation-delay:.05s" aria-label="Filtros del dashboard">
-      <div class="toolbar-title"><span class="eyebrow">CONSULTA</span><strong>Rango operativo</strong></div>
+      <section class="dashboard-toolbar fade-in grid grid-cols-[1.15fr_repeat(4,minmax(7rem,1fr))_auto] items-end gap-[.9rem] border-b border-[var(--line)] py-3 pb-4 max-lg:grid-cols-4 max-md:grid-cols-2 max-md:gap-[.65rem]" style="animation-delay:.05s" aria-label="Filtros del dashboard">
+       <div class="toolbar-title max-lg:col-span-full"><span class="eyebrow">CONSULTA</span><strong>Rango operativo</strong></div>
       <label><span>Desde</span><input class="input" id="from" type="date" /></label>
       <label><span>Hasta</span><input class="input" id="to" type="date" /></label>
       <label><span>Bus</span><select class="input" id="bus"><option value="">Todos los buses</option></select></label>
       <label><span>Estado</span><select class="input" id="status"><option value="">Todos</option><option value="AVAILABLE">Disponible</option><option value="ASSIGNED">Asignado</option><option value="IN_TRANSIT">En ruta</option><option value="MAINTENANCE">Mantenimiento</option><option value="STOPPED">Detenido</option><option value="INCIDENT">Incidente</option></select></label>
-      <button class="btn btn-primary" id="apply" type="button">Actualizar <span aria-hidden="true">↗</span></button>
+       <button class="btn btn-primary max-lg:col-start-4 max-md:col-span-full max-md:col-start-auto" id="apply" type="button">Actualizar <span aria-hidden="true">↗</span></button>
     </section>
 
     <div id="dashboard-state" class="dashboard-state" role="status" aria-live="polite">Cargando resumen…</div>
 
-    <main id="dashboard-content" class="command-center" hidden>
-      <section class="readiness-panel" aria-labelledby="readiness-title">
+      <main id="dashboard-content" class="command-center grid min-w-0 grid-cols-[minmax(0,1.35fr)_minmax(15rem,.65fr)] gap-[.85rem] max-md:block" hidden>
+        <section class="readiness-panel min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(72,228,224,.16)] bg-[linear-gradient(110deg,rgba(22,42,45,.88),rgba(10,17,21,.98)_70%)] p-[1.35rem] pb-[1.7rem] shadow-[0_16px_34px_rgba(0,0,0,.12),inset_0_1px_rgba(255,255,255,.025)] max-md:min-h-[21rem] max-md:px-4" aria-labelledby="readiness-title">
         <div class="section-kicker"><span>01</span><span>Señal principal</span><i></i><time>LIVE</time></div>
-        <div class="readiness-heading"><div><h2 id="readiness-title">Disponibilidad<br /><em>de flota</em></h2><p id="coverage-summary">Lectura de unidades listas para sostener la operación.</p></div><span class="signal-mark" aria-hidden="true">◌</span></div>
-        <div class="readiness-number"><strong id="coverage-percent">—</strong><span>cobertura<br />operativa</span></div>
+         <div class="readiness-heading max-md:mt-7 max-[379px]:gap-[.55rem]"><div><h2 id="readiness-title" class="max-md:text-[clamp(1.55rem,6vw,2.5rem)]">Disponibilidad<br /><em>de flota</em></h2><p id="coverage-summary" class="max-[379px]:max-w-[24ch]">Lectura de unidades listas para sostener la operación.</p></div><span class="signal-mark" aria-hidden="true">◌</span></div>
+         <div class="readiness-number max-md:my-8 max-md:mb-4 max-[379px]:gap-[.65rem]"><strong id="coverage-percent" class="max-md:text-[clamp(4rem,25vw,7rem)] max-[379px]:text-[clamp(4rem,24vw,5.5rem)]">—</strong><span class="max-[379px]:text-[.58rem]">cobertura<br />operativa</span></div>
         <div class="coverage-track" aria-label="Cobertura operativa"><i id="coverage-meter"></i></div>
-        <div class="coverage-foot"><span><i class="legend-dot is-cyan"></i><b id="coverage-covered">—</b> disponibles / en ruta</span><span><i class="legend-dot is-amber"></i><b id="coverage-maintenance">—</b> mantenimiento</span><span><i class="legend-dot is-muted"></i><b id="coverage-unassigned">—</b> sin asignación</span></div>
+       <div class="coverage-foot max-[430px]:grid max-[430px]:gap-[.55rem]"><span><i class="legend-dot is-cyan"></i><b id="coverage-covered">—</b> disponibles / en ruta</span><span><i class="legend-dot is-amber"></i><b id="coverage-maintenance">—</b> mantenimiento</span><span><i class="legend-dot is-muted"></i><b id="coverage-unassigned">—</b> sin asignación</span></div>
       </section>
 
-      <aside class="signal-rail" aria-label="Lecturas rápidas">
+        <aside class="signal-rail min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(72,228,224,.12)] bg-[rgba(11,18,22,.96)] p-5 shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-[430px]:px-[.9rem]" aria-label="Lecturas rápidas">
         <div class="section-kicker"><span>02</span><span>Lecturas rápidas</span></div>
         <div id="kpis" class="signal-list"></div>
       </aside>
 
-      <section class="assignments-panel" aria-labelledby="assignments-title">
+        <section class="assignments-panel min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(234,239,226,.1)] bg-[rgba(11,18,22,.96)] p-[1.35rem] shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-md:px-4" aria-labelledby="assignments-title">
         <div class="section-kicker"><span>03</span><span>Despacho</span><i></i><span id="assignment-count">Asignaciones activas</span></div>
         <div class="panel-heading"><div><h2 id="assignments-title">Operación en curso</h2><p>Recursos que están moviendo la red ahora.</p></div><span class="panel-index">A / 01</span></div>
         <div id="active-trips" class="assignment-list"></div>
       </section>
 
-      <aside class="watch-panel" aria-labelledby="watch-title">
+        <aside class="watch-panel min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(245,173,75,.16)] bg-[rgba(11,18,22,.96)] p-[1.35rem] shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-md:px-4" aria-labelledby="watch-title">
         <div class="section-kicker"><span>04</span><span>Atención</span></div>
         <div class="panel-heading"><div><h2 id="watch-title">Fuera de servicio</h2><p>Buses que requieren seguimiento.</p></div></div>
         <div id="maintenance-buses" class="stack-list"></div>
       </aside>
 
-      <section class="spend-panel" aria-labelledby="spend-title">
+        <section class="spend-panel min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(245,173,75,.16)] bg-[rgba(11,18,22,.96)] p-[1.35rem] shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-md:px-4" aria-labelledby="spend-title">
         <div class="section-kicker"><span>05</span><span>Registro financiero</span></div>
-        <div class="panel-heading"><div><h2 id="spend-title">Mantenimiento por bus</h2><p>Inversión registrada en el periodo consultado.</p></div><strong id="period-cost" class="period-cost">$0</strong></div>
+         <div class="panel-heading max-md:items-start max-md:flex-col max-md:gap-3"><div><h2 id="spend-title" class="max-md:text-[1.45rem]">Mantenimiento por bus</h2><p>Inversión registrada en el periodo consultado.</p></div><strong id="period-cost" class="period-cost max-[430px]:text-[1.5rem]">$0</strong></div>
         <div id="spend-empty" class="spend-empty" hidden><span aria-hidden="true">$</span><strong>Sin inversión registrada</strong><p>El periodo no contiene costos de mantenimiento.</p></div>
         <div class="admin-table-wrap" id="spend-table-wrap"><table class="admin-table compact-table"><thead><tr><th>Unidad</th><th>Registros</th><th class="align-right">Costo</th></tr></thead><tbody id="maintenance-rows"></tbody></table></div>
       </section>
@@ -142,10 +142,6 @@ import AdminShell from '../../components/AdminShell.astro';
   .spend-empty { display: grid; grid-template-columns: auto 1fr; gap: .1rem .8rem; align-items: center; margin-top: 1.25rem; padding: 1rem; border: 1px dashed rgba(245,173,75,.3); border-radius: var(--dashboard-radius-sm); background: rgba(245,173,75,.035); }
   .spend-empty > span { grid-row: span 2; color: var(--amber); font: 2rem 'Outfit', sans-serif; } .spend-empty strong { color: var(--ink); font-size: .8rem; } .spend-empty p { margin: 0; color: var(--muted); font-size: .68rem; }
   .empty-state { padding: 1.35rem 0; color: var(--subtle); font-size: .73rem; }
-  @media (max-width: 960px) { .dashboard-toolbar { grid-template-columns: repeat(4, minmax(0, 1fr)); } .toolbar-title { grid-column: 1 / -1; } .dashboard-toolbar .btn { grid-column: 4; } }
-  @media (max-width: 700px) { .command-header { align-items: flex-start; flex-direction: column; gap: 1.4rem; margin-bottom: 1.5rem; } .header-copy, .header-readout { min-width: 0; } .header-readout { width: 100%; min-width: 0; padding-left: .8rem; } .dashboard-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; } .dashboard-toolbar label { min-width: 0; } .dashboard-toolbar .btn { grid-column: 1 / -1; } .command-center { display: block; } .signal-rail, .watch-panel { margin-top: .85rem; border-left: 1px solid rgba(234,239,226,.1); border-top: 1px solid rgba(234,239,226,.1); } .assignments-panel, .watch-panel, .spend-panel { padding: 1.15rem 1rem 1.35rem; } .readiness-panel { min-height: 21rem; padding: 1.15rem 1rem 1.35rem; } .readiness-heading { margin-top: 1.8rem; } .readiness-number { margin: 2rem 0 1.1rem; } .readiness-number strong { font-size: clamp(4.5rem, 25vw, 7rem); } .assignment-row { grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .65rem; } .assignment-row .assignment-meta:nth-child(3) { grid-column: 2 / -1; } .assignment-row .tag { grid-column: 3; grid-row: 1; max-width: 7rem; overflow-wrap: anywhere; text-align: right; } .panel-heading h2 { font-size: 1.45rem; } }
-  @media (max-width: 430px) { .header-copy h1 { font-size: clamp(2.9rem, 15vw, 4.4rem); overflow-wrap: anywhere; } .header-copy p { max-width: 28ch; line-height: 1.45; } .dashboard-toolbar .input { min-width: 0; padding-inline: .5rem; } .coverage-foot { display: grid; gap: .55rem; } .signal-rail { padding-inline: .9rem; } .signal-item { min-height: 7.4rem; } .signal-value { font-size: 1.65rem; } .spend-panel .panel-heading { align-items: flex-start; flex-direction: column; gap: .7rem; } .period-cost { font-size: 1.5rem; } }
-  @media (max-width: 379px) { .readiness-heading { gap: .55rem; } .readiness-heading h2 { font-size: 1.55rem; } .readiness-heading p { max-width: 24ch; } .readiness-number { gap: .65rem; } .readiness-number strong { font-size: clamp(4rem, 24vw, 5.5rem); } .readiness-number span { font-size: .58rem; } .signal-list { grid-template-columns: 1fr; } .assignment-row { grid-template-columns: 1.8rem minmax(0, 1fr); } .assignment-row .tag { grid-column: 2; grid-row: auto; justify-self: start; max-width: none; text-align: left; } }
 </style>
 
 <script>
@@ -167,11 +163,11 @@ import AdminShell from '../../components/AdminShell.astro';
     $('#coverage-summary').textContent = k.totalBuses ? `${covered} de ${k.totalBuses} buses sostienen la operación entre disponibilidad y ruta.` : 'Aún no hay buses registrados para calcular cobertura.';
     $('#coverage-covered').textContent = String(covered); $('#coverage-maintenance').textContent = String(k.maintenanceBuses); $('#coverage-unassigned').textContent = String(data.unassignedBuses.length);
     const signals = [{ label: 'Inventario total', value: k.totalBuses, note: 'Buses registrados', mark: 'FI', kind: '' }, { label: 'Choferes activos', value: k.activeDrivers, note: 'Personal disponible', mark: 'CH', kind: '' }, { label: 'Viajes activos', value: k.activeTrips, note: k.activeTrips ? 'Asignaciones abiertas' : 'Sin asignaciones', mark: 'VI', kind: 'is-cyan' }, { label: 'Mantenimiento', value: k.maintenanceBuses, note: k.maintenanceBuses ? 'Fuera de servicio' : 'Sin unidades fuera', mark: 'MT', kind: 'is-amber' }];
-    $('#kpis').innerHTML = signals.map((signal) => `<div class="signal-item ${signal.kind} ${signal.value === 0 ? 'is-zero' : ''}"><span class="signal-mark-mini" aria-hidden="true">${signal.mark}</span><small>${signal.label}</small><span class="signal-value">${signal.value}</span><p>${signal.note}</p></div>`).join('');
+     $('#kpis').innerHTML = signals.map((signal) => `<div class="signal-item ${signal.kind} ${signal.value === 0 ? 'is-zero' : ''} relative grid min-w-0 grid-cols-[auto_1fr] grid-rows-[auto_1fr_auto] gap-x-[.65rem] gap-y-[.45rem] rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(11,18,22,.62)] p-[.85rem_.75rem_.8rem] max-[379px]:min-h-[7.4rem]"><span class="signal-mark-mini grid h-6 w-6 place-items-center rounded-[.55rem] border border-[rgba(72,228,224,.35)] bg-[rgba(72,228,224,.09)] text-[.58rem] font-bold text-[var(--cyan)]" aria-hidden="true">${signal.mark}</span><small class="col-[2] self-center text-[.56rem] font-extrabold uppercase leading-tight tracking-[.08em] text-[var(--subtle)]">${signal.label}</small><span class="signal-value col-span-full inline-grid min-h-9 min-w-11 place-items-center justify-self-start self-end rounded-[.65rem] bg-[var(--amber)] px-2 py-1 text-[clamp(1.65rem,3vw,2.35rem)] font-semibold leading-[.9] tracking-[-.07em] text-[#101813]">${signal.value}</span><p class="col-span-full m-0 min-w-0 self-end break-words text-[.62rem] leading-tight text-[var(--muted)]">${signal.note}</p></div>`).join('');
     $('#assignment-count').textContent = `${k.activeTrips} asignación${k.activeTrips === 1 ? '' : 'es'} activa${k.activeTrips === 1 ? '' : 's'}`;
     $('#maintenance-rows').innerHTML = data.maintenanceByBus.length ? data.maintenanceByBus.map((row) => `<tr><td><strong>${escapeHtml(row.placa)}</strong><small>Bus #${row.busId}</small></td><td>${row.records}</td><td class="align-right"><strong>${currency.format(row.total)}</strong></td></tr>`).join('') : `<tr><td class="table-state" colspan="3">No hay mantenimientos en este periodo.</td></tr>`;
-    $('#maintenance-buses').innerHTML = data.busesInMaintenance.length ? data.busesInMaintenance.map((bus) => `<div class="stack-item"><span><strong>${escapeHtml(bus.placa)}</strong><small>${escapeHtml(bus.marca)} · ${escapeHtml(bus.modelo)}</small></span><span class="tag is-amber">Revisión</span></div>`).join('') : empty('No hay buses fuera de servicio.');
-    $('#active-trips').innerHTML = data.activeTrips.length ? data.activeTrips.map((trip) => { const assignment = trip.assignments[0]; return `<div class="assignment-row"><span class="assignment-icon" aria-hidden="true">↝</span><span class="assignment-meta"><span class="assignment-label">Viaje · ${escapeHtml(trip.code)}</span><strong>${escapeHtml(trip.origin)}</strong><small>${date.format(new Date(trip.initialStartAt))}</small></span><span class="assignment-meta"><span class="assignment-label">Recursos</span><strong>${assignment ? escapeHtml(assignment.bus.placa) : 'Bus pendiente'}</strong><small>${assignment ? escapeHtml(assignment.driver.nombres) : 'Chofer pendiente'}</small></span><span class="tag">${statusLabel[trip.status] ?? escapeHtml(trip.status)}</span></div>`; }).join('') : empty('No hay asignaciones activas para mostrar.');
+     $('#maintenance-buses').innerHTML = data.busesInMaintenance.length ? data.busesInMaintenance.map((bus) => `<div class="stack-item flex min-w-0 justify-between gap-3 rounded-[.8rem] border border-[rgba(245,173,75,.12)] bg-[rgba(5,11,14,.24)] p-[.85rem_.8rem]"><span class="min-w-0"><strong class="block truncate text-[var(--ink)]">${escapeHtml(bus.placa)}</strong><small class="mt-1 block truncate text-[.66rem] text-[var(--muted)]">${escapeHtml(bus.marca)} · ${escapeHtml(bus.modelo)}</small></span><span class="tag is-amber shrink-0 text-[.61rem] font-extrabold text-[var(--amber)]">Revisión</span></div>`).join('') : empty('No hay buses fuera de servicio.');
+     $('#active-trips').innerHTML = data.activeTrips.length ? data.activeTrips.map((trip) => { const assignment = trip.assignments[0]; return `<div class="assignment-row grid min-w-0 grid-cols-[2.2rem_minmax(8rem,1fr)_minmax(8rem,1fr)_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem] max-md:grid-cols-[2rem_minmax(0,1fr)_auto] max-md:gap-[.65rem] max-md:[&_.assignment-meta:nth-child(3)]:col-[2/-1] max-md:[&_.tag]:col-[3] max-md:[&_.tag]:row-[1] max-[379px]:grid-cols-[1.8rem_minmax(0,1fr)] max-[379px]:[&_.tag]:col-[2] max-[379px]:[&_.tag]:row-auto"><span class="assignment-icon grid h-8 w-8 place-items-center rounded-[.55rem] border-l-2 border-[var(--cyan)] bg-[rgba(72,228,224,.06)] text-[var(--cyan)]" aria-hidden="true">↝</span><span class="assignment-meta min-w-0"><span class="assignment-label mb-1 block truncate text-[.57rem] font-extrabold uppercase tracking-[.1em] text-[var(--subtle)]">Viaje · ${escapeHtml(trip.code)}</span><strong class="block truncate text-[.78rem] text-[var(--ink)]">${escapeHtml(trip.origin)}</strong><small class="mt-1 block truncate text-[.66rem] text-[var(--muted)]">${date.format(new Date(trip.initialStartAt))}</small></span><span class="assignment-meta min-w-0"><span class="assignment-label mb-1 block truncate text-[.57rem] font-extrabold uppercase tracking-[.1em] text-[var(--subtle)]">Recursos</span><strong class="block truncate text-[.78rem] text-[var(--ink)]">${assignment ? escapeHtml(assignment.bus.placa) : 'Bus pendiente'}</strong><small class="mt-1 block truncate text-[.66rem] text-[var(--muted)]">${assignment ? escapeHtml(assignment.driver.nombres) : 'Chofer pendiente'}</small></span><span class="tag shrink-0 text-[.61rem] font-extrabold text-[var(--cyan)]">${statusLabel[trip.status] ?? escapeHtml(trip.status)}</span></div>`; }).join('') : empty('No hay asignaciones activas para mostrar.');
     const totalCost = k.maintenanceCost;
     $('#period-cost').textContent = currency.format(totalCost);
     $('#spend-empty').hidden = totalCost !== 0 || data.maintenanceByBus.length > 0;
