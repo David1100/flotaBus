@@ -53,7 +53,7 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
 </style>
 
 <script>
-  import { api, ApiError } from '../lib/api';
+  import { api, ApiError, clearAuthTokens } from '../lib/api';
   import { feedback, Swal } from '../lib/feedback';
 
   async function protectAdminShell() {
@@ -89,6 +89,7 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
     try {
       feedback.loading('Cerrando sesión…');
       await api('/auth/logout', { method: 'POST' });
+      clearAuthTokens();
       Swal.close();
       await feedback.success('Hasta pronto.');
       window.location.assign('/login');

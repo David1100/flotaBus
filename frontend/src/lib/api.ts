@@ -1,4 +1,17 @@
 const API = (import.meta.env.PUBLIC_API_URL || 'http://localhost:3000').replace(/\/+$/, '');
+export const SESSION_TOKEN_KEY = 'flotabus_session_token';
+export const CSRF_TOKEN_KEY = 'flotabus_csrf_token';
+
+export function clearAuthTokens() {
+  try {
+    sessionStorage.removeItem(SESSION_TOKEN_KEY);
+    sessionStorage.removeItem(CSRF_TOKEN_KEY);
+  } catch { /* Storage may be unavailable in privacy-restricted browsers. */ }
+}
+
+function storedToken(key: string) {
+  try { return sessionStorage.getItem(key); } catch { return null; }
+}
 
 export class ApiError extends Error {
   status: number;
@@ -13,9 +26,11 @@ export class ApiError extends Error {
 }
 
 export async function api(path: string, options: RequestInit = {}) {
-  const csrf = document.cookie.split('; ').find((cookie) => cookie.startsWith('flotabus_csrf='))?.split('=')[1];
+  const csrf = storedToken(CSRF_TOKEN_KEY) || document.cookie.split('; ').find((cookie) => cookie.startsWith('flotabus_csrf='))?.split('=')[1];
+  const token = storedToken(SESSION_TOKEN_KEY);
   const method = (options.method || 'GET').toUpperCase();
   const headers = new Headers(options.headers);
+  if (token) headers.set('Authorization', `Bearer ${token}`);
   if (options.body && !(options.body instanceof FormData)) headers.set('Content-Type', 'application/json');
   if (csrf && !['GET', 'HEAD'].includes(method)) headers.set('x-csrf-token', csrf);
 

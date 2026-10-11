@@ -17,11 +17,12 @@ export class AuthController {
     const sameSite: 'none' | 'lax' = secure ? 'none' : 'lax';
     const cookieOptions = { secure, sameSite, path: '/' } as const;
     res.cookie('flotabus_session', result.token, { ...cookieOptions, httpOnly: true, maxAge: 8 * 60 * 60 * 1000 });
-    res.cookie('flotabus_csrf', randomUUID(), { ...cookieOptions, httpOnly: false });
-    return { user: result.user };
+    const csrfToken = randomUUID();
+    res.cookie('flotabus_csrf', csrfToken, { ...cookieOptions, httpOnly: false });
+    return { user: result.user, token: result.token, csrfToken };
   }
 
-  @UseGuards(CsrfGuard)
+  @UseGuards(JwtAuthGuard, CsrfGuard)
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
     const secure = process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';

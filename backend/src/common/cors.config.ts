@@ -55,6 +55,9 @@ export function corsOptions(env: NodeJS.ProcessEnv = process.env) {
     credentials: true,
     methods: CORS_METHODS,
     allowedHeaders: CORS_HEADERS,
+    // Let the CORS middleware terminate OPTIONS before Nest route guards run.
+    preflightContinue: false,
     optionsSuccessStatus: 204,
+    maxAge: 600,
   };
 }

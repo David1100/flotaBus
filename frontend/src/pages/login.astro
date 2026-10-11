@@ -78,7 +78,7 @@ import Base from '../layouts/Base.astro';
    }
 </style>
 <script>
-  import { api, ApiError } from '../lib/api';
+  import { api, ApiError, CSRF_TOKEN_KEY, SESSION_TOKEN_KEY, clearAuthTokens } from '../lib/api';
   import { feedback, Swal } from '../lib/feedback';
   function initLogin() {
     const form = document.querySelector<HTMLFormElement>('[data-login-form]');
@@ -96,19 +96,29 @@ import Base from '../layouts/Base.astro';
       button.disabled = true;
       button.innerHTML = '<span class="inline-flex items-center gap-2">Verificando <span class="animate-pulse">•••</span></span>';
       error.textContent = '';
+      let loginSucceeded = false;
       try {
         feedback.loading('Verificando tus credenciales…');
-        await api('/auth/login', { method: 'POST', body: JSON.stringify({ username: usernameInput.value.trim(), password: passwordInput.value }) });
+        clearAuthTokens();
+        const result = await api('/auth/login', { method: 'POST', body: JSON.stringify({ username: usernameInput.value.trim(), password: passwordInput.value }) });
+        if (result.token && result.csrfToken) {
+          sessionStorage.setItem(SESSION_TOKEN_KEY, result.token);
+          sessionStorage.setItem(CSRF_TOKEN_KEY, result.csrfToken);
+        }
+        loginSucceeded = true;
         // Confirm the HttpOnly session cookie is usable before changing the page.
         await api('/auth/me');
         Swal.close();
         await feedback.success('Sesión iniciada. Preparando tu consola…', 'Acceso concedido');
         window.location.assign('/admin');
       } catch (cause) {
-        const message = cause instanceof ApiError && cause.status === 401 ? 'Usuario o contraseña incorrectos. Verifica tus datos e inténtalo de nuevo.' : cause instanceof Error ? cause.message : 'No pudimos iniciar sesión.';
+        const message = cause instanceof ApiError && cause.status === 401 && !loginSucceeded
+          ? 'Usuario o contraseña incorrectos. Verifica tus datos e inténtalo de nuevo.'
+          : cause instanceof Error ? cause.message : 'No pudimos verificar la sesión.';
+        if (!loginSucceeded) clearAuthTokens();
         error.textContent = message;
         Swal.close();
-        await feedback.error(message, cause instanceof ApiError && cause.status === 401 ? 'Credenciales no válidas' : 'No se pudo iniciar sesión');
+        await feedback.error(message, cause instanceof ApiError && cause.status === 401 && !loginSucceeded ? 'Credenciales no válidas' : 'No se pudo verificar la sesión');
       } finally {
         button.disabled = false;
         button.innerHTML = 'Entrar a la consola <span>↗</span>';

@@ -20,6 +20,9 @@ describe('CORS configuration', () => {
       credentials: true,
       methods: ['OPTIONS', 'GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'CSRF'],
+      preflightContinue: false,
+      optionsSuccessStatus: 204,
+      maxAge: 600,
     });
   });
 });
