@@ -3,9 +3,9 @@ import Base from '../layouts/Base.astro';
 const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
 ---
 <Base title={title}>
-  <div class="admin-layout grid min-h-screen min-w-0 grid-cols-[248px_minmax(0,1fr)] grid-rows-[25px_1fr] max-md:block" data-admin-shell data-auth-pending="true">
+  <div class="admin-layout grid min-w-0 grid-cols-[248px_minmax(0,1fr)] grid-rows-[25px_1fr] max-md:block" data-admin-shell data-auth-pending="true">
     <div class="admin-sidebar-frame min-w-0 max-md:col-start-1 max-md:row-start-1 max-md:w-full" transition:persist="admin-sidebar-frame">
-        <aside id="admin-sidebar" class="admin-sidebar glass fixed inset-y-4 left-4 z-[30] flex h-[calc(100vh-2rem)] w-[216px] flex-col overflow-y-auto rounded-[1.4rem] border border-[var(--line)] bg-[rgba(13,21,25,.9)] px-3 py-[1.1rem] pb-3 shadow-[0_24px_70px_rgba(0,0,0,.34),inset_0_1px_rgba(255,255,255,.07)] transition-[transform,visibility] duration-200 max-md:inset-y-4 max-md:h-auto max-md:max-h-[calc(100dvh-2rem)] max-md:w-[min(18rem,calc(100vw-2rem))] max-md:-translate-x-[calc(100%+1.5rem)] max-md:invisible max-md:rounded-[1.25rem] max-md:py-4" transition:persist="admin-sidebar">
+        <aside id="admin-sidebar" class="admin-sidebar glass fixed inset-y-4 left-4 z-[30] flex h-auto w-[216px] flex-col overflow-y-auto rounded-[1.4rem] border border-[var(--line)] bg-[rgba(13,21,25,.9)] px-3 py-[1.1rem] pb-3 shadow-[0_24px_70px_rgba(0,0,0,.34),inset_0_1px_rgba(255,255,255,.07)] transition-[transform,visibility] duration-200 max-md:inset-y-4 max-md:h-auto max-md:w-[min(18rem,calc(100vw-2rem))] max-md:-translate-x-[calc(100%+1.5rem)] max-md:invisible max-md:rounded-[1.25rem] max-md:py-4" transition:persist="admin-sidebar">
        <a href="/admin" class="brand" data-spa-link aria-label="Ir al inicio de flotaBus">
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 10h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
         <span class="brand-copy"><strong>flotaBus</strong><small>Control de flota</small></span>

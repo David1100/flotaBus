@@ -175,7 +175,8 @@ import AdminShell from '../../../../components/AdminShell.astro';
     .maintenance-record:hover,.record-photo:hover { transform:none; }
   }
   @media(max-width:760px) {
-    .maintenance-modal { display:flex; flex-direction:column; width:100%; max-height:min(92dvh,48rem); }
+    .maintenance-modal { display:flex; flex-direction:column; width:100%; max-height:min(calc(100svh - max(.65rem, env(safe-area-inset-top)) - max(.65rem, env(safe-area-inset-bottom))),48rem); }
+    @supports (height: 100dvh) { .maintenance-modal { max-height:min(calc(100dvh - max(.65rem, env(safe-area-inset-top)) - max(.65rem, env(safe-area-inset-bottom))),48rem); } }
     .maintenance-modal .modal-heading { flex:0 0 auto; }
     .maintenance-form { flex:1 1 auto; overflow:hidden; }
     .maintenance-form-scroll { flex:1 1 auto; max-height:none; }
