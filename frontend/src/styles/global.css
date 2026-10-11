@@ -61,6 +61,65 @@ textarea {
   outline: none;
   transition: border-color .2s, box-shadow .2s, background .2s;
 }
+.input[type='date'],
+.input[type='datetime-local'],
+.input[type='month'],
+.input[type='time'],
+input[type='date'],
+input[type='datetime-local'],
+input[type='month'],
+input[type='time'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding-right: 3.15rem;
+  color-scheme: dark;
+  -webkit-text-fill-color: var(--ink);
+}
+input[type='date']::-webkit-datetime-edit,
+input[type='datetime-local']::-webkit-datetime-edit,
+input[type='month']::-webkit-datetime-edit,
+input[type='time']::-webkit-datetime-edit {
+  min-width: 0;
+  padding: 0;
+  color: var(--ink);
+}
+input[type='date']::-webkit-datetime-edit-fields-wrapper,
+input[type='datetime-local']::-webkit-datetime-edit-fields-wrapper,
+input[type='month']::-webkit-datetime-edit-fields-wrapper,
+input[type='time']::-webkit-datetime-edit-fields-wrapper {
+  min-width: 0;
+  padding: 0;
+}
+input[type='date']::-webkit-date-and-time-value,
+input[type='datetime-local']::-webkit-date-and-time-value,
+input[type='month']::-webkit-date-and-time-value,
+input[type='time']::-webkit-date-and-time-value {
+  min-width: 0;
+  min-height: 1.35em;
+  margin: 0;
+  text-align: left;
+}
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='datetime-local']::-webkit-calendar-picker-indicator,
+input[type='month']::-webkit-calendar-picker-indicator,
+input[type='time']::-webkit-calendar-picker-indicator {
+  width: 1.35rem;
+  height: 1.35rem;
+  margin: 0 -.2rem 0 .35rem;
+  padding: .1rem;
+  cursor: pointer;
+  opacity: 1;
+  filter: invert(79%) sepia(46%) saturate(697%) hue-rotate(128deg) brightness(96%) contrast(91%);
+}
+input[type='date']::-webkit-clear-button,
+input[type='datetime-local']::-webkit-clear-button,
+input[type='month']::-webkit-clear-button,
+input[type='time']::-webkit-clear-button {
+  display: none;
+}
 .input,
 input:not([type='hidden']):not([type='file']):not([type='checkbox']):not([type='radio']):not([type='range']),
 select { color-scheme: dark; }
@@ -98,6 +157,12 @@ textarea { min-height: 7rem; resize: vertical; }
 @media (max-width: 760px) {
   input:not([type='hidden']):not([type='file']):not([type='checkbox']):not([type='radio']):not([type='range']), select, textarea, .input { font-size: 16px; }
   select, input, textarea, .input { min-height: 2.75rem; }
+  input[type='date'], input[type='datetime-local'], input[type='month'], input[type='time'],
+  .input[type='date'], .input[type='datetime-local'], .input[type='month'], .input[type='time'] {
+    font-size: 16px;
+    padding-right: 3.25rem;
+    touch-action: manipulation;
+  }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms!important; animation-iteration-count: 1!important; scroll-behavior: auto!important; transition-duration: .01ms!important; } *::-webkit-scrollbar-thumb { transition: none; } }
 
