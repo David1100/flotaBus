@@ -486,6 +486,7 @@ textarea { min-height: 7rem; resize: vertical; }
 .switch-input:not(:checked) + .switch-label .switch-copy small { color: var(--subtle); }
 .admin-modal-card > .form-actions { position: sticky; z-index: 2; bottom: 0; flex: 0 0 auto; margin-top: 1rem; }
 .form-actions { display: flex; align-items: stretch; justify-content: flex-end; gap: .7rem; padding: 1rem 0 max(.1rem, env(safe-area-inset-bottom)); border-top: 1px solid rgba(234,239,226,.1); background: linear-gradient(180deg, rgba(17,26,31,.2), rgba(17,26,31,.96) 30%); }
+#driver-form ~ .form-actions { margin-top: .65rem; padding-block: .7rem; padding-bottom: max(.1rem, env(safe-area-inset-bottom)); }
 .form-actions > .btn,
 .form-actions .trip-navigation,
 .form-actions .trip-navigation .btn { min-width: 0; }
