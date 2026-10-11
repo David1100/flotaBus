@@ -35,7 +35,8 @@ export function setupPhotoPicker(form: HTMLFormElement, options: PhotoPickerOpti
       <small class="field-help photo-help" id="${options.inputId}-help">La foto se optimiza y almacena de forma segura.</small>
       <small class="photo-error" id="${options.inputId}-error" role="alert" hidden></small>
     </div>`;
-  form.insertBefore(field, form.querySelector('.form-actions') || null);
+  const content = form.querySelector<HTMLElement>('.modal-form-scroll') ?? form;
+  content.insertBefore(field, content.querySelector('.form-actions') || null);
 
   const input = field.querySelector<HTMLInputElement>('.photo-input')!;
   const dropzone = field.querySelector<HTMLElement>('.photo-dropzone')!;

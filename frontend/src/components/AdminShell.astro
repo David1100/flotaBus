@@ -167,6 +167,16 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
   async function loadPageAssets(next: Document) {
     const currentScriptSources = new Set(Array.from(document.scripts).map((script) => script.src).filter(Boolean));
     const scripts = Array.from(next.scripts).filter((script) => script.src && !currentScriptSources.has(script.src));
+    const currentStyles = new Set(Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')).map((link) => link.href));
+    const styles = Array.from(next.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')).filter((source) => source.href && !currentStyles.has(source.href));
+    await Promise.all(styles.map((source) => new Promise<void>((resolve, reject) => {
+      const link = source.cloneNode(true) as HTMLLinkElement;
+      link.onload = () => resolve();
+      link.onerror = () => reject(new Error(`Could not load ${source.href}`));
+      currentStyles.add(source.href);
+      document.head.append(link);
+    })));
+
     // Load page modules only after the new content is live.  Astro's generated
     // module can already be present when the user visits a route a second time;
     // in that case the page's astro:page-load listener is reused below.
@@ -179,11 +189,6 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
       currentScriptSources.add(source.src);
       document.body.append(script);
     })));
-
-    const currentStyles = new Set(Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')).map((link) => link.href));
-    next.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]').forEach((source) => {
-      if (source.href && !currentStyles.has(source.href)) document.head.append(source.cloneNode(true));
-    });
   }
 
   let navigationToken = 0;

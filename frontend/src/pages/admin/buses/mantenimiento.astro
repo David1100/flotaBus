@@ -98,25 +98,3 @@ import AdminShell from '../../../components/AdminShell.astro';
   document.addEventListener('astro:page-load', initMaintenanceAreas);
   initMaintenanceAreas();
 </script>
-
-<style>
-   .maintenance-page { max-width: 1120px; margin: 0 auto; }
-  .maintenance-hero { display:flex; align-items:end; justify-content:space-between; gap:2rem; margin-bottom:2.4rem; }
-  .maintenance-hero h1 { margin:.5rem 0 .7rem; font-size:clamp(2.8rem,6vw,5.4rem); line-height:.88; letter-spacing:-.065em; }
-  .maintenance-hero h1 em { color:var(--cyan); font-style:normal; }
-  .maintenance-hero p { max-width:34rem; margin:0; color:var(--muted); }
-   .maintenance-panel { position:relative; overflow:hidden; border-radius:1.25rem; padding:1.4rem; }
-   .maintenance-panel::before { content:''; position:absolute; inset:0 0 auto; height:1px; background:linear-gradient(90deg,transparent,var(--cyan),var(--amber),transparent); opacity:.55; }
-   .maintenance-panel-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.3rem .3rem 1.2rem; }
-  .maintenance-panel-heading h2 { margin:.4rem 0 0; font-size:1.55rem; letter-spacing:-.03em; }
-   .unit-badge { border:1px solid rgba(72,228,224,.2); border-radius:999px; padding:.4rem .65rem; color:var(--cyan); background:rgba(72,228,224,.08); font-size:.65rem; font-weight:800; letter-spacing:.08em; }
-   .invalid-badge { color:var(--amber); border-color:rgba(245,173,75,.25); background:rgba(245,173,75,.08); }
-   .maintenance-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.8rem; }
-  .maintenance-card { position:relative; display:flex; min-height:8.8rem; flex-direction:column; justify-content:flex-end; gap:.65rem; overflow:hidden; padding:1.1rem; border:1px solid rgba(234,239,226,.1); border-radius:1rem; color:var(--ink); background:linear-gradient(145deg,rgba(27,40,44,.95),rgba(10,18,22,.9)); font-family:'Outfit',sans-serif; font-size:1.08rem; font-weight:600; text-decoration:none; transition:transform .25s, border-color .25s, box-shadow .25s, background .25s; }
-  .maintenance-card::after { content:''; position:absolute; right:-1.3rem; top:-1.3rem; width:5rem; height:5rem; border:1px solid rgba(72,228,224,.12); border-radius:50%; }
-  .maintenance-card:hover { transform:translateY(-4px); border-color:rgba(72,228,224,.38); background:linear-gradient(145deg,rgba(31,53,56,.98),rgba(11,22,26,.94)); box-shadow:0 18px 34px rgba(0,0,0,.25), 0 0 26px rgba(72,228,224,.06); }
-  .system-icon { display:grid; place-items:center; width:2.45rem; height:2.45rem; border:1px solid rgba(245,173,75,.2); border-radius:.75rem; color:var(--amber); background:rgba(245,173,75,.08); }
-  .system-icon svg { width:1.35rem; height:1.35rem; stroke:currentColor; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.5; }
-  .card-arrow { position:absolute; right:1rem; bottom:1.1rem; color:var(--cyan); font-family:'Inter',sans-serif; opacity:.7; transition:transform .2s, opacity .2s; }
-  .maintenance-card:hover .card-arrow { opacity:1; transform:translate(2px,-2px); }
-</style>
