@@ -3,17 +3,30 @@ import AdminShell from '../../components/AdminShell.astro';
 ---
 <AdminShell title="Dashboard · flotaBus" active="dashboard">
   <div class="dashboard-page">
-    <section class="page-header dashboard-hero fade-in"><div><div class="eyebrow">CENTRO DE CONTROL · 01</div><h1>La flota, <em>en foco.</em></h1><p>Una lectura rápida de operación, asignaciones y mantenimiento.</p></div><div class="period-note" id="period-note">Periodo actual</div></section>
+    <section class="page-header dashboard-hero fade-in">
+      <div><div class="eyebrow">CENTRO DE CONTROL · 01</div><h1>La flota, <em>en foco.</em></h1><p>Una lectura rápida de operación, asignaciones y mantenimiento.</p></div>
+      <div class="period-note" id="period-note">Periodo actual</div>
+    </section>
     <section class="glass dashboard-toolbar fade-in" style="animation-delay:.05s" aria-label="Filtros del dashboard">
       <label><span>Desde</span><input class="input" id="from" type="date" /></label><label><span>Hasta</span><input class="input" id="to" type="date" /></label><label><span>Bus</span><select class="input" id="bus"><option value="">Todos los buses</option></select></label><label><span>Estado</span><select class="input" id="status"><option value="">Todos</option><option value="AVAILABLE">Disponible</option><option value="ASSIGNED">Asignado</option><option value="IN_TRANSIT">En ruta</option><option value="MAINTENANCE">Mantenimiento</option><option value="STOPPED">Detenido</option><option value="INCIDENT">Incidente</option></select></label><button class="btn btn-primary" id="apply" type="button">Actualizar</button>
     </section>
-    <div id="dashboard-state" class="dashboard-state" role="status">Cargando resumen…</div>
-    <section class="kpi-grid" id="kpis" hidden></section>
+    <div id="dashboard-state" class="dashboard-state" role="status" aria-live="polite">Cargando resumen…</div>
+    <section class="kpi-grid" id="kpis" aria-label="Indicadores clave" hidden></section>
     <section class="dashboard-grid" id="dashboard-content" hidden>
-      <article class="glass dashboard-card maintenance-cost-card"><div class="card-heading"><div><div class="eyebrow">INVERSIÓN</div><h2>Mantenimiento por bus</h2></div><span class="card-mark">$</span></div><div class="admin-table-wrap"><table class="admin-table compact-table"><thead><tr><th>Bus</th><th>Registros</th><th class="align-right">Costo</th></tr></thead><tbody id="maintenance-rows"></tbody></table></div></article>
-      <article class="glass dashboard-card"><div class="card-heading"><div><div class="eyebrow">ATENCIÓN</div><h2>Buses en mantenimiento</h2></div><span class="card-mark">⌁</span></div><div class="stack-list" id="maintenance-buses"></div></article>
-      <article class="glass dashboard-card trips-card"><div class="card-heading"><div><div class="eyebrow">OPERACIÓN</div><h2>Viajes activos</h2></div><span class="card-mark">↝</span></div><div class="stack-list" id="active-trips"></div></article>
-      <article class="glass dashboard-card"><div class="card-heading"><div><div class="eyebrow">COBERTURA</div><h2>Sin asignación activa</h2></div><span class="card-mark">○</span></div><div class="stack-list" id="unassigned-buses"></div></article>
+      <article class="glass dashboard-card coverage-card">
+        <div class="card-heading"><div><div class="eyebrow">COBERTURA</div><h2>Disponibilidad de flota</h2></div><span class="card-mark" aria-hidden="true">◎</span></div>
+        <div class="coverage-content" id="coverage"></div>
+      </article>
+      <article class="glass dashboard-card maintenance-cost-card">
+        <div class="card-heading"><div><div class="eyebrow">INVERSIÓN</div><h2>Mantenimiento por bus</h2></div><span class="card-mark amber-mark" aria-hidden="true">$</span></div>
+        <div class="admin-table-wrap"><table class="admin-table compact-table"><thead><tr><th>Bus</th><th>Registros</th><th class="align-right">Costo</th></tr></thead><tbody id="maintenance-rows"></tbody></table></div>
+      </article>
+      <article class="glass dashboard-card">
+        <div class="card-heading"><div><div class="eyebrow">ATENCIÓN</div><h2>Buses en mantenimiento</h2></div><span class="card-mark" aria-hidden="true">⌁</span></div><div class="stack-list" id="maintenance-buses"></div>
+      </article>
+      <article class="glass dashboard-card assignments-card">
+        <div class="card-heading"><div><div class="eyebrow">ASIGNACIONES</div><h2>Operación en curso</h2></div><span class="card-mark" aria-hidden="true">↝</span></div><div class="assignment-list" id="active-trips"></div>
+      </article>
     </section>
   </div>
 </AdminShell>
@@ -32,28 +45,62 @@ import AdminShell from '../../components/AdminShell.astro';
   .dashboard-state { margin: 1rem 0; color: var(--muted); text-align: center; font-size: .82rem; }
   .dashboard-state.error { color: #ff9daa; }
   .kpi-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .7rem; margin: 1rem 0; }
-  .kpi { min-height: 8rem; padding: 1rem; border: 1px solid var(--line); border-radius: 1rem; background: linear-gradient(145deg, rgba(27,37,40,.9), rgba(11,17,21,.78)); box-shadow: inset 0 1px rgba(255,255,255,.05); }
-  .kpi-label { color: var(--subtle); font-size: .62rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
-  .kpi-value { display: block; margin-top: .85rem; color: var(--ink); font: 700 clamp(1.5rem, 2.5vw, 2rem)/1 'Outfit', sans-serif; letter-spacing: -.05em; }
+  .kpi { position: relative; min-height: 9.2rem; overflow: hidden; padding: 1rem; border: 1px solid var(--line); border-radius: 1rem; background: linear-gradient(145deg, rgba(27,37,40,.94), rgba(11,17,21,.82)); box-shadow: inset 0 1px rgba(255,255,255,.05); }
+  .kpi::after { content: ''; position: absolute; right: -1.5rem; bottom: -2.5rem; width: 6rem; height: 6rem; border-radius: 50%; background: var(--kpi-glow, rgba(72,228,224,.12)); filter: blur(1px); opacity: .65; }
+  .kpi--amber { --kpi-glow: rgba(245,173,75,.15); border-color: rgba(245,173,75,.2); }
+  .kpi--cyan { --kpi-glow: rgba(72,228,224,.15); border-color: rgba(72,228,224,.18); }
+  .kpi--quiet { --kpi-glow: rgba(234,239,226,.08); }
+  .kpi-top { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+  .kpi-icon { display: grid; place-items: center; width: 1.65rem; height: 1.65rem; border-radius: .55rem; color: var(--cyan); background: rgba(72,228,224,.1); }
+  .kpi--amber .kpi-icon { color: var(--amber); background: rgba(245,173,75,.1); }
+  .kpi-icon svg { width: 1rem; height: 1rem; }
+  .kpi-label { color: var(--subtle); font-size: .61rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+  .kpi-value { position: relative; z-index: 1; display: block; margin-top: .8rem; color: var(--ink); font: 700 clamp(1.45rem, 2.5vw, 2rem)/1 'Outfit', sans-serif; letter-spacing: -.05em; }
   .kpi-value.accent { color: var(--cyan); }
+  .kpi-meter { position: relative; z-index: 1; height: .22rem; margin-top: .8rem; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.08); }
+  .kpi-meter i { display: block; width: var(--meter, 0%); height: 100%; border-radius: inherit; background: var(--meter-color, var(--cyan)); }
+  .kpi-note { position: relative; z-index: 1; display: block; margin-top: .45rem; color: var(--subtle); font-size: .64rem; }
   .dashboard-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: .9rem; }
   .dashboard-card { min-width: 0; overflow: hidden; border-radius: 1.15rem; }
+  .coverage-card { grid-row: span 2; }
+  .assignments-card { grid-column: 1 / -1; }
   .card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: .8rem; padding: 1.1rem 1.15rem .75rem; }
   .card-heading h2 { margin: .35rem 0 0; color: var(--ink); font: 600 1.2rem/1.1 'Outfit', sans-serif; letter-spacing: -.03em; }
   .card-mark { display: grid; place-items: center; width: 2rem; height: 2rem; border: 1px solid rgba(72,228,224,.2); border-radius: .7rem; color: var(--cyan); background: rgba(72,228,224,.08); font-weight: 800; }
-  .trips-card { grid-column: 1 / -1; }
+  .amber-mark { color: var(--amber); border-color: rgba(245,173,75,.2); background: rgba(245,173,75,.08); }
+  .coverage-content { display: grid; grid-template-columns: 8.7rem 1fr; align-items: center; gap: 1.25rem; padding: .8rem 1.15rem 1.3rem; }
+  .coverage-ring { position: relative; display: grid; place-items: center; width: 8rem; height: 8rem; border-radius: 50%; background: conic-gradient(var(--cyan) var(--coverage, 0%), rgba(255,255,255,.08) 0); box-shadow: 0 0 30px rgba(72,228,224,.08); }
+  .coverage-ring::after { content: ''; position: absolute; width: 6.1rem; height: 6.1rem; border-radius: 50%; background: #111a1f; }
+  .coverage-ring > span { position: relative; z-index: 1; display: grid; text-align: center; }
+  .coverage-ring strong { color: var(--ink); font: 700 1.7rem/1 'Outfit', sans-serif; }
+  .coverage-ring small { margin-top: .25rem; color: var(--subtle); font-size: .58rem; letter-spacing: .08em; text-transform: uppercase; }
+  .coverage-copy { display: grid; gap: .55rem; }
+  .coverage-summary { margin: 0; color: var(--muted); font-size: .76rem; line-height: 1.45; }
+  .coverage-legend { display: grid; gap: .35rem; }
+  .coverage-line { display: flex; justify-content: space-between; gap: .7rem; color: var(--muted); font-size: .7rem; }
+  .coverage-line strong { color: var(--ink); font-weight: 700; }
+  .coverage-line i { display: inline-block; width: .45rem; height: .45rem; margin-right: .35rem; border-radius: 50%; background: var(--cyan); }
+  .coverage-line:nth-child(2) i { background: var(--amber); }
+  .coverage-line:nth-child(3) i { background: var(--subtle); }
   .compact-table { min-width: 0; }
   .compact-table th, .compact-table td { padding: .72rem 1.15rem; }
   .align-right { text-align: right!important; }
-  .stack-list { display: grid; gap: .5rem; padding: .35rem 1.15rem 1.15rem; }
-  .stack-item { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding: .75rem .8rem; border: 1px solid rgba(234,239,226,.08); border-radius: .8rem; background: rgba(5,11,14,.28); }
-  .stack-item strong, .stack-item small { display: block; }
-  .stack-item strong { color: var(--ink); font-size: .8rem; }
-  .stack-item small { margin-top: .2rem; color: var(--muted); font-size: .68rem; }
-  .stack-item .tag { flex: 0 0 auto; color: var(--cyan); font-size: .68rem; font-weight: 800; }
+  .stack-list, .assignment-list { display: grid; gap: .5rem; padding: .35rem 1.15rem 1.15rem; }
+  .stack-item, .assignment-row { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding: .75rem .8rem; border: 1px solid rgba(234,239,226,.08); border-radius: .8rem; background: rgba(5,11,14,.28); }
+  .stack-item strong, .stack-item small, .assignment-row strong, .assignment-row small { display: block; }
+  .stack-item strong, .assignment-row strong { color: var(--ink); font-size: .8rem; }
+  .stack-item small, .assignment-row small { margin-top: .2rem; color: var(--muted); font-size: .68rem; }
+  .tag { flex: 0 0 auto; padding: .3rem .5rem; border: 1px solid rgba(72,228,224,.15); border-radius: 999px; color: var(--cyan); background: rgba(72,228,224,.07); font-size: .64rem; font-weight: 800; }
+  .tag.is-amber { color: var(--amber); border-color: rgba(245,173,75,.18); background: rgba(245,173,75,.07); }
+  .assignment-row { display: grid; grid-template-columns: 2.3rem minmax(9rem, 1fr) minmax(9rem, 1fr) auto; padding: .7rem .8rem; }
+  .assignment-icon { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: .7rem; color: var(--cyan); background: rgba(72,228,224,.1); font-size: .9rem; font-weight: 800; }
+  .assignment-meta { min-width: 0; }
+  .assignment-meta strong, .assignment-meta small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .assignment-label { display: block; color: var(--subtle); font-size: .58rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
   .empty-state { padding: 1.8rem .8rem; color: var(--subtle); text-align: center; font-size: .78rem; }
   @media (max-width: 1050px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
-  @media (max-width: 760px) { .dashboard-hero { align-items: flex-start; } .dashboard-toolbar { grid-template-columns: repeat(2, 1fr); } .dashboard-toolbar .btn { grid-column: 1 / -1; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } .dashboard-grid { grid-template-columns: 1fr; } .trips-card { grid-column: auto; } }
+  @media (max-width: 760px) { .dashboard-hero { align-items: flex-start; } .dashboard-toolbar { grid-template-columns: repeat(2, 1fr); } .dashboard-toolbar .btn { grid-column: 1 / -1; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } .dashboard-grid { grid-template-columns: 1fr; } .coverage-card, .assignments-card { grid-row: auto; grid-column: auto; } .coverage-content { grid-template-columns: 7rem 1fr; gap: .8rem; } .coverage-ring { width: 7rem; height: 7rem; } .coverage-ring::after { width: 5.3rem; height: 5.3rem; } }
+  @media (max-width: 520px) { .coverage-content { grid-template-columns: 1fr; justify-items: center; } .coverage-copy { width: 100%; } .assignment-row { grid-template-columns: 2.25rem minmax(0, 1fr) auto; } .assignment-row .assignment-meta:nth-child(3) { grid-column: 2 / -1; } }
 </style>
 
 <script>
@@ -65,15 +112,26 @@ import AdminShell from '../../components/AdminShell.astro';
   const date = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
   const statusLabel: Record<string, string> = { PLANNED: 'Planeado', ASSIGNED: 'Asignado', IN_TRANSIT: 'En ruta', STOPPED: 'Detenido', PAUSED_LUNCH: 'Pausa', INCIDENT: 'Incidente', AVAILABLE: 'Disponible', MAINTENANCE: 'Mantenimiento' };
   const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char] ?? char));
+  const icon = (name: string) => ({ fleet: '<svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="16" r=".8" fill="currentColor"/><circle cx="16" cy="16" r=".8" fill="currentColor"/></svg>', ready: '<svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>', route: '<svg viewBox="0 0 24 24" fill="none"><path d="M5 19c4-5 5-9 14-14M15 5h4v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>', wrench: '<svg viewBox="0 0 24 24" fill="none"><path d="m14.7 6.3 3 3M5 19l6.8-6.8m-1.2-6a4 4 0 0 0 5.1 5.1L19 15.6a1.7 1.7 0 0 1-2.4 2.4l-4.3-4.3A4 4 0 0 0 7.2 8.6L10 11.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>', driver: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M5 20a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>', money: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 4v16M16 8.5c-.7-.7-1.8-1.2-3.5-1.2-2 0-3.5 1-3.5 2.5s1.5 2.2 3.5 2.7 3.5 1.2 3.5 2.7-1.5 2.5-3.5 2.5c-1.7 0-2.8-.5-3.5-1.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>' } as Record<string, string>)[name] ?? '';
   const empty = (message: string) => `<div class="empty-state">${message}</div>`;
   function render(data: Overview) {
     const k = data.kpis;
-    const cards = [['Buses totales', k.totalBuses], ['Disponibles', k.availableBuses], ['En ruta / operativos', k.operationalBuses], ['En mantenimiento', k.maintenanceBuses], ['Choferes activos', k.activeDrivers], ['Viajes activos', k.activeTrips], ['Gasto del periodo', currency.format(k.maintenanceCost)]];
-    $('#kpis').innerHTML = cards.map(([label, value], index) => `<div class="kpi"><span class="kpi-label">${label}</span><strong class="kpi-value ${index === 6 ? 'accent' : ''}">${value}</strong></div>`).join('');
+    const cards = [
+      { label: 'Buses totales', value: String(k.totalBuses), note: 'Inventario registrado', kind: 'quiet', meter: 100, icon: 'fleet' },
+      { label: 'Disponibles', value: String(k.availableBuses), note: 'Listos para asignar', kind: 'cyan', meter: k.totalBuses ? k.availableBuses / k.totalBuses * 100 : 0, icon: 'ready' },
+      { label: 'En ruta / operativos', value: String(k.operationalBuses), note: 'Movimiento detectado', kind: 'cyan', meter: k.totalBuses ? k.operationalBuses / k.totalBuses * 100 : 0, icon: 'route' },
+      { label: 'En mantenimiento', value: String(k.maintenanceBuses), note: 'Fuera de servicio', kind: 'amber', meter: k.totalBuses ? k.maintenanceBuses / k.totalBuses * 100 : 0, icon: 'wrench' },
+      { label: 'Choferes activos', value: String(k.activeDrivers), note: 'Personal disponible', kind: 'quiet', meter: 0, icon: 'driver' },
+      { label: 'Viajes activos', value: String(k.activeTrips), note: 'Asignaciones abiertas', kind: 'cyan', meter: 0, icon: 'route' },
+      { label: 'Gasto del periodo', value: currency.format(k.maintenanceCost), note: 'Mantenimiento registrado', kind: 'amber', meter: 0, icon: 'money', accent: true },
+    ];
+    $('#kpis').innerHTML = cards.map((card) => `<article class="kpi kpi--${card.kind}"><div class="kpi-top"><span class="kpi-label">${card.label}</span><span class="kpi-icon" aria-hidden="true">${icon(card.icon)}</span></div><strong class="kpi-value ${card.accent ? 'accent' : ''}">${card.value}</strong>${card.meter ? `<div class="kpi-meter" style="--meter:${Math.min(card.meter, 100)}%;--meter-color:${card.kind === 'amber' ? 'var(--amber)' : 'var(--cyan)'}"><i></i></div>` : ''}<small class="kpi-note">${card.note}</small></article>`).join('');
+    const covered = k.availableBuses + k.operationalBuses;
+    const coverage = k.totalBuses ? Math.round(covered / k.totalBuses * 100) : 0;
+    $('#coverage').innerHTML = `<div class="coverage-ring" style="--coverage:${coverage}%"><span><strong>${coverage}%</strong><small>cubierta</small></span></div><div class="coverage-copy"><p class="coverage-summary">${k.totalBuses ? `${covered} de ${k.totalBuses} buses están disponibles o en operación.` : 'Aún no hay buses registrados para calcular cobertura.'}</p><div class="coverage-legend"><div class="coverage-line"><span><i></i>Disponibles</span><strong>${k.availableBuses}</strong></div><div class="coverage-line"><span><i></i>En mantenimiento</span><strong>${k.maintenanceBuses}</strong></div><div class="coverage-line"><span><i></i>Sin asignación activa</span><strong>${data.unassignedBuses.length}</strong></div></div></div>`;
     $('#maintenance-rows').innerHTML = data.maintenanceByBus.length ? data.maintenanceByBus.map((row) => `<tr><td><strong>${escapeHtml(row.placa)}</strong><small>Bus #${row.busId}</small></td><td>${row.records}</td><td class="align-right"><strong>${currency.format(row.total)}</strong></td></tr>`).join('') : `<tr><td class="table-state" colspan="3">No hay mantenimientos en este periodo.</td></tr>`;
-    $('#maintenance-buses').innerHTML = data.busesInMaintenance.length ? data.busesInMaintenance.map((bus) => `<div class="stack-item"><span><strong>${escapeHtml(bus.placa)}</strong><small>${escapeHtml(bus.marca)} · ${escapeHtml(bus.modelo)}</small></span><span class="tag">Mantenimiento</span></div>`).join('') : empty('No hay buses en mantenimiento.');
-    $('#active-trips').innerHTML = data.activeTrips.length ? data.activeTrips.map((trip) => { const assignment = trip.assignments[0]; return `<div class="stack-item"><span><strong>${escapeHtml(trip.code)} · ${escapeHtml(trip.origin)}</strong><small>${assignment ? `${escapeHtml(assignment.bus.placa)} · ${escapeHtml(assignment.driver.nombres)}` : 'Pendiente de asignación'} · ${date.format(new Date(trip.initialStartAt))}</small></span><span class="tag">${statusLabel[trip.status] ?? trip.status}</span></div>`; }).join('') : empty('No hay viajes activos para mostrar.');
-    $('#unassigned-buses').innerHTML = data.unassignedBuses.length ? data.unassignedBuses.map((bus) => `<div class="stack-item"><span><strong>${escapeHtml(bus.placa)}</strong><small>${bus.defaultDriver ? `Chofer por defecto: ${escapeHtml(bus.defaultDriver.nombres)}` : 'Sin chofer por defecto'}</small></span><span class="tag">${statusLabel[bus.status] ?? bus.status}</span></div>`).join('') : empty('Todos los buses tienen una asignación activa.');
+    $('#maintenance-buses').innerHTML = data.busesInMaintenance.length ? data.busesInMaintenance.map((bus) => `<div class="stack-item"><span><strong>${escapeHtml(bus.placa)}</strong><small>${escapeHtml(bus.marca)} · ${escapeHtml(bus.modelo)}</small></span><span class="tag is-amber">Mantenimiento</span></div>`).join('') : empty('No hay buses en mantenimiento.');
+    $('#active-trips').innerHTML = data.activeTrips.length ? data.activeTrips.map((trip) => { const assignment = trip.assignments[0]; return `<div class="assignment-row"><span class="assignment-icon" aria-hidden="true">↝</span><span class="assignment-meta"><span class="assignment-label">Viaje · ${escapeHtml(trip.code)}</span><strong>${escapeHtml(trip.origin)}</strong><small>${date.format(new Date(trip.initialStartAt))}</small></span><span class="assignment-meta"><span class="assignment-label">Recursos</span><strong>${assignment ? escapeHtml(assignment.bus.placa) : 'Bus pendiente'}</strong><small>${assignment ? escapeHtml(assignment.driver.nombres) : 'Chofer pendiente'}</small></span><span class="tag">${statusLabel[trip.status] ?? escapeHtml(trip.status)}</span></div>`; }).join('') : empty('No hay asignaciones activas para mostrar.');
     $('#period-note').textContent = `Periodo: ${date.format(new Date(data.period.from))} — ${date.format(new Date(data.period.to))}`;
   }
   async function loadBuses() { try { const result = await api('/buses/catalog'); const buses: Bus[] = result.data ?? result; $('#bus').innerHTML += buses.map((bus) => `<option value="${bus.id}">${escapeHtml(bus.placa)}</option>`).join(''); } catch { /* El filtro sigue disponible aunque el catálogo falle. */ } }

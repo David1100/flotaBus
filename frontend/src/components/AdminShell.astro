@@ -5,7 +5,7 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
 <Base title={title}>
   <div class="admin-layout" data-admin-shell data-auth-pending="true">
     <div class="admin-sidebar-frame" transition:persist="admin-sidebar-frame">
-      <aside class="admin-sidebar glass" transition:persist="admin-sidebar">
+       <aside id="admin-sidebar" class="admin-sidebar glass" transition:persist="admin-sidebar">
        <a href="/admin" class="brand" data-spa-link aria-label="Ir al inicio de flotaBus">
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 10h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
         <span class="brand-copy"><strong>flotaBus</strong><small>Control de flota</small></span>
@@ -26,20 +26,26 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
        <button id="logout" class="logout" type="button"><span class="logout-icon" aria-hidden="true">↪</span><span>Cerrar sesión</span></button>
        </aside>
      </div>
-     <header class="admin-topbar" transition:persist="admin-topbar" aria-label="Estado de la sesión">
-       <div class="topbar-status">
+      <header class="admin-topbar" transition:persist="admin-topbar" aria-label="Estado de la sesión">
+        <button class="sidebar-toggle" type="button" aria-expanded="false" aria-controls="admin-sidebar" data-sidebar-toggle>
+          <span class="sidebar-toggle-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>Menú</span>
+        </button>
+        <div class="topbar-status">
          <span class="status-dot" aria-hidden="true"></span>
          <span><strong>Sistema operativo</strong><small>Sesión protegida</small></span>
        </div>
-     </header>
-    <main class="admin-content"><slot /></main>
+      </header>
+      <button class="sidebar-backdrop" type="button" aria-label="Cerrar menú" data-sidebar-backdrop hidden></button>
+     <main class="admin-content"><slot /></main>
   </div>
 </Base>
 
 <style>
   [data-admin-shell][data-auth-pending] { visibility: hidden; }
   [data-admin-shell] { view-transition-name: admin-shell; }
-  .admin-sidebar-frame { min-width: 0; grid-column: 1; }
+   .admin-sidebar-frame { min-width: 0; grid-column: 1; }
+   .sidebar-toggle, .sidebar-backdrop { display: none; }
   .admin-topbar { grid-column: 2; grid-row: 1; display: flex; align-items: center; justify-content: flex-end; min-height: 25px; height: 25px; padding: 4rem clamp(1.2rem, 4vw, 4.5rem) 0; background: transparent; border: 0; }
   .topbar-status { display: flex; align-items: center; gap: .65rem; }
   .topbar-status > span:last-child { display: grid; gap: .2rem; text-align: right; }
@@ -48,7 +54,7 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
   .topbar-status .status-dot { width: .48rem; height: .48rem; border-radius: 999px; background: var(--cyan); box-shadow: 0 0 0 4px rgba(72,228,224,.1), 0 0 14px rgba(72,228,224,.75); animation: status-breathe 2.8s ease-in-out infinite; }
   @keyframes status-breathe { 50% { box-shadow: 0 0 0 5px rgba(72,228,224,.06), 0 0 16px rgba(72,228,224,.85); } }
   .admin-content { grid-column: 2; grid-row: 2; align-self: start; }
-  @media (max-width: 760px) { .admin-sidebar-frame { width: 100%; grid-column: 1; grid-row: 1; } .admin-topbar { grid-column: 1; grid-row: 2; min-height: 25px; height: 25px; padding: 1.5rem 1rem 0; } .admin-content { grid-column: 1; grid-row: 3; } .topbar-status { margin-right: auto; } .topbar-status strong { font-size: .7rem; } .topbar-status small { font-size: .58rem; } }
+   @media (max-width: 760px) { .admin-sidebar-frame { width: 100%; grid-column: 1; grid-row: 1; } .admin-topbar { grid-column: 1; grid-row: 2; min-height: 3.7rem; height: auto; padding: 1.25rem 1rem .35rem; } .admin-content { grid-column: 1; grid-row: 3; } .topbar-status { margin-right: 0; } .topbar-status strong { font-size: .7rem; } .topbar-status small { font-size: .58rem; } .sidebar-toggle { display: inline-flex; align-items: center; gap: .55rem; min-height: 2.75rem; margin-right: auto; padding: .65rem .8rem; border: 1px solid rgba(72,228,224,.2); border-radius: .8rem; color: var(--ink); background: rgba(17,26,31,.78); font-size: .72rem; font-weight: 800; cursor: pointer; } .sidebar-toggle-icon { display: grid; gap: .22rem; width: 1.05rem; } .sidebar-toggle-icon i { display: block; height: 2px; border-radius: 999px; background: var(--cyan); transition: transform .2s, opacity .2s; } .sidebar-toggle[aria-expanded='true'] .sidebar-toggle-icon i:first-child { transform: translateY(4px) rotate(45deg); } .sidebar-toggle[aria-expanded='true'] .sidebar-toggle-icon i:nth-child(2) { opacity: 0; } .sidebar-toggle[aria-expanded='true'] .sidebar-toggle-icon i:last-child { transform: translateY(-4px) rotate(-45deg); } .sidebar-backdrop { position: fixed; inset: 0; z-index: 24; display: block; border: 0; background: rgba(2,7,9,.7); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity .22s ease; } .sidebar-backdrop[hidden] { display: none; } .sidebar-backdrop.is-visible { opacity: 1; pointer-events: auto; } }
   @media (prefers-reduced-motion: reduce) { .topbar-status .status-dot { animation: none; } }
 </style>
 
@@ -106,6 +112,36 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
       link.classList.toggle('active', link.pathname === current);
       link.setAttribute('aria-current', link.pathname === current ? 'page' : 'false');
     });
+  }
+
+  function bindSidebarMenu() {
+    const shell = document.querySelector<HTMLElement>('[data-admin-shell]');
+    const toggle = document.querySelector<HTMLButtonElement>('[data-sidebar-toggle]');
+    const backdrop = document.querySelector<HTMLButtonElement>('[data-sidebar-backdrop]');
+    const sidebar = document.querySelector<HTMLElement>('#admin-sidebar');
+    if (!shell || !toggle || !backdrop || !sidebar || toggle.dataset.bound === 'true') return;
+    toggle.dataset.bound = 'true';
+    const close = () => {
+      shell.classList.remove('menu-open');
+      toggle.setAttribute('aria-expanded', 'false');
+      backdrop.classList.remove('is-visible');
+      backdrop.hidden = true;
+      document.body.classList.remove('menu-lock');
+    };
+    const open = () => {
+      shell.classList.add('menu-open');
+      toggle.setAttribute('aria-expanded', 'true');
+      backdrop.hidden = false;
+      requestAnimationFrame(() => backdrop.classList.add('is-visible'));
+      document.body.classList.add('menu-lock');
+    };
+    toggle.addEventListener('click', () => toggle.getAttribute('aria-expanded') === 'true' ? close() : open());
+    backdrop.addEventListener('click', close);
+    sidebar.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a')) close();
+    });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') close(); });
+    window.addEventListener('resize', () => { if (window.innerWidth > 760) close(); }, { passive: true });
   }
 
   async function loadPageAssets(next: Document) {
@@ -180,10 +216,11 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
     });
   }
 
-  document.addEventListener('astro:page-load', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindClientRouter(); });
-  document.addEventListener('astro:after-swap', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindClientRouter(); });
+   document.addEventListener('astro:page-load', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindSidebarMenu(); bindClientRouter(); });
+   document.addEventListener('astro:after-swap', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindSidebarMenu(); bindClientRouter(); });
   protectAdminShell();
-  bindLogout();
-  syncNavigation();
-  bindClientRouter();
+   bindLogout();
+   syncNavigation();
+   bindSidebarMenu();
+   bindClientRouter();
 </script>
