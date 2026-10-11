@@ -86,7 +86,7 @@ import AdminShell from '../../../../components/AdminShell.astro';
     const dateFormat = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
     const historyKey = `${context.busId}:${context.area}`;
     let lastFocused: HTMLElement | null = null;
-    const close = () => { modal.classList.remove('is-open'); modal.classList.add('is-closing'); window.setTimeout(() => { modal.hidden = true; modal.classList.remove('is-closing'); modal.setAttribute('aria-hidden', 'true'); lastFocused?.focus(); }, 230); };
+    const close = () => { if (modal.hidden || modal.classList.contains('is-closing')) return; modal.classList.remove('is-open'); modal.classList.add('is-closing'); window.setTimeout(() => { modal.hidden = true; modal.classList.remove('is-closing'); modal.setAttribute('aria-hidden', 'true'); lastFocused?.focus(); }, 230); };
     const open = () => { lastFocused = document.activeElement as HTMLElement; modal.hidden = false; modal.setAttribute('aria-hidden', 'false'); requestAnimationFrame(() => modal.classList.add('is-open')); window.setTimeout(() => document.querySelector<HTMLInputElement>('#maintenance-cost')?.focus(), 40); };
     const render = (items: RecordItem[]) => {
       list.replaceChildren(); state.className = 'state'; count.textContent = String(items.length).padStart(2, '0'); count.setAttribute('aria-label', `${items.length} registros`);
@@ -173,5 +173,14 @@ import AdminShell from '../../../../components/AdminShell.astro';
   }
   @media(prefers-reduced-motion:reduce) {
     .maintenance-record:hover,.record-photo:hover { transform:none; }
+  }
+  @media(max-width:760px) {
+    .maintenance-modal { display:flex; flex-direction:column; width:100%; max-height:min(92dvh,48rem); }
+    .maintenance-modal .modal-heading { flex:0 0 auto; }
+    .maintenance-form { flex:1 1 auto; overflow:hidden; }
+    .maintenance-form-scroll { flex:1 1 auto; max-height:none; }
+    .maintenance-form .form-actions { flex:0 0 auto; margin-inline:-.1rem; padding-inline:.1rem; }
+    .photo-input-control { align-items:flex-start; flex-wrap:wrap; min-height:3.25rem; }
+    .photo-input-control > span:nth-child(2) { min-width:0; flex:1 1 9rem; }
   }
 </style>

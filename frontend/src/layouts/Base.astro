@@ -19,6 +19,40 @@ const {title='flotaBus'}=Astro.props;
   <body>
     <slot />
     <script>
+      // Keep modal scroll isolated from the document, including iOS Safari where
+      // overflow:hidden alone can still move the page behind a fixed backdrop.
+      (() => {
+        let scrollY = 0;
+        const getDialog = () => document.querySelector<HTMLElement>('.modal-backdrop:not([hidden])[aria-hidden="false"] [role="dialog"]');
+        const sync = () => {
+          const locked = Boolean(getDialog());
+          if (locked === document.body.classList.contains('modal-lock')) return;
+          if (locked) {
+            scrollY = window.scrollY;
+            document.documentElement.classList.add('modal-lock');
+            document.body.classList.add('modal-lock');
+            document.body.style.top = `-${scrollY}px`;
+          } else {
+            document.documentElement.classList.remove('modal-lock');
+            document.body.classList.remove('modal-lock');
+            document.body.style.removeProperty('top');
+            window.scrollTo(0, scrollY);
+          }
+        };
+        const focusables = (dialog: HTMLElement) => Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')).filter((element) => !element.hidden && element.offsetParent !== null);
+        const observer = new MutationObserver(sync);
+        observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'aria-hidden', 'class'] });
+        document.addEventListener('keydown', (event) => {
+          const dialog = getDialog();
+          if (!dialog || event.key !== 'Tab') return;
+          const items = focusables(dialog);
+          if (!items.length) return;
+          const first = items[0]; const last = items[items.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        });
+        sync();
+      })();
       // Registration is deliberately production-only: local Astro development
       // must never be affected by a stale worker from a previous build.
       if (import.meta.env.PROD && 'serviceWorker' in navigator) {

@@ -142,6 +142,61 @@ import AdminShell from '../../components/AdminShell.astro';
   .spend-empty { display: grid; grid-template-columns: auto 1fr; gap: .1rem .8rem; align-items: center; margin-top: 1.25rem; padding: 1rem; border: 1px dashed rgba(245,173,75,.3); border-radius: var(--dashboard-radius-sm); background: rgba(245,173,75,.035); }
   .spend-empty > span { grid-row: span 2; color: var(--amber); font: 2rem 'Outfit', sans-serif; } .spend-empty strong { color: var(--ink); font-size: .8rem; } .spend-empty p { margin: 0; color: var(--muted); font-size: .68rem; }
   .empty-state { padding: 1.35rem 0; color: var(--subtle); font-size: .73rem; }
+
+  /* The dashboard uses scoped rules, so responsive behavior belongs here too:
+     Astro's scoped selector is more specific than utility classes in markup. */
+  @media (max-width: 760px) {
+    .dashboard-page { width: 100%; max-width: 100%; overflow: hidden; }
+    .command-header { align-items: flex-start; flex-direction: column; gap: 1.4rem; margin-bottom: 1.5rem; }
+    .header-copy, .header-readout { width: 100%; min-width: 0; max-width: 100%; }
+    .header-copy h1 { overflow-wrap: anywhere; }
+    .header-readout { padding-left: .85rem; }
+
+    .dashboard-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+    .dashboard-toolbar > * { min-width: 0; }
+    .toolbar-title { grid-column: 1 / -1; }
+    .dashboard-toolbar .input, .dashboard-toolbar .btn { min-width: 0; min-height: 2.75rem; }
+    .dashboard-toolbar > .btn { grid-column: 1 / -1; width: 100%; }
+
+    .command-center { display: grid; grid-template-columns: minmax(0, 1fr); gap: .85rem; }
+    .readiness-panel, .signal-rail, .assignments-panel, .watch-panel, .spend-panel { grid-column: auto; width: 100%; max-width: 100%; }
+    .signal-rail, .assignments-panel, .watch-panel, .spend-panel { margin-top: 0; }
+    .readiness-panel { min-height: 21rem; padding-inline: 1rem; }
+    .signal-rail, .assignments-panel, .watch-panel, .spend-panel { padding-inline: 1rem; }
+    .section-kicker { flex-wrap: wrap; row-gap: .35rem; }
+    .section-kicker i { flex: 1 1 2rem; min-width: 1rem; }
+    .readiness-heading, .panel-heading { min-width: 0; }
+    .readiness-heading h2, .panel-heading h2, .readiness-heading p, .panel-heading p { overflow-wrap: anywhere; }
+    .readiness-number strong { max-width: 100%; }
+    .coverage-foot { gap: .55rem .8rem; }
+    .coverage-foot span { min-width: 0; }
+
+    .assignment-row { grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .65rem; }
+    .assignment-row .assignment-meta:nth-child(3) { grid-column: 2 / -1; }
+    .assignment-row .tag { grid-column: 3; grid-row: 1; }
+    .assignment-meta strong, .assignment-meta small, .assignment-label { max-width: 100%; }
+    .stack-item { align-items: flex-start; flex-wrap: wrap; }
+    .stack-item > span:first-child { flex: 1 1 8rem; }
+    .stack-item .tag { margin-left: auto; }
+    .spend-panel .panel-heading { align-items: flex-start; flex-direction: column; gap: .75rem; }
+    .period-cost { max-width: 100%; overflow-wrap: anywhere; }
+    .admin-table-wrap { width: 100%; max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+  }
+
+  @media (max-width: 379px) {
+    .readiness-panel, .signal-rail, .assignments-panel, .watch-panel, .spend-panel { padding-inline: .85rem; }
+    .signal-list { grid-template-columns: 1fr; }
+    .assignment-row { grid-template-columns: 1.8rem minmax(0, 1fr); }
+    .assignment-row .tag { grid-column: 2; grid-row: auto; justify-self: start; }
+    .readiness-heading { gap: .55rem; }
+    .readiness-number { gap: .65rem; }
+  }
+
+  @media (max-width: 430px) {
+    .dashboard-toolbar { padding-inline: .1rem; }
+    .coverage-foot { display: grid; }
+    .panel-index { white-space: nowrap; }
+  }
 </style>
 
 <script>
