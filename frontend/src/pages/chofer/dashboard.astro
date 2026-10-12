@@ -35,15 +35,17 @@ export function getStaticPaths() { return [{ params: {} }]; }
           <dd id="active-trip-notes" class="m-0 text-[.82rem] text-[var(--muted)]">—</dd>
         </div>
       </dl>
-      <div class="mt-4 flex flex-wrap gap-[.5rem]">
-        <button id="event-started" data-event="STARTED" class="event-btn" type="button"><span class="event-dot bg-[var(--cyan)]" aria-hidden="true"></span>Iniciar ruta</button>
-        <button id="event-stopped" data-event="STOPPED" class="event-btn" type="button"><span class="event-dot bg-[#d4a72c]" aria-hidden="true"></span>Detener</button>
-        <button id="event-lunch" data-event="LUNCH_STARTED" class="event-btn" type="button"><span class="event-dot bg-[#c98c3a]" aria-hidden="true"></span>Almuerzo</button>
-        <button id="event-resume" data-event="LUNCH_ENDED" class="event-btn" type="button" hidden><span class="event-dot bg-[var(--cyan)]" aria-hidden="true"></span>Reanudar</button>
-        <button id="event-arrived" data-event="ARRIVED" class="event-btn" type="button"><span class="event-dot bg-[#5ec592]" aria-hidden="true"></span>Llegué</button>
-        <button id="event-returned" data-event="RETURNED" class="event-btn" type="button"><span class="event-dot bg-[var(--amber)]" aria-hidden="true"></span>Retorné</button>
-        <button id="event-incident" data-event="INCIDENT" class="event-btn event-btn-warn" type="button"><span class="event-dot bg-[#ff7474]" aria-hidden="true"></span>Incidencia</button>
+      <div id="leg-current" class="mt-4 grid gap-3 rounded-[1rem] border border-[rgba(72,228,224,.25)] bg-[linear-gradient(135deg,rgba(72,228,224,.08),rgba(72,228,224,.02))] p-4">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <span id="leg-label" class="text-[.58rem] font-bold uppercase tracking-[.12em] text-[var(--cyan)]">Tramo 1</span>
+            <strong id="leg-title" class="block mt-1 text-[var(--ink)] text-[.92rem] font-bold leading-[1.3]">—</strong>
+          </div>
+          <span id="leg-status" class="inline-flex items-center gap-[.25rem] px-[.55rem] py-[.2rem] rounded-[.5rem] text-[.62rem] font-bold uppercase tracking-[.04em] border border-[rgba(245,173,75,.25)] bg-[rgba(245,173,75,.08)] text-[var(--amber)] whitespace-nowrap">Pendiente</span>
+        </div>
+        <div id="leg-actions" class="flex flex-wrap gap-[.55rem]"></div>
       </div>
+      <div id="leg-progress" class="mt-3 flex items-center gap-[.35rem]"></div>
     </article>
 
     <article id="bus-card" class="glass fleet-card rounded-[1.25rem] p-[1.25rem]" hidden>
@@ -76,8 +78,17 @@ export function getStaticPaths() { return [{ params: {} }]; }
 
     <section class="grid gap-4 md:grid-cols-2">
       <article class="glass fleet-card rounded-[1.25rem] p-[1.25rem]">
-        <div class="eyebrow">PRÓXIMOS VIAJES</div>
-        <h2 class="m-0 mt-1 font-display text-[1.2rem] text-[var(--ink)]">Asignaciones próximas</h2>
+        <div class="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <div class="eyebrow">MIS RUTAS</div>
+            <h2 class="m-0 mt-1 font-display text-[1.2rem] text-[var(--ink)]">Viajes asignados</h2>
+          </div>
+          <div class="flex items-center gap-1 rounded-full border border-[rgba(234,239,226,.08)] bg-[rgba(5,11,14,.3)] p-1">
+            <button class="route-tab px-[.75rem] py-[.35rem] rounded-full border border-transparent bg-transparent text-[var(--muted)] text-[.72rem] font-bold cursor-pointer transition-all duration-200 hover:text-[var(--ink)] hover:bg-[rgba(72,228,224,.06)] is-active:text-[var(--ink)] is-active:bg-[rgba(72,228,224,.16)] is-active:border-[rgba(72,228,224,.3)]" data-route-filter="IN_PROGRESS" type="button">En curso</button>
+            <button class="route-tab px-[.75rem] py-[.35rem] rounded-full border border-transparent bg-transparent text-[var(--muted)] text-[.72rem] font-bold cursor-pointer transition-all duration-200 hover:text-[var(--ink)] hover:bg-[rgba(72,228,224,.06)] is-active:text-[var(--ink)] is-active:bg-[rgba(72,228,224,.16)] is-active:border-[rgba(72,228,224,.3)]" data-route-filter="UPCOMING" type="button">Próximos</button>
+            <button class="route-tab px-[.75rem] py-[.35rem] rounded-full border border-transparent bg-transparent text-[var(--muted)] text-[.72rem] font-bold cursor-pointer transition-all duration-200 hover:text-[var(--ink)] hover:bg-[rgba(72,228,224,.06)] is-active:text-[var(--ink)] is-active:bg-[rgba(72,228,224,.16)] is-active:border-[rgba(72,228,224,.3)]" data-route-filter="COMPLETED" type="button">Completados</button>
+          </div>
+        </div>
         <div id="upcoming-list" class="mt-4 grid gap-[.5rem]"></div>
       </article>
       <article class="glass fleet-card rounded-[1.25rem] p-[1.25rem]">
@@ -95,14 +106,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
 </DriverShell>
 
 <style>
-  .event-btn { display: inline-flex; min-height: 2.6rem; align-items: center; gap: .5rem; padding: .55rem .9rem; border-radius: .75rem; border: 1px solid rgba(234,239,226,.18); background: rgba(5,11,14,.35); color: var(--ink); font-size: .78rem; font-weight: 700; cursor: pointer; transition: border-color .2s, background .2s, transform .15s; }
-  .event-btn:hover { border-color: rgba(72,228,224,.4); background: rgba(72,228,224,.06); }
-  .event-btn:active { transform: translateY(1px); }
-  .event-btn[hidden] { display: none; }
-  .event-btn-warn { border-color: rgba(255,116,116,.35); color: #ff9daa; }
-  .event-btn-warn:hover { border-color: rgba(255,116,116,.55); background: rgba(255,116,116,.08); }
-  .event-dot { width: .55rem; height: .55rem; border-radius: 999px; }
-  .empty-row { display: grid; place-items: center; padding: 1.4rem .8rem; border: 1px dashed rgba(234,239,226,.1); border-radius: .8rem; color: var(--subtle); font-size: .78rem; text-align: center; }
+  [hidden] { display: none !important; }
 </style>
 
 <script>
@@ -112,6 +116,10 @@ export function getStaticPaths() { return [{ params: {} }]; }
 
   const formatDate = (value: string | null | undefined) => value ? new Date(value).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
   const formatMoney = (value: string | number) => Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
+  type RouteFilter = 'IN_PROGRESS' | 'UPCOMING' | 'COMPLETED';
+  let currentRouteFilter: RouteFilter = 'IN_PROGRESS';
+  let allTripsCache: any[] = [];
   const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
 
   const init = async () => {
@@ -137,6 +145,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
       const activeTrip = data?.activeTrip;
       const currentBus = data?.currentBus;
       const upcoming = data?.upcomingTrips ?? [];
+      const allTrips = data?.allTrips ?? [];
       const maintenance = data?.recentMaintenance ?? [];
 
       if (!activeTrip && !currentBus) {
@@ -154,7 +163,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
         setText('active-trip-departure', formatDate(activeTrip.initialStartAt));
         setText('active-trip-legs', `${activeTrip.legs?.length ?? 0} tramos`);
         setText('active-trip-notes', activeTrip.notes || 'Sin observaciones');
-        renderEventButtons(activeTrip.status);
+        renderLegControls(activeTrip);
       }
 
       if (currentBus) {
@@ -168,13 +177,12 @@ export function getStaticPaths() { return [{ params: {} }]; }
         if (link) link.href = `/chofer/historial?busId=${encodeURIComponent(currentBus.id)}`;
       }
 
-      upcomingList.innerHTML = upcoming.length
-          ? upcoming.map((u: any) => `<a href="/chofer/dashboard" class="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem] no-underline transition-colors hover:border-[rgba(72,228,224,.2)] hover:bg-[rgba(72,228,224,.05)]"><span class="grid h-[1.9rem] w-[1.9rem] place-items-center rounded-[.55rem] bg-[rgba(72,228,224,.12)] font-display text-[.7rem] font-extrabold text-[var(--cyan)]">→</span><div class="grid min-w-0 gap-1"><strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(u.trip.code)}</strong><small class="text-[.66rem] text-[var(--muted)]">${escape(formatDate(u.trip.initialStartAt))} · ${escape(u.trip.origin)}${u.trip.firstDestination ? ` → ${escape(u.trip.firstDestination)}` : ''}</small></div><span class="status-pill ${tripStatusClass(u.trip.status)}"><i></i>${tripStatusLabel(u.trip.status)}</span></a>`).join('')
-          : '<div class="empty-row">Sin viajes próximos asignados.</div>';
+allTripsCache = allTrips;
+      renderRouteList(allTrips);
 
       maintenanceList.innerHTML = maintenance.length
           ? maintenance.map((m: any) => `<div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]"><span class="grid h-[1.9rem] w-[1.9rem] place-items-center rounded-[.55rem] bg-[rgba(245,173,75,.12)] font-display text-[.7rem] font-extrabold text-[var(--amber)]">${escape((m.area || '').slice(0, 2).toUpperCase())}</span><div class="grid min-w-0 gap-1"><strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(m.area)}</strong><small class="text-[.66rem] text-[var(--muted)]">${escape(formatDate(m.recordedAt))}</small></div><strong class="font-display text-[.82rem] text-[var(--amber)]">${escape(formatMoney(m.cost))}</strong></div>`).join('')
-          : '<div class="empty-row">Sin mantenimientos recientes.</div>';
+          : '<div class="grid place-items-center px-5 py-3.5 border border-dashed border-[rgba(234,239,226,.1)] rounded-xl text-[var(--subtle)] text-[.78rem] text-center">Sin mantenimientos recientes.</div>';
 
       greeting.dataset.ready = 'true';
     } catch (cause) {
@@ -183,65 +191,175 @@ export function getStaticPaths() { return [{ params: {} }]; }
     }
   };
 
-  function renderEventButtons(status: string) {
-    const all: Record<string, boolean> = { STARTED: true, STOPPED: true, LUNCH_STARTED: true, ARRIVED: true, RETURNED: true, INCIDENT: true };
-    if (status === 'PAUSED_LUNCH') {
-      all.LUNCH_STARTED = false;
-      all.STARTED = false;
-      all.ARRIVED = false;
-      all.RETURNED = false;
-    } else if (status === 'STOPPED') {
-      all.LUNCH_STARTED = false;
-    } else if (status === 'ARRIVED') {
-      all.LUNCH_STARTED = false;
-      all.STARTED = false;
-      all.ARRIVED = false;
-    } else if (status === 'RETURNED' || status === 'CANCELLED') {
-      Object.keys(all).forEach((k) => (all[k] = false));
-    }
-    document.querySelectorAll<HTMLButtonElement>('[data-event]').forEach((button) => {
-      const event = button.dataset.event ?? '';
-      button.hidden = !all[event];
-    });
-    const resume = document.getElementById('event-resume');
-    if (resume) (resume as HTMLButtonElement).hidden = status !== 'PAUSED_LUNCH';
-  }
+  const renderLegControls = (activeTrip: any) => {
+    const legs: any[] = activeTrip.legs ?? [];
+    const tripStatus: string = activeTrip.status;
+    if (!legs.length) return;
+    const currentLeg = legs.find((l) => !l.execution || l.execution.status === 'NOT_STARTED' || l.execution.status === 'RUNNING') ?? legs[legs.length - 1];
+    const legStatus = currentLeg.execution?.status ?? 'NOT_STARTED';
+    const isFirstPending = legs.filter((l) => l.execution?.status !== 'FINISHED').length === legs.length;
+    const allFinished = legs.every((l) => l.execution?.status === 'FINISHED');
+    const tripFinished = ['RETURNED', 'CANCELLED'].includes(tripStatus);
+    const tripIsPaused = tripStatus === 'PAUSED_LUNCH';
+    const tripIsStopped = tripStatus === 'STOPPED';
+    const tripInTransit = tripStatus === 'IN_TRANSIT';
 
-  async function sendEvent(button: HTMLButtonElement) {
-    const type = button.dataset.event ?? '';
-    const labels: Record<string, string> = {
-      STARTED: 'Iniciar ruta', STOPPED: 'Detener el bus', LUNCH_STARTED: 'Iniciar almuerzo',
-      LUNCH_ENDED: 'Reanudar ruta', ARRIVED: 'Marcar llegada', RETURNED: 'Marcar retorno', INCIDENT: 'Reportar incidencia',
-    };
-    const wantsNotes = type === 'INCIDENT';
-    const notes = wantsNotes ? (prompt('Describe brevemente la incidencia (opcional):') ?? undefined) : undefined;
-    button.disabled = true;
+    const legLabel = document.getElementById('leg-label');
+    const legTitle = document.getElementById('leg-title');
+    const legStatusEl = document.getElementById('leg-status');
+    const legActions = document.getElementById('leg-actions');
+    const legProgress = document.getElementById('leg-progress');
+    if (legLabel) legLabel.textContent = `Tramo ${currentLeg.sequence} de ${legs.length}`;
+    if (legTitle) legTitle.textContent = `${currentLeg.origin} → ${currentLeg.destination}`;
+    if (legStatusEl) {
+      const statusMap: Record<string, { label: string; classes: string }> = {
+        NOT_STARTED: { label: 'Pendiente', classes: 'border-[rgba(245,173,75,.25)] bg-[rgba(245,173,75,.08)] text-[var(--amber)]' },
+        RUNNING: { label: 'En curso', classes: 'border-[rgba(72,228,224,.3)] bg-[rgba(72,228,224,.12)] text-[var(--cyan)]' },
+        FINISHED: { label: '✓ Listo', classes: 'border-[rgba(94,197,146,.25)] bg-[rgba(94,197,146,.08)] text-[#5ec592]' },
+      };
+      const ms = statusMap[legStatus] ?? statusMap.NOT_STARTED;
+      legStatusEl.textContent = ms.label;
+      legStatusEl.className = `inline-flex items-center gap-[.25rem] px-[.55rem] py-[.2rem] rounded-[.5rem] text-[.62rem] font-bold uppercase tracking-[.04em] border whitespace-nowrap ${ms.classes}`;
+    }
+    const buttons: string[] = [];
+    const btnBase = 'inline-flex items-center gap-2 min-h-[2.6rem] px-[.9rem] py-[.55rem] rounded-[.75rem] text-[.78rem] font-bold cursor-pointer transition-all duration-200 active:translate-y-[1px] border';
+    const cyanBtn = `${btnBase} border-[rgba(72,228,224,.3)] bg-[rgba(72,228,224,.08)] text-[var(--cyan)] hover:border-[rgba(72,228,224,.45)] hover:bg-[rgba(72,228,224,.16)]`;
+    const amberBtn = `${btnBase} border-[rgba(245,173,75,.35)] bg-[rgba(5,11,14,.35)] text-[var(--amber)] hover:border-[rgba(245,173,75,.55)] hover:bg-[rgba(245,173,75,.08)]`;
+    const grayBtn = `${btnBase} border-[rgba(234,239,226,.18)] bg-[rgba(5,11,14,.35)] text-[var(--ink)] hover:border-[rgba(72,228,224,.4)] hover:bg-[rgba(72,228,224,.06)]`;
+    const returnBtn = `${btnBase} border-[rgba(245,173,75,.35)] bg-[rgba(245,173,75,.1)] text-[var(--amber)] hover:border-[rgba(245,173,75,.55)] hover:bg-[rgba(245,173,75,.2)]`;
+    const warnBtn = `${btnBase} border-[rgba(255,116,116,.35)] bg-[rgba(5,11,14,.35)] text-[#ff9daa] hover:border-[rgba(255,116,116,.55)] hover:bg-[rgba(255,116,116,.08)]`;
+
+    if (tripFinished) {
+      buttons.push(`<div class="text-[.78rem] text-[#5ec592] font-bold">✓ Viaje finalizado</div>`);
+    } else if (tripIsStopped) {
+      buttons.push(`<button class="${cyanBtn}" data-event="RESUME_FAKE" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[var(--cyan)]" aria-hidden="true"></span>Retomar</button>`);
+      buttons.push(`<button class="${warnBtn}" data-event="INCIDENT" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[#ff7474]" aria-hidden="true"></span>Incidencia</button>`);
+    } else if (tripIsPaused) {
+      buttons.push(`<button class="${cyanBtn}" data-event="LUNCH_ENDED" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[var(--cyan)]" aria-hidden="true"></span>Reanudar</button>`);
+      buttons.push(`<button class="${warnBtn}" data-event="INCIDENT" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[#ff7474]" aria-hidden="true"></span>Incidencia</button>`);
+    } else if (legStatus === 'NOT_STARTED' && isFirstPending) {
+      buttons.push(`<button class="${cyanBtn}" data-leg-action="start-leg" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[var(--cyan)]" aria-hidden="true"></span>Iniciar tramo</button>`);
+      buttons.push(`<button class="${warnBtn}" data-event="INCIDENT" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[#ff7474]" aria-hidden="true"></span>Incidencia</button>`);
+    } else if (legStatus === 'RUNNING') {
+      buttons.push(`<button class="${grayBtn}" data-event="STOPPED" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[#d4a72c]" aria-hidden="true"></span>Detener</button>`);
+      buttons.push(`<button class="${amberBtn}" data-leg-action="arrive-leg" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[#5ec592]" aria-hidden="true"></span>Llegué</button>`);
+      buttons.push(`<button class="${warnBtn}" data-event="INCIDENT" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[#ff7474]" aria-hidden="true"></span>Incidencia</button>`);
+    } else if (allFinished) {
+      buttons.push(`<button class="${returnBtn}" data-event="RETURNED" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[var(--amber)]" aria-hidden="true"></span>Retornar al origen</button>`);
+    }
+    if (legActions) {
+      legActions.innerHTML = buttons.join('');
+      legActions.querySelectorAll<HTMLButtonElement>('[data-event]').forEach((button) => {
+        button.addEventListener('click', () => { void sendEvent(button); });
+      });
+      legActions.querySelectorAll<HTMLButtonElement>('[data-leg-action="start-leg"]').forEach((button) => {
+        button.addEventListener('click', () => { void legAction('start', currentLeg.id); });
+      });
+      legActions.querySelectorAll<HTMLButtonElement>('[data-leg-action="arrive-leg"]').forEach((button) => {
+        button.addEventListener('click', () => { void legAction('arrive', currentLeg.id); });
+      });
+    }
+    if (legProgress) {
+      const finished = legs.filter((l) => l.execution?.status === 'FINISHED').length;
+      legProgress.innerHTML = legs.map((l: any) => `<span class="inline-block w-[1.4rem] h-[.35rem] rounded-full ${l.execution?.status === 'FINISHED' ? 'bg-[#5ec592]' : l.execution?.status === 'RUNNING' ? 'bg-[var(--cyan)]' : 'bg-[rgba(234,239,226,.15)]'}" title="Tramo ${l.sequence}: ${l.execution?.status ?? 'NOT_STARTED'}"></span>`).join('');
+      legProgress.innerHTML += `<small class="ml-2 text-[.66rem] text-[var(--subtle)]">${finished} / ${legs.length}</small>`;
+    }
+  };
+
+  const legAction = async (action: 'start' | 'arrive', legId: number) => {
     try {
-      feedback.loading(`${labels[type]}…`);
-      const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
-      if (!tripId) throw new Error('No hay viaje activo.');
-      await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type, notes }) });
+      feedback.loading(action === 'start' ? 'Iniciando tramo…' : 'Marcando llegada…');
+      await api(`/trips/${(await api('/driver-portal/dashboard')).activeTrip?.id}/events`, { method: 'POST', body: JSON.stringify({ type: action === 'start' ? 'STARTED' : 'ARRIVED', legId }) });
       Swal.close();
-      await feedback.success(`${labels[type]} registrado. El administrador fue notificado.`, 'Estado actualizado');
       await init();
     } catch (cause) {
       Swal.close();
-      await feedback.error(cause instanceof Error ? cause.message : 'Error inesperado.', 'No se pudo registrar el evento');
+      await feedback.error(cause instanceof ApiError ? cause.message : 'Error inesperado.', 'No se pudo registrar');
+    }
+  };
+
+  async function sendEvent(button: HTMLButtonElement) {
+    const type = button.dataset.event ?? '';
+    const labels: Record<string, string> = { STOPPED: 'Detener el bus', LUNCH_ENDED: 'Reanudar ruta', RETURNED: 'Marcar retorno', RESUME: 'Retomar ruta' };
+    if (type === 'INCIDENT') {
+      const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
+      if (!tripId) {
+        await feedback.error('No hay viaje activo.', 'No se puede reportar');
+        return;
+      }
+      window.location.assign(`/chofer/historial?busId=${tripId}&incident=1`);
+      return;
+    }
+    if (type === 'RESUME_FAKE') {
+      feedback.loading('Retomando ruta…');
+      try {
+        const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
+        if (!tripId) throw new Error('No hay viaje activo.');
+        await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type: 'STARTED' }) });
+        Swal.close();
+        await feedback.success('Ruta retomada.', 'Listo');
+      } catch (cause) {
+        Swal.close();
+        await feedback.error(cause instanceof ApiError ? cause.message : 'Error inesperado.', 'No se pudo retomar');
+      }
+      await init();
+      return;
+    }
+    button.disabled = true;
+    try {
+      feedback.loading(`${labels[type] ?? 'Registrando'}…`);
+      const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
+      if (!tripId) throw new Error('No hay viaje activo.');
+      await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type }) });
+      Swal.close();
+      await feedback.success(`${labels[type] ?? 'Acción'} registrada. El administrador fue notificado.`, 'Listo');
+      await init();
+    } catch (cause) {
+      Swal.close();
+      await feedback.error(cause instanceof ApiError ? cause.message : 'Error inesperado.', 'No se pudo registrar');
     } finally {
       button.disabled = false;
     }
   }
 
-  function bindEventButtons() {
-    document.querySelectorAll<HTMLButtonElement>('[data-event]').forEach((button) => {
+  function renderRouteList(trips: any[]) {
+    const list = document.getElementById('upcoming-list') as HTMLElement | null;
+    if (!list) return;
+    const filter = currentRouteFilter;
+    const filtered = trips.filter((t: any) => {
+      if (filter === 'IN_PROGRESS') return ['IN_TRANSIT', 'STOPPED', 'PAUSED_LUNCH', 'ARRIVED'].includes(t.trip.status);
+      if (filter === 'UPCOMING') return t.trip.status === 'ASSIGNED';
+      if (filter === 'COMPLETED') return ['RETURNED', 'CANCELLED'].includes(t.trip.status);
+      return false;
+    });
+    if (!filtered.length) { list.innerHTML = `<div class="grid place-items-center px-5 py-3.5 border border-dashed border-[rgba(234,239,226,.1)] rounded-xl text-[var(--subtle)] text-[.78rem] text-center">${emptyMessage(filter)}</div>`; return; }
+    list.innerHTML = filtered.map((t: any) => {
+      const actionBtn = `<span class="text-[.68rem] font-bold text-[var(--cyan)] px-[.65rem] py-[.3rem] rounded-[.55rem] border border-[rgba(72,228,224,.3)] bg-[rgba(72,228,224,.08)] pointer-events-none opacity-65">${escape(tripStatusLabel(t.trip.status))}</span>`;
+      return `<div class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-[.85rem] p-[.8rem_.95rem] rounded-2xl border border-[rgba(234,239,226,.08)] bg-[rgba(5,11,14,.24)] transition-all duration-200 hover:border-[rgba(72,228,224,.32)] hover:bg-[rgba(72,228,224,.05)]"><span class="grid h-[1.9rem] w-[1.9rem] place-items-center rounded-[.55rem] bg-[rgba(72,228,224,.12)] font-display text-[.7rem] font-extrabold text-[var(--cyan)]" aria-hidden="true">→</span><div class="grid min-w-0 gap-1"><strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(t.trip.code)}</strong><small class="text-[.66rem] text-[var(--muted)]">${escape(formatDate(t.trip.initialStartAt))} · ${escape(t.trip.origin)}${t.trip.firstDestination ? ` → ${escape(t.trip.firstDestination)}` : ''}</small></div><div class="grid justify-items-end gap-[.25rem]">${actionBtn}<span class="status-pill ${tripStatusClass(t.trip.status)}"><i></i>${tripStatusLabel(t.trip.status)}</span></div></div>`;
+    }).join('');
+  }
+
+  function emptyMessage(filter: string) {
+    if (filter === 'IN_PROGRESS') return 'No tienes viajes en curso.';
+    if (filter === 'UPCOMING') return 'No tienes viajes próximos asignados.';
+    return 'Aún no has completado viajes.';
+  }
+
+  function bindRouteTabs() {
+    document.querySelectorAll<HTMLButtonElement>('.route-tab').forEach((button) => {
       if (button.dataset.bound === 'true') return;
       button.dataset.bound = 'true';
-      button.addEventListener('click', () => { void sendEvent(button); });
+      button.addEventListener('click', () => {
+        currentRouteFilter = (button.dataset.routeFilter ?? 'IN_PROGRESS') as RouteFilter;
+        document.querySelectorAll<HTMLButtonElement>('.route-tab').forEach((b) => b.classList.toggle('is-active', b === button));
+        const list = document.getElementById('upcoming-list');
+        renderRouteList(list ? allTripsCache : []);
+      });
     });
   }
 
   const start = () => {
-    bindEventButtons();
+    bindRouteTabs();
     void init();
   };
 

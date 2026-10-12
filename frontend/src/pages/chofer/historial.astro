@@ -70,6 +70,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
           <div class="eyebrow">HISTORIAL</div>
           <h2 class="m-0 mt-1 font-display text-[1.2rem] text-[var(--ink)]">Registros del bus seleccionado</h2>
         </div>
+        <div id="hist-summary" class="flex flex-wrap items-center gap-2 max-md:w-full"></div>
       </div>
 
       <div class="mt-4 flex flex-wrap items-center gap-1 rounded-full border border-[rgba(234,239,226,.08)] bg-[rgba(5,11,14,.3)] p-1">
@@ -85,7 +86,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
   </div>
 </DriverShell>
 
-<style>
+<style is:global>
   .photo-drop { display: grid; gap: .35rem; place-items: center; min-height: 7rem; padding: 1rem; border: 1.5px dashed rgba(234,239,66,.18); border-radius: .8rem; background: rgba(5,11,14,.24); color: var(--muted); text-align: center; cursor: pointer; transition: border-color .2s, background .2s; }
   .photo-drop:hover, .photo-drop.is-active { border-color: rgba(72,228,224,.4); background: rgba(72,228,224,.05); }
   .photo-drop-preview { max-height: 12rem; border-radius: .6rem; object-fit: cover; }
@@ -103,20 +104,24 @@ export function getStaticPaths() { return [{ params: {} }]; }
   .hist-tab:hover { color: var(--ink); background: rgba(72,228,224,.06); }
   .hist-tab.is-active { color: var(--ink); background: rgba(72,228,224,.16); border-color: rgba(72,228,224,.3); }
 
-  .hist-card { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr) auto; gap: .85rem; align-items: center; padding: .8rem .9rem; border-radius: 1rem; border: 1px solid rgba(234,239,226,.08); background: rgba(5,11,14,.24); transition: border-color .2s, background .2s; }
-  .hist-card:hover { border-color: rgba(72,228,224,.28); background: rgba(72,228,224,.05); }
-  .hist-card .hist-icon { display: grid; place-items: center; width: 3.4rem; height: 3.4rem; border-radius: 1rem; font-size: 1.4rem; line-height: 1; }
+  .hist-summary-pill { display: inline-flex; align-items: center; gap: .35rem; padding: .35rem .7rem; border-radius: 999px; border: 1px solid rgba(72,228,224,.22); background: rgba(72,228,224,.08); font-size: .72rem; font-weight: 700; color: var(--ink); }
+  .hist-summary-pill strong { color: var(--cyan); font-family: 'Outfit', sans-serif; }
+  .hist-card { display: grid; grid-template-columns: 4rem minmax(0, 1fr) auto; gap: 1rem; align-items: center; padding: 1rem 1.15rem; border-radius: 1.1rem; border: 1px solid rgba(234,239,226,.08); background: rgba(5,11,14,.24); transition: border-color .2s, background .2s, transform .15s; }
+  .hist-card:hover { border-color: rgba(72,228,224,.32); background: rgba(72,228,224,.05); transform: translateY(-1px); }
+  .hist-card .hist-icon { display: grid; place-items: center; width: 4rem; height: 4rem; border-radius: 1rem; font-size: 1.5rem; line-height: 1; overflow: hidden; }
   .hist-card.is-MANTENIMIENTO .hist-icon { background: rgba(72,228,224,.16); }
   .hist-card.is-COMBUSTIBLE .hist-icon { background: rgba(245,173,75,.18); }
   .hist-card.is-PINCHAZO .hist-icon { background: rgba(255,116,116,.16); }
   .hist-card.is-OTRO .hist-icon { background: rgba(234,239,226,.1); }
-  .hist-card .hist-title { color: var(--ink); font-size: .86rem; font-weight: 700; }
-  .hist-card .hist-detail { color: var(--muted); font-size: .72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-  .hist-card .hist-meta { display: grid; justify-items: end; gap: .2rem; }
-  .hist-card .hist-cost { font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 800; color: var(--amber); }
-  .hist-card .hist-time { font-size: .62rem; color: var(--subtle); font-variant-numeric: tabular-nums; }
-  .hist-card .hist-thumb { width: 100%; height: 100%; object-fit: cover; border-radius: 1rem; }
-  .hist-empty { padding: 1.5rem .85rem; text-align: center; color: var(--subtle); font-size: .78rem; border: 1px dashed rgba(234,239,226,.1); border-radius: .8rem; }
+  .hist-card .hist-thumb { width: 100%; height: 100%; object-fit: cover; }
+  .hist-card .hist-title { color: var(--ink); font-size: .92rem; font-weight: 700; line-height: 1.25; letter-spacing: -.01em; }
+  .hist-card .hist-detail { color: var(--muted); font-size: .78rem; line-height: 1.45; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .hist-card .hist-meta { display: grid; justify-items: end; gap: .35rem; min-width: 5.5rem; }
+  .hist-card .hist-cost { font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--amber); letter-spacing: -.02em; }
+  .hist-card .hist-time { display: inline-flex; align-items: center; gap: .25rem; padding: .15rem .5rem; border-radius: 999px; background: rgba(234,239,226,.06); border: 1px solid rgba(234,239,226,.1); font-size: .62rem; color: var(--subtle); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .hist-card .hist-area { display: inline-flex; align-items: center; gap: .25rem; padding: .12rem .45rem; border-radius: .35rem; background: rgba(72,228,224,.1); border: 1px solid rgba(72,228,224,.2); font-size: .62rem; font-weight: 700; color: var(--cyan); text-transform: uppercase; letter-spacing: .04em; }
+  .hist-empty { padding: 1.75rem .85rem; text-align: center; color: var(--subtle); font-size: .78rem; border: 1px dashed rgba(234,239,226,.1); border-radius: .8rem; background: rgba(5,11,14,.18); }
+  .hist-empty strong { display: block; color: var(--ink); font-size: .9rem; margin-bottom: .25rem; }
 </style>
 
 <script>
@@ -181,20 +186,40 @@ export function getStaticPaths() { return [{ params: {} }]; }
     if (!filtered.length) { list.innerHTML = '<div class="hist-empty">Sin registros en esta categoría.</div>'; return; }
     list.innerHTML = filtered.map((m) => {
       const cat = categoryLabels[m.category] ?? { name: m.category, icon: '📦' };
-      const thumb = m.photoUrl ? `<img src="${escape(m.photoUrl)}" alt="" class="hist-thumb" loading="lazy" />` : cat.icon;
-      const area = m.area ? `<span class="hist-detail">${escape(m.area)}</span>` : '';
-      return `<div class="hist-card is-${escape(m.category)}"><span class="hist-icon">${thumb}</span><div class="grid min-w-0 gap-[.2rem]"><strong class="hist-title">${escape(cat.name)} · ${escape(m.detail.split('\n')[0])}</strong>${area}<small class="hist-detail">${escape(m.detail)}</small></div><div class="hist-meta"><strong class="hist-cost">${escape(formatMoney(m.cost))}</strong><small class="hist-time">${escape(formatDate(m.recordedAt))}</small></div></div>`;
+      const thumb = m.photoUrl ? `<img src="${escape(m.photoUrl)}" alt="" class="hist-thumb" loading="lazy" />` : `<span>${cat.icon}</span>`;
+      const areaPill = m.area ? `<span class="hist-area">${escape(m.area)}</span>` : '';
+      const firstLine = m.detail.split('\n')[0];
+      return `<div class="hist-card is-${escape(m.category)}"><span class="hist-icon">${thumb}</span><div class="grid min-w-0 gap-[.35rem]"><div class="flex items-center gap-[.4rem] flex-wrap"><strong class="hist-title">${escape(cat.name)}</strong>${areaPill}</div><p class="hist-detail m-0">${escape(firstLine)}</p></div><div class="hist-meta"><strong class="hist-cost">${escape(formatMoney(m.cost))}</strong><span class="hist-time">${escape(formatDate(m.recordedAt))}</span></div></div>`;
     }).join('');
+  };
+
+  const renderSummary = () => {
+    const summary = document.getElementById('hist-summary');
+    if (!summary) return;
+    const totalCount = currentRecords.length;
+    const totalCost = currentRecords.reduce((sum, r) => sum + Number(r.cost || 0), 0);
+    const byCategory = currentRecords.reduce<Record<string, number>>((acc, r) => { acc[r.category] = (acc[r.category] ?? 0) + Number(r.cost || 0); return acc; }, {});
+    if (totalCount === 0) { summary.innerHTML = ''; return; }
+    const parts = [
+      `<span class="hist-summary-pill"><strong>${totalCount}</strong> registros</span>`,
+      `<span class="hist-summary-pill">Total <strong>${escape(formatMoney(totalCost))}</strong></span>`,
+    ];
+    for (const [key, value] of Object.entries(byCategory)) {
+      const label = categoryLabels[key]?.name ?? key;
+      parts.push(`<span class="hist-summary-pill">${escape(label)} <strong>${escape(formatMoney(value))}</strong></span>`);
+    }
+    summary.innerHTML = parts.join('');
   };
 
   const loadHistory = async () => {
     const busId = (document.getElementById('bus') as HTMLSelectElement).value;
     const list = document.getElementById('history-list') as HTMLElement;
-    if (!busId) { list.innerHTML = '<div class="hist-empty">Selecciona una unidad arriba para ver su historial.</div>'; currentRecords = []; return; }
+    if (!busId) { list.innerHTML = '<div class="hist-empty"><strong>Sin unidad seleccionada</strong>Elige un bus arriba para ver su historial.</div>'; currentRecords = []; renderSummary(); return; }
     try {
       currentRecords = await api(`/maintenance-records/buses/${busId}/all`);
       renderHistory();
-    } catch { list.innerHTML = '<div class="hist-empty">No se pudo cargar el historial.</div>'; }
+      renderSummary();
+    } catch { list.innerHTML = '<div class="hist-empty"><strong>Error</strong>No se pudo cargar el historial. Intenta de nuevo.</div>'; }
   };
 
   const setupCategoryLogic = () => {
@@ -238,6 +263,8 @@ export function getStaticPaths() { return [{ params: {} }]; }
     const form = document.getElementById('hist-form') as HTMLFormElement;
     const submit = document.getElementById('submit') as HTMLButtonElement;
     const error = document.getElementById('error') as HTMLElement;
+    if (!form || (form as any).__bound) return;
+    (form as any).__bound = true;
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       error.hidden = true;
@@ -300,9 +327,32 @@ export function getStaticPaths() { return [{ params: {} }]; }
     try { await loadBuses(); }
     catch (cause) {
       await feedback.error(cause instanceof Error ? cause.message : 'Error inesperado.', 'No se pudo cargar');
+      return;
     }
-  };
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('incident') === '1') {
+      const busId = (document.getElementById('bus') as HTMLSelectElement).value;
+      if (busId) {
+        try {
+          feedback.loading('Registrando incidencia en el servidor…');
+          const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
+          if (tripId) {
+            await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type: 'INCIDENT', notes: 'Conductor reporta incidencia desde el panel — abre el formulario para registrar el detalle.' }) });
+          }
+          Swal.close();
+          await feedback.success('Incidencia registrada. Ahora completa los detalles abajo.', 'Notificado');
+        } catch (cause) {
+          Swal.close();
+          await feedback.error('No pudimos notificar la incidencia. Completa el reporte manualmente.', 'Aviso');
+        }
+        window.history.replaceState({}, '', `/chofer/historial?busId=${busId}`);
+      }
+    }
+  }
 
-  document.addEventListener('astro:page-load', () => { void init(); });
+  if (!(window as any).__driverHistInitBound) {
+    (window as any).__driverHistInitBound = true;
+    document.addEventListener('astro:page-load', () => { void init(); });
+  }
   void init();
 </script>

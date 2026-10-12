@@ -246,6 +246,8 @@ const loadConversation = async (otherId: number, markAsRead = true) => {
       const send = document.getElementById('chat-send') as HTMLButtonElement | null;
       const body = document.getElementById('chat-body') as HTMLTextAreaElement | null;
       if (!form || !send || !body) return;
+      if (!(form as any).__bound) {
+      (form as any).__bound = true;
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (activeOtherId === null) return;
@@ -263,6 +265,7 @@ const loadConversation = async (otherId: number, markAsRead = true) => {
           send.disabled = false;
         }
       });
+    }
 
       const back = document.getElementById('chat-back');
       back?.addEventListener('click', () => {
@@ -311,6 +314,9 @@ const loadConversation = async (otherId: number, markAsRead = true) => {
     }
   }
 
-  document.addEventListener('astro:page-load', () => { void init(); });
+  if (!(window as any).__adminMessagesInitBound) {
+    (window as any).__adminMessagesInitBound = true;
+    document.addEventListener('astro:page-load', () => { void init(); });
+  }
   window.addEventListener('beforeunload', stopPolling);
 </script>

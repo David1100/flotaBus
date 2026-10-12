@@ -45,6 +45,7 @@
   :global(.notif-row.is-message .notif-kind) { background: rgba(72,228,224,.16); color: var(--cyan); }
   :global(.notif-row.is-incident .notif-kind) { background: rgba(255,116,116,.16); color: #ff9daa; }
   :global(.notif-row.is-expense .notif-kind) { background: rgba(245,173,75,.18); color: var(--amber); }
+  :global(.notif-row.is-event .notif-kind) { background: rgba(234,239,226,.1); color: var(--ink); }
   :global(.notif-row .notif-title) { color: var(--ink); font-size: .82rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
   :global(.notif-row .notif-body) { color: var(--muted); font-size: .72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
   :global(.notif-row .notif-time) { font-size: .62rem; color: var(--subtle); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -57,7 +58,7 @@
   import { api, ApiError } from '../lib/api';
   import { showChatNotification } from '../lib/notifications';
 
-  type NotificationItem = { id: string; kind: 'MESSAGE' | 'INCIDENT' | 'EXPENSE'; title: string; body: string; url: string; createdAt: string; read: boolean; meta: Record<string, unknown> };
+  type NotificationItem = { id: string; kind: 'MESSAGE' | 'INCIDENT' | 'EXPENSE' | 'TRIP_EVENT'; title: string; body: string; url: string; createdAt: string; read: boolean; meta: Record<string, unknown> };
   type NotificationPayload = { items: NotificationItem[]; totalUnread: number; unreadByKind: { MESSAGE: number; INCIDENT: number } };
 
   const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
@@ -87,14 +88,15 @@
     list.innerHTML = items.slice(0, 12).map((n) => {
       const isIncident = n.kind === 'INCIDENT';
       const isExpense = n.kind === 'EXPENSE';
-      const icon = isIncident ? '!' : isExpense ? '💰' : '✉';
-      const variant = isIncident ? 'incident' : isExpense ? 'expense' : 'message';
+      const isEvent = n.kind === 'TRIP_EVENT';
+      const icon = isIncident ? '!' : isExpense ? '💰' : isEvent ? '🚍' : '✉';
+      const variant = isIncident ? 'incident' : isExpense ? 'expense' : isEvent ? 'event' : 'message';
       return `<a class="notif-row is-${variant} ${n.read ? '' : 'is-unread'}" href="${escape(n.url)}" data-notif-id="${escape(n.id)}" data-spa-link><span class="notif-kind" aria-hidden="true">${escape(icon)}</span><span class="grid min-w-0 gap-[.1rem]"><strong class="notif-title">${escape(n.title)}</strong><small class="notif-body">${escape(n.body)}</small></span><span class="notif-time">${escape(relativeTime(n.createdAt))}</span></a>`;
     }).join('');
     list.querySelectorAll<HTMLAnchorElement>('.notif-row').forEach((link) => {
       link.addEventListener('click', () => {
         const id = link.dataset.notifId ?? '';
-        if (id.startsWith('incident:') || id.startsWith('expense:')) void api(`/admin/notifications/${id}/read`, { method: 'PATCH' }).catch(() => undefined);
+        if (id.startsWith('incident:') || id.startsWith('expense:') || id.startsWith('event:')) void api(`/admin/notifications/${id}/read`, { method: 'PATCH' }).catch(() => undefined);
         closePanel();
       });
     });

@@ -19,7 +19,7 @@ export class DriverPortalService {
       include: {
         trip: {
           include: {
-            legs: { orderBy: { sequence: 'asc' }, select: { id: true, origin: true, destination: true, plannedDepartureAt: true, plannedArrivalAt: true } },
+            legs: { orderBy: { sequence: 'asc' }, include: { execution: { select: { id: true, status: true, actualDepartureAt: true, actualArrivalAt: true } } } },
           },
         },
         bus: { select: { id: true, placa: true, marca: true, modelo: true, kilometraje: true, busType: true, isActive: true, manualStatus: true, photoUrl: true } },
@@ -41,12 +41,8 @@ export class DriverPortalService {
         }
       : null;
 
-    const upcomingTrips = await this.db.assignment.findMany({
-      where: {
-        driverId,
-        status: 'ACTIVE',
-        trip: { status: { in: ['ASSIGNED'] } },
-      },
+    const allAssignedTrips = await this.db.assignment.findMany({
+      where: { driverId },
       include: {
         trip: {
           include: {
@@ -55,9 +51,12 @@ export class DriverPortalService {
           },
         },
       },
-      orderBy: { trip: { initialStartAt: 'asc' } },
-      take: 3,
+      orderBy: { trip: { initialStartAt: 'desc' } },
+      take: 50,
     });
+    const upcomingTrips = allAssignedTrips
+      .filter((a) => a.status === 'ACTIVE' && a.trip.status === 'ASSIGNED')
+      .slice(0, 3);
 
     const recentMaintenance = currentBus
       ? await this.db.maintenanceRecord.findMany({
@@ -81,13 +80,29 @@ export class DriverPortalService {
             initialStartAt: activeAssignment.trip.initialStartAt,
             notes: activeAssignment.trip.notes,
             status: activeAssignment.trip.status,
-            legs: activeAssignment.trip.legs,
+            legs: activeAssignment.trip.legs.map((leg) => ({
+              id: leg.id,
+              sequence: leg.sequence,
+              origin: leg.origin,
+              destination: leg.destination,
+              plannedDepartureAt: leg.plannedDepartureAt,
+              plannedArrivalAt: leg.plannedArrivalAt,
+              durationDays: leg.durationDays,
+              notes: leg.notes,
+              execution: leg.execution,
+            })),
           }
         : null,
       currentBus,
       upcomingTrips: upcomingTrips.map(a => ({
         assignmentId: a.id,
         assignedAt: a.assignedAt,
+        trip: { id: a.trip.id, code: a.trip.code, status: a.trip.status, origin: a.trip.origin, initialStartAt: a.trip.initialStartAt, firstDestination: a.trip.legs[0]?.destination ?? null, legsCount: a.trip._count.legs },
+      })),
+      allTrips: allAssignedTrips.map(a => ({
+        assignmentId: a.id,
+        assignedAt: a.assignedAt,
+        revokedAt: a.revokedAt,
         trip: { id: a.trip.id, code: a.trip.code, status: a.trip.status, origin: a.trip.origin, initialStartAt: a.trip.initialStartAt, firstDestination: a.trip.legs[0]?.destination ?? null, legsCount: a.trip._count.legs },
       })),
       recentMaintenance,
@@ -102,6 +117,44 @@ export class DriverPortalService {
       select: { id: true, nombres: true, username: true },
     });
     return items;
+  }
+
+  async tripDetail(driverId: number, tripId: number) {
+    const assignment = await this.db.assignment.findFirst({
+      where: { driverId, tripId },
+      select: { id: true, status: true },
+    });
+    if (!assignment) throw new NotFoundException('Viaje no encontrado.');
+    const trip = await this.db.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        legs: {
+          orderBy: { sequence: 'asc' },
+          include: { execution: { select: { id: true, status: true, actualDepartureAt: true, actualArrivalAt: true } } },
+        },
+      },
+    });
+    if (!trip) throw new NotFoundException('Viaje no encontrado.');
+    return {
+      id: trip.id,
+      code: trip.code,
+      origin: trip.origin,
+      initialStartAt: trip.initialStartAt,
+      timezone: trip.timezone,
+      status: trip.status,
+      notes: trip.notes,
+      legs: trip.legs.map((leg) => ({
+        id: leg.id,
+        sequence: leg.sequence,
+        origin: leg.origin,
+        destination: leg.destination,
+        plannedDepartureAt: leg.plannedDepartureAt,
+        plannedArrivalAt: leg.plannedArrivalAt,
+        durationDays: leg.durationDays,
+        notes: leg.notes,
+        execution: leg.execution ? { id: leg.execution.id, status: leg.execution.status, actualDepartureAt: leg.execution.actualDepartureAt, actualArrivalAt: leg.execution.actualArrivalAt } : null,
+      })),
+    };
   }
 
   async notifications(driverId: number) {

@@ -27,4 +27,5 @@ export class EventDto {
   @IsOptional() @IsDateString() occurredAt?: string;
   @IsOptional() @IsString() notes?: string;
   @IsOptional() @IsDateString() resumedAt?: string;
+  @IsOptional() @IsInt() @Min(1) legId?: number;
 }

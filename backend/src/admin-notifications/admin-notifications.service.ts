@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
-type NotificationKind = 'MESSAGE' | 'INCIDENT' | 'EXPENSE';
+type NotificationKind = 'MESSAGE' | 'INCIDENT' | 'EXPENSE' | 'TRIP_EVENT';
 
 const categoryLabels: Record<string, string> = {
   MANTENIMIENTO: 'Mantenimiento',
@@ -57,6 +57,18 @@ export class AdminNotificationsService {
       include: { sender: { select: { id: true, nombres: true, username: true, codigo: true } } },
     });
 
+    const tripEvents = await this.db.operationEvent.findMany({
+      where: { type: { in: ['STARTED', 'STOPPED', 'LUNCH_STARTED', 'LUNCH_ENDED', 'ARRIVED', 'RETURNED'] } },
+      orderBy: { occurredAt: 'desc' },
+      take: limit,
+      include: {
+        actor: { select: { id: true, nombres: true, username: true } },
+        trip: { select: { id: true, code: true } },
+      },
+    });
+    const seenTripEvents = await this.db.notificationView.findMany({ where: { actorId, kind: 'TRIP_EVENT' }, select: { refId: true } });
+    const seenTripEventIds = new Set(seenTripEvents.map((v) => v.refId));
+
     const incidentItems: NotificationItem[] = incidents.map((inc) => ({
       id: `incident:${inc.id}`,
       kind: 'INCIDENT',
@@ -96,19 +108,39 @@ export class AdminNotificationsService {
       meta: { busId: e.busId, recordId: e.id, category: e.category, cost: Number(e.cost) },
     }));
 
-    const items = [...incidentItems, ...expenseItems, ...messageItemsBySender.values()]
+    const eventLabel: Record<string, string> = {
+      STARTED: 'inició ruta', STOPPED: 'detuvo el bus', LUNCH_STARTED: 'inició almuerzo', LUNCH_ENDED: 'reanudó ruta',
+      ARRIVED: 'llegó a destino', RETURNED: 'retornó al origen', LEG_STARTED: 'empezó un tramo', LEG_ARRIVED: 'completó un tramo',
+    };
+    const tripEventItems: NotificationItem[] = tripEvents.map((ev) => ({
+      id: `event:${ev.id}`,
+      kind: 'TRIP_EVENT',
+      title: `${ev.actor?.nombres || ev.actor?.username || 'Conductor'} ${eventLabel[ev.type] ?? ev.type.toLowerCase()} — ${ev.trip?.code ?? ''}`,
+      body: ev.notes || `Actualización del viaje ${ev.trip?.code ?? ''}`,
+      url: ev.trip?.id ? `/admin/trips/detail?id=${ev.trip.id}` : '/admin/trips',
+      createdAt: ev.occurredAt,
+      read: seenTripEventIds.has(String(ev.id)),
+      meta: { tripId: ev.tripId, eventId: ev.id, type: ev.type },
+    }));
+
+    const items = [...incidentItems, ...tripEventItems, ...expenseItems, ...messageItemsBySender.values()]
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, limit);
 
-    const unreadByKind: Record<NotificationKind, number> = { MESSAGE: unreadMessages, INCIDENT: incidentItems.filter((i) => !i.read).length, EXPENSE: expenseItems.filter((i) => !i.read).length };
-    return { items, totalUnread: unreadMessages + unreadByKind.INCIDENT + unreadByKind.EXPENSE, unreadByKind };
+    const unreadByKind: Record<NotificationKind, number> = {
+      MESSAGE: unreadMessages,
+      INCIDENT: incidentItems.filter((i) => !i.read).length,
+      EXPENSE: expenseItems.filter((i) => !i.read).length,
+      TRIP_EVENT: tripEventItems.filter((i) => !i.read).length,
+    };
+    return { items, totalUnread: unreadMessages + unreadByKind.INCIDENT + unreadByKind.EXPENSE + unreadByKind.TRIP_EVENT, unreadByKind };
   }
 
   async markRead(actorId: number, compositeId: string) {
     const [rawKind, refId] = compositeId.split(':');
     const kind = rawKind?.toUpperCase();
     if (!kind || !refId) throw new BadRequestException('Identificador inválido.');
-    if (kind === 'INCIDENT' || kind === 'EXPENSE') {
+    if (kind === 'INCIDENT' || kind === 'EXPENSE' || kind === 'TRIP_EVENT') {
       const refNum = Number(refId);
       if (!Number.isInteger(refNum) || refNum <= 0) throw new BadRequestException('Identificador inválido.');
       await this.db.notificationView.upsert({
@@ -123,9 +155,11 @@ export class AdminNotificationsService {
 
   async markAllRead(actorId: number) {
     const incidents = await this.db.operationEvent.findMany({ where: { type: 'INCIDENT' }, select: { id: true } });
+    const tripEvents = await this.db.operationEvent.findMany({ where: { type: { in: ['STARTED', 'STOPPED', 'LUNCH_STARTED', 'LUNCH_ENDED', 'ARRIVED', 'RETURNED'] } }, select: { id: true } });
     const expenses = await this.db.maintenanceRecord.findMany({ select: { id: true } });
     const ops = [
       ...incidents.map((ev) => ({ kind: 'INCIDENT' as const, refId: String(ev.id) })),
+      ...tripEvents.map((ev) => ({ kind: 'TRIP_EVENT' as const, refId: String(ev.id) })),
       ...expenses.map((e) => ({ kind: 'EXPENSE' as const, refId: String(e.id) })),
     ];
     await this.db.$transaction(ops.map((entry) => this.db.notificationView.upsert({
