@@ -20,6 +20,12 @@ export class MaintenanceRecordsController {
     return this.service.list(busId, area);
   }
 
+  @Get('buses/:busId/all')
+  @Roles('ADMINISTRADOR', 'CHOFER')
+  listAll(@Param('busId', ParseIntPipe) busId: number) {
+    return this.service.listAll(busId);
+  }
+
   @Post('buses/:busId')
   @Roles('ADMINISTRADOR', 'CHOFER')
   create(@Param('busId', ParseIntPipe) busId: number, @Body() dto: CreateMaintenanceRecordDto, @Req() req: any) {

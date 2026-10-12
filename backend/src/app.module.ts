@@ -12,9 +12,10 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { MessagesModule } from './messages/messages.module';
 import { DriverPortalModule } from './driver-portal/driver-portal.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { AdminNotificationsModule } from './admin-notifications/admin-notifications.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), CloudinaryModule, PrismaModule, AuthModule, DriversModule, BusesModule, TripsModule, MaintenanceRecordsModule, DashboardModule, MessagesModule, DriverPortalModule, NotificationsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), CloudinaryModule, PrismaModule, AuthModule, DriversModule, BusesModule, TripsModule, MaintenanceRecordsModule, DashboardModule, MessagesModule, DriverPortalModule, NotificationsModule, AdminNotificationsModule],
   controllers: [HealthController],
 })
 export class AppModule {}

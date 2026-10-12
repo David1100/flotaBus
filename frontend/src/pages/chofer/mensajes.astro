@@ -85,6 +85,12 @@ export function getStaticPaths() { return [{ params: {} }]; }
       api('/messages/sent?limit=100'),
     ]);
     renderThread(incoming?.items ?? [], sent?.items ?? [], myId);
+    const unread = (incoming?.items ?? []).filter((m: any) => !m.readAt);
+    if (unread.length) {
+      const senders = new Set<number>();
+      for (const m of unread) senders.add(m.senderId);
+      await Promise.all(Array.from(senders).map((otherId) => api(`/messages/threads/${otherId}/read`, { method: 'PATCH' }).catch(() => undefined)));
+    }
   };
 
   const init = async () => {

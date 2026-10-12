@@ -19,7 +19,7 @@ describe('MaintenanceRecordsController', () => {
     const service = { create: jest.fn().mockResolvedValue({ id: 2 }) } as unknown as MaintenanceRecordsService;
     const cloudinary = {} as unknown as CloudinaryService;
     const controller = new MaintenanceRecordsController(service, cloudinary);
-    await expect(controller.create(5, { area: 'CAJA' as any, cost: '50000', detail: 'Revisión' }, { user: { id: 1, rol: 'ADMINISTRADOR' } } as any)).resolves.toEqual({ id: 2 });
-    expect(service.create).toHaveBeenCalledWith(5, expect.objectContaining({ area: 'CAJA' }), expect.objectContaining({ id: 1, rol: 'ADMINISTRADOR' }));
+    await expect(controller.create(5, { category: 'MANTENIMIENTO' as any, area: 'CAJA' as any, cost: '50000', detail: 'Revisión' }, { user: { id: 1, rol: 'ADMINISTRADOR' } } as any)).resolves.toEqual({ id: 2 });
+    expect(service.create).toHaveBeenCalledWith(5, expect.objectContaining({ category: 'MANTENIMIENTO', area: 'CAJA' }), expect.objectContaining({ id: 1, rol: 'ADMINISTRADOR' }));
   });
 });

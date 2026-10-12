@@ -64,6 +64,13 @@ enum MaintenanceArea {
   MOTOR
 }
 
+enum MaintenanceCategory {
+  MANTENIMIENTO
+  COMBUSTIBLE
+  PINCHAZO
+  OTRO
+}
+
 enum OperationEventType {
   STARTED
   STOPPED
@@ -97,6 +104,7 @@ model User {
   manualBusStatuses   Bus[]            @relation("BusManualStatusActor")
   sentMessages        Message[]        @relation("MessageSender")
   receivedMessages    Message[]        @relation("MessageRecipient")
+  notificationViews   NotificationView[] @relation("NotificationViews")
   defaultBus          Bus?             @relation("DriverDefaultBus", fields: [defaultBusId], references: [id], onDelete: SetNull)
 
   @@index([rol, isActive])
@@ -105,15 +113,17 @@ model User {
 }
 
 model MaintenanceRecord {
-  id         Int             @id @default(autoincrement())
-  busId      Int             @map("bus_id")
-  area       MaintenanceArea
-  cost       Decimal         @db.Decimal(14, 2)
-  detail     String          @db.VarChar(2000)
-  photoUrl   String?         @map("photo_url") @db.VarChar(500)
-  recordedAt DateTime        @default(now()) @map("recorded_at")
-  bus        Bus             @relation(fields: [busId], references: [id], onDelete: Cascade)
+  id         Int                @id @default(autoincrement())
+  busId      Int                @map("bus_id")
+  category   MaintenanceCategory @default(MANTENIMIENTO)
+  area       MaintenanceArea?
+  cost       Decimal            @db.Decimal(14, 2)
+  detail     String             @db.VarChar(2000)
+  photoUrl   String?            @map("photo_url") @db.VarChar(500)
+  recordedAt DateTime           @default(now()) @map("recorded_at")
+  bus        Bus                @relation(fields: [busId], references: [id], onDelete: Cascade)
 
+  @@index([busId, category, recordedAt])
   @@index([busId, area, recordedAt])
   @@map("maintenance_records")
 }
@@ -245,4 +255,17 @@ model Message {
   @@index([recipientId, createdAt])
   @@index([senderId, createdAt])
   @@map("messages")
+}
+
+model NotificationView {
+  id        Int      @id @default(autoincrement())
+  actorId   Int      @map("actor_id")
+  kind      String   @db.VarChar(32)
+  refId     String   @map("ref_id") @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at")
+  actor     User     @relation("NotificationViews", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@unique([actorId, kind, refId])
+  @@index([actorId, kind])
+  @@map("notification_views")
 }

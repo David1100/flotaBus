@@ -95,6 +95,6 @@ import AdminShell from '../../components/AdminShell.astro';
   }
   async function loadBuses() { try { const result = await api('/buses/catalog'); const buses: Bus[] = result.data ?? result; $('#bus').innerHTML += buses.map((bus) => `<option value="${bus.id}">${escapeHtml(bus.placa)}</option>`).join(''); } catch { /* El filtro sigue disponible aunque el catálogo falle. */ } }
   async function load() { const state = $('#dashboard-state'); state.hidden = false; state.textContent = 'Actualizando resumen…'; state.classList.remove('error'); const params = new URLSearchParams(); for (const id of ['from', 'to', 'bus', 'status']) { const value = ($(`#${id}`) as HTMLInputElement | HTMLSelectElement).value; if (value) params.set(id === 'bus' ? 'busId' : id, value); } try { const data: Overview = await api(`/dashboard/overview?${params}`); render(data); $('#dashboard-content').hidden = false; state.hidden = true; } catch (error) { state.textContent = error instanceof Error ? error.message : 'No se pudo cargar el dashboard.'; state.classList.add('error'); } }
-  function init() { const apply = $('#apply'); if (apply.dataset.bound === 'true') return; apply.dataset.bound = 'true'; apply.addEventListener('click', load); loadBuses(); load(); }
+  function init() { const apply = $('#apply'); if (!apply) return; if (apply.dataset.bound === 'true') return; apply.dataset.bound = 'true'; apply.addEventListener('click', load); loadBuses(); load(); }
   document.addEventListener('astro:page-load', init); init();
 </script>

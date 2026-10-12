@@ -1,11 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
+import DriverNotificationsBell from './DriverNotificationsBell.astro';
 
 const { title = 'Conductor · flotaBus', active = 'dashboard' } = Astro.props;
 
 const navItems = [
   { id: 'dashboard', href: '/chofer/dashboard', label: 'Mi ruta' },
-  { id: 'mantenimiento', href: '/chofer/mantenimiento', label: 'Mantenimiento' },
+  { id: 'historial', href: '/chofer/historial', label: 'Historial' },
   { id: 'mensajes', href: '/chofer/mensajes', label: 'Mensajes' },
 ];
 ---
@@ -27,6 +28,9 @@ const navItems = [
           <small id="driver-role" class="text-[.62rem] uppercase tracking-[.12em] text-[var(--subtle)]">Sesión activa</small>
         </div>
         <div id="driver-avatar" class="grid h-10 w-10 place-items-center rounded-full bg-[linear-gradient(135deg,var(--cyan),#56b8b0)] font-display text-[.78rem] font-bold text-[#0a1410] max-md:h-9 max-md:w-9" aria-hidden="true">•</div>
+        <div class="relative">
+          <DriverNotificationsBell />
+        </div>
         <button id="logout" class="logout-btn grid h-9 w-9 place-items-center rounded-full border border-[rgba(234,239,226,.12)] bg-[rgba(5,11,14,.4)] text-[var(--muted)] transition hover:border-[var(--amber)] hover:text-[var(--amber)]" type="button" aria-label="Cerrar sesión">↪</button>
       </div>
     </header>
@@ -46,6 +50,31 @@ const navItems = [
   .driver-nav-link.is-active { color: var(--ink); background: rgba(72,228,224,.12); border: 1px solid rgba(72,228,224,.22); }
   .driver-bottom-link { display: grid; place-items: center; min-height: 3.5rem; padding: .5rem; font-size: .72rem; font-weight: 700; color: var(--muted); text-decoration: none; text-align: center; transition: color .2s; }
   .driver-bottom-link.is-active { color: var(--cyan); }
+
+  :global(.notif-bell) { position: relative; display: inline-grid; place-items: center; width: 2.4rem; height: 2.4rem; padding: 0; border: 1px solid rgba(234,239,226,.1); border-radius: .8rem; background: rgba(5,11,14,.4); color: var(--muted); cursor: pointer; transition: border-color .2s, background .2s, color .2s, transform .15s; }
+  :global(.notif-bell:hover) { color: var(--cyan); border-color: rgba(72,228,224,.32); background: rgba(72,228,224,.06); transform: translateY(-1px); }
+  :global(.notif-bell.is-open) { color: var(--cyan); border-color: rgba(72,228,224,.45); background: rgba(72,228,224,.08); }
+  :global(.notif-bell-icon) { display: grid; place-items: center; width: 1rem; height: 1rem; }
+  :global(.notif-bell-icon svg) { width: 100%; height: 100%; }
+  :global(.notif-badge) { position: absolute; top: -.35rem; right: -.35rem; min-width: 1.2rem; height: 1.2rem; padding: 0 .35rem; border-radius: 999px; background: linear-gradient(135deg, #ff7474, #ff4848); color: #fff; font-size: .66rem; font-weight: 800; line-height: 1; display: grid; place-items: center; box-shadow: 0 4px 12px rgba(255,72,72,.5), 0 0 0 2px rgba(8,13,17,.95); animation: notif-pulse 2.2s ease-in-out infinite; }
+  :global(.notif-badge[hidden]) { display: none; }
+  @keyframes notif-pulse { 50% { box-shadow: 0 4px 12px rgba(255,72,72,.55), 0 0 0 4px rgba(255,72,72,.12); } }
+
+  :global(.notif-panel) { position: absolute; top: calc(100% + .55rem); right: 0; z-index: 50; display: grid; width: min(22rem, calc(100vw - 2rem)); max-height: min(28rem, calc(100dvh - 8rem)); overflow: hidden; border-radius: 1rem; border: 1px solid rgba(234,239,226,.12); background: rgba(13,21,25,.97); box-shadow: 0 24px 60px rgba(0,0,0,.45), inset 0 1px rgba(255,255,255,.06); backdrop-filter: blur(8px); }
+  :global(.notif-panel[hidden]) { display: none; }
+  :global(.notif-panel-head) { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; padding: .85rem 1rem; border-bottom: 1px solid rgba(234,239,226,.08); }
+  :global(.notif-list) { display: grid; gap: .35rem; padding: .5rem; overflow-y: auto; }
+  :global(.notif-row) { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr) auto; gap: .65rem; align-items: center; padding: .55rem .65rem; border-radius: .7rem; text-decoration: none; color: var(--ink); border: 1px solid transparent; transition: background .2s, border-color .2s; }
+  :global(.notif-row:hover) { background: rgba(72,228,224,.06); border-color: rgba(72,228,224,.18); }
+  :global(.notif-row.is-unread) { background: rgba(72,228,224,.05); border-color: rgba(72,228,224,.16); }
+  :global(.notif-row.is-unread .notif-title) { font-weight: 700; }
+  :global(.notif-row .notif-kind) { display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: .55rem; font-size: .82rem; font-weight: 800; background: rgba(72,228,224,.16); color: var(--cyan); }
+  :global(.notif-row .notif-title) { color: var(--ink); font-size: .82rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  :global(.notif-row .notif-body) { color: var(--muted); font-size: .72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  :global(.notif-row .notif-time) { font-size: .62rem; color: var(--subtle); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  :global(.notif-panel-foot) { display: block; padding: .65rem 1rem; border-top: 1px solid rgba(234,239,226,.08); font-size: .78rem; font-weight: 700; color: var(--cyan); text-align: center; text-decoration: none; }
+  :global(.notif-panel-foot:hover) { background: rgba(72,228,224,.06); }
+  :global(.notif-empty) { padding: 1.5rem .85rem; text-align: center; color: var(--subtle); font-size: .78rem; }
   .driver-bottom-link:hover { color: var(--ink); }
   .logout-btn { cursor: pointer; }
   .driver-content { min-height: calc(100dvh - 70px - env(safe-area-inset-top)); }
@@ -55,7 +84,7 @@ const navItems = [
   import { api, ApiError, clearAuthTokens } from '../lib/api';
   import { feedback, Swal } from '../lib/feedback';
 
-  const adminRoutes = new Set(['/chofer/dashboard', '/chofer/mantenimiento', '/chofer/mensajes']);
+  const adminRoutes = new Set(['/chofer/dashboard', '/chofer/historial', '/chofer/mensajes']);
 
   async function protectDriverShell() {
     const shell = document.querySelector<HTMLElement>('[data-driver-shell]');

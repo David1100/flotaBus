@@ -20,4 +20,9 @@ export class DriverPortalController {
   admins() {
     return this.service.admins();
   }
+
+  @Get('notifications')
+  notifications(@Req() req: any) {
+    return this.service.notifications(req.user.id);
+  }
 }

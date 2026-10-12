@@ -113,7 +113,7 @@ export class BusesService {
         },
         maintenanceRecords: {
           orderBy: { recordedAt: 'desc' },
-          select: { id: true, area: true, detail: true, cost: true, photoUrl: true, recordedAt: true },
+          select: { id: true, area: true, category: true, detail: true, cost: true, photoUrl: true, recordedAt: true },
         },
         _count: { select: { assignments: true, maintenanceRecords: true } },
       },

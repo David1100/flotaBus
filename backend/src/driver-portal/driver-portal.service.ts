@@ -103,4 +103,24 @@ export class DriverPortalService {
     });
     return items;
   }
+
+  async notifications(driverId: number) {
+    const unread = await this.db.message.findMany({
+      where: { recipientId: driverId, readAt: null },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      include: { sender: { select: { id: true, nombres: true, username: true } } },
+    });
+    const items = unread.map((m) => ({
+      id: `message:${m.id}`,
+      kind: 'MESSAGE' as const,
+      title: `${m.sender?.nombres || m.sender?.username || 'Administrador'} respondió`,
+      body: (m.body || '').slice(0, 140),
+      url: '/chofer/mensajes',
+      createdAt: m.createdAt,
+      read: false,
+      meta: { senderId: m.senderId, messageId: m.id },
+    }));
+    return { items, totalUnread: unread.length };
+  }
 }

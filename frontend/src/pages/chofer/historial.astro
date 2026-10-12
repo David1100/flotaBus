@@ -1,0 +1,308 @@
+---
+import DriverShell from '../../components/DriverShell.astro';
+
+export function getStaticPaths() { return [{ params: {} }]; }
+---
+
+<DriverShell title="Historial · flotaBus" active="historial">
+  <div class="driver-hist grid gap-5">
+    <header class="fade-in">
+      <div class="eyebrow">CONDUCTOR · REGISTRO DE GASTOS</div>
+      <h1 class="m-0 mt-2 font-display tracking-[-.035em] text-[var(--ink)]">Historial del <em>bus.</em></h1>
+      <p class="m-0 mt-2 text-[var(--muted)]">Registra tanqueos, pinchazos, mantenimientos y otros gastos. Cada registro notifica al administrador al instante.</p>
+    </header>
+
+    <div id="error" class="state error-state" role="alert" hidden></div>
+
+    <article class="glass fleet-card rounded-[1.25rem] p-[1.25rem]">
+      <div class="eyebrow">NUEVO REGISTRO</div>
+      <h2 class="m-0 mt-1 font-display text-[1.3rem] text-[var(--ink)]">¿Qué pasó con el bus?</h2>
+      <form id="hist-form" class="mt-4 grid gap-4" novalidate>
+        <label class="grid gap-[.45rem] text-[.82rem] text-[#c9d2cc]">Unidad
+          <select id="bus" class="input" required></select>
+          <small id="bus-hint" class="text-[.66rem] text-[var(--subtle)]" hidden>Esta unidad se asignó automáticamente según tu viaje activo.</small>
+        </label>
+        <fieldset class="m-0 grid gap-2 p-0">
+          <legend class="text-[.82rem] text-[#c9d2cc]">Categoría</legend>
+          <div class="hist-categories grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup">
+            <label class="hist-cat"><input type="radio" name="category" value="MANTENIMIENTO" class="sr-only" required /><span class="hist-cat-card"><span class="hist-cat-icon" aria-hidden="true">🛠</span><span class="hist-cat-name">Mantenimiento</span></span></label>
+            <label class="hist-cat"><input type="radio" name="category" value="COMBUSTIBLE" class="sr-only" required /><span class="hist-cat-card"><span class="hist-cat-icon" aria-hidden="true">⛽</span><span class="hist-cat-name">Tanqueo</span></span></label>
+            <label class="hist-cat"><input type="radio" name="category" value="PINCHAZO" class="sr-only" required /><span class="hist-cat-card"><span class="hist-cat-icon" aria-hidden="true">🛞</span><span class="hist-cat-name">Pinchazo</span></span></label>
+            <label class="hist-cat"><input type="radio" name="category" value="OTRO" class="sr-only" required /><span class="hist-cat-card"><span class="hist-cat-icon" aria-hidden="true">📦</span><span class="hist-cat-name">Otro</span></span></label>
+          </div>
+        </fieldset>
+        <label class="grid gap-[.45rem] text-[.82rem] text-[#c9d2cc]" id="area-wrap">Área específica
+          <select id="area" class="input">
+            <option value="">Sin área específica</option>
+            <option value="CAJA">Caja</option>
+            <option value="TRANSMISION">Transmisión</option>
+            <option value="RETARDADOR">Retardador</option>
+            <option value="LLANTAS">Llantas</option>
+            <option value="AIRE_ACONDICIONADO">Aire acondicionado</option>
+            <option value="MOTOR">Motor</option>
+          </select>
+        </label>
+        <label class="grid gap-[.45rem] text-[.82rem] text-[#c9d2cc]">Costo (COP)
+          <input id="cost" class="input" type="number" min="1" step="1" placeholder="35000" required />
+        </label>
+        <label class="grid gap-[.45rem] text-[.82rem] text-[#c9d2cc]">Detalle
+          <textarea id="detail" class="input" rows="3" required minlength="5" placeholder="Describe el trabajo, gasto o situación…"></textarea>
+        </label>
+        <div class="grid gap-[.45rem] text-[.82rem] text-[#c9d2cc]">
+          Foto del comprobante
+          <label for="photo" class="photo-drop" id="photo-drop">
+            <input id="photo" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+            <span class="photo-drop-prompt">Toca para adjuntar una imagen (JPG/PNG/WEBP, máx 5MB)</span>
+            <span class="photo-drop-name" id="photo-name" hidden></span>
+            <img id="photo-preview" class="photo-drop-preview" alt="Vista previa del comprobante" hidden />
+          </label>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 pt-2">
+          <button id="submit" class="btn btn-primary" type="submit">Guardar reporte</button>
+          <button id="reset" class="btn btn-secondary" type="reset">Limpiar</button>
+        </div>
+      </form>
+    </article>
+
+    <article class="glass fleet-card rounded-[1.25rem] p-[1.25rem]">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div class="eyebrow">HISTORIAL</div>
+          <h2 class="m-0 mt-1 font-display text-[1.2rem] text-[var(--ink)]">Registros del bus seleccionado</h2>
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-center gap-1 rounded-full border border-[rgba(234,239,226,.08)] bg-[rgba(5,11,14,.3)] p-1">
+        <button class="hist-tab is-active" data-filter="ALL" type="button">Todos</button>
+        <button class="hist-tab" data-filter="MANTENIMIENTO" type="button">🛠 Mantenimiento</button>
+        <button class="hist-tab" data-filter="COMBUSTIBLE" type="button">⛽ Tanquear</button>
+        <button class="hist-tab" data-filter="PINCHAZO" type="button">🛞 Pinchazo</button>
+        <button class="hist-tab" data-filter="OTRO" type="button">📦 Otros</button>
+      </div>
+
+      <div id="history-list" class="mt-4 grid gap-[.5rem]"></div>
+    </article>
+  </div>
+</DriverShell>
+
+<style>
+  .photo-drop { display: grid; gap: .35rem; place-items: center; min-height: 7rem; padding: 1rem; border: 1.5px dashed rgba(234,239,66,.18); border-radius: .8rem; background: rgba(5,11,14,.24); color: var(--muted); text-align: center; cursor: pointer; transition: border-color .2s, background .2s; }
+  .photo-drop:hover, .photo-drop.is-active { border-color: rgba(72,228,224,.4); background: rgba(72,228,224,.05); }
+  .photo-drop-preview { max-height: 12rem; border-radius: .6rem; object-fit: cover; }
+  .photo-drop-name { font-size: .72rem; color: var(--cyan); }
+
+  .hist-categories { display: grid; gap: .5rem; }
+  .hist-cat { cursor: pointer; }
+  .hist-cat-card { display: grid; gap: .25rem; place-items: center; padding: .85rem .5rem; border-radius: .8rem; border: 1px solid rgba(234,239,226,.12); background: rgba(5,11,14,.3); text-align: center; transition: border-color .2s, background .2s, color .2s; }
+  .hist-cat-icon { font-size: 1.4rem; line-height: 1; }
+  .hist-cat-name { font-size: .72rem; font-weight: 700; color: var(--ink); }
+  .hist-cat:has(input:checked) .hist-cat-card { border-color: rgba(72,228,224,.45); background: rgba(72,228,224,.1); box-shadow: inset 0 0 0 1px rgba(72,228,224,.35); }
+  .hist-cat:has(input:focus-visible) .hist-cat-card { border-color: var(--amber); }
+
+  .hist-tab { flex: 1 1 auto; min-height: 2.2rem; padding: .45rem .85rem; border: 1px solid transparent; border-radius: 999px; background: transparent; color: var(--muted); font-size: .72rem; font-weight: 700; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+  .hist-tab:hover { color: var(--ink); background: rgba(72,228,224,.06); }
+  .hist-tab.is-active { color: var(--ink); background: rgba(72,228,224,.16); border-color: rgba(72,228,224,.3); }
+
+  .hist-card { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr) auto; gap: .85rem; align-items: center; padding: .8rem .9rem; border-radius: 1rem; border: 1px solid rgba(234,239,226,.08); background: rgba(5,11,14,.24); transition: border-color .2s, background .2s; }
+  .hist-card:hover { border-color: rgba(72,228,224,.28); background: rgba(72,228,224,.05); }
+  .hist-card .hist-icon { display: grid; place-items: center; width: 3.4rem; height: 3.4rem; border-radius: 1rem; font-size: 1.4rem; line-height: 1; }
+  .hist-card.is-MANTENIMIENTO .hist-icon { background: rgba(72,228,224,.16); }
+  .hist-card.is-COMBUSTIBLE .hist-icon { background: rgba(245,173,75,.18); }
+  .hist-card.is-PINCHAZO .hist-icon { background: rgba(255,116,116,.16); }
+  .hist-card.is-OTRO .hist-icon { background: rgba(234,239,226,.1); }
+  .hist-card .hist-title { color: var(--ink); font-size: .86rem; font-weight: 700; }
+  .hist-card .hist-detail { color: var(--muted); font-size: .72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  .hist-card .hist-meta { display: grid; justify-items: end; gap: .2rem; }
+  .hist-card .hist-cost { font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 800; color: var(--amber); }
+  .hist-card .hist-time { font-size: .62rem; color: var(--subtle); font-variant-numeric: tabular-nums; }
+  .hist-card .hist-thumb { width: 100%; height: 100%; object-fit: cover; border-radius: 1rem; }
+  .hist-empty { padding: 1.5rem .85rem; text-align: center; color: var(--subtle); font-size: .78rem; border: 1px dashed rgba(234,239,226,.1); border-radius: .8rem; }
+</style>
+
+<script>
+  import { api, ApiError } from '../../lib/api';
+  import { feedback, Swal } from '../../lib/feedback';
+
+  const formatMoney = (value: string | number) => Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+  const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
+  const formatDate = (value: string | null | undefined) => value ? new Date(value).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+
+  const categoryLabels: Record<string, { name: string; icon: string }> = {
+    MANTENIMIENTO: { name: 'Mantenimiento', icon: '🛠' },
+    COMBUSTIBLE: { name: 'Tanqueo', icon: '⛽' },
+    PINCHAZO: { name: 'Pinchazo', icon: '🛞' },
+    OTRO: { name: 'Otro', icon: '📦' },
+  };
+
+  type Bus = { id: number; placa: string; marca: string; modelo: string };
+  type RecordItem = { id: number; busId: number; category: keyof typeof categoryLabels; area?: string | null; cost: string | number; detail: string; photoUrl: string | null; recordedAt: string };
+
+  let currentFilter: keyof typeof categoryLabels | 'ALL' = 'ALL';
+  let currentRecords: RecordItem[] = [];
+
+  const fillBusSelect = (select: HTMLSelectElement, includeDefault = true) => {
+    const buses = (window as any).__busesCache as Bus[] | undefined;
+    if (!buses) { select.innerHTML = ''; return; }
+    const head = includeDefault ? '<option value="">Selecciona la unidad</option>' : '';
+    select.innerHTML = head + buses.map((b) => `<option value="${b.id}">${escape(b.placa)} · ${escape(b.marca)} ${escape(b.modelo)}</option>`).join('');
+  };
+
+  const loadBuses = async () => {
+    const dashboard = await api('/driver-portal/dashboard');
+    const busSelect = document.getElementById('bus') as HTMLSelectElement;
+    const hint = document.getElementById('bus-hint');
+    const currentBus = dashboard?.currentBus;
+    if (currentBus && currentBus.id) {
+      const busOption: Bus = { id: currentBus.id, placa: currentBus.placa, marca: currentBus.marca, modelo: currentBus.modelo };
+      (window as any).__busesCache = [busOption];
+      fillBusSelect(busSelect);
+      busSelect.value = String(currentBus.id);
+      busSelect.disabled = true;
+      if (hint) { hint.textContent = 'Esta unidad se asignó automáticamente según tu viaje activo.'; hint.hidden = false; }
+    } else {
+      try {
+        const result = await api('/buses/catalog');
+        const all: Bus[] = (result?.data ?? (Array.isArray(result) ? result : [])).map((b: any) => ({ id: b.id, placa: b.placa, marca: b.marca, modelo: b.modelo }));
+        (window as any).__busesCache = all;
+        fillBusSelect(busSelect);
+        busSelect.disabled = false;
+        if (hint) { hint.textContent = 'No tienes viaje activo. Selecciona la unidad manualmente.'; hint.hidden = false; }
+      } catch {
+        busSelect.disabled = false;
+        if (hint) { hint.textContent = 'No se pudo cargar la lista de unidades.'; hint.hidden = false; }
+      }
+    }
+    await loadHistory();
+  };
+
+  const renderHistory = () => {
+    const list = document.getElementById('history-list') as HTMLElement;
+    const filtered = currentFilter === 'ALL' ? currentRecords : currentRecords.filter((r) => r.category === currentFilter);
+    if (!filtered.length) { list.innerHTML = '<div class="hist-empty">Sin registros en esta categoría.</div>'; return; }
+    list.innerHTML = filtered.map((m) => {
+      const cat = categoryLabels[m.category] ?? { name: m.category, icon: '📦' };
+      const thumb = m.photoUrl ? `<img src="${escape(m.photoUrl)}" alt="" class="hist-thumb" loading="lazy" />` : cat.icon;
+      const area = m.area ? `<span class="hist-detail">${escape(m.area)}</span>` : '';
+      return `<div class="hist-card is-${escape(m.category)}"><span class="hist-icon">${thumb}</span><div class="grid min-w-0 gap-[.2rem]"><strong class="hist-title">${escape(cat.name)} · ${escape(m.detail.split('\n')[0])}</strong>${area}<small class="hist-detail">${escape(m.detail)}</small></div><div class="hist-meta"><strong class="hist-cost">${escape(formatMoney(m.cost))}</strong><small class="hist-time">${escape(formatDate(m.recordedAt))}</small></div></div>`;
+    }).join('');
+  };
+
+  const loadHistory = async () => {
+    const busId = (document.getElementById('bus') as HTMLSelectElement).value;
+    const list = document.getElementById('history-list') as HTMLElement;
+    if (!busId) { list.innerHTML = '<div class="hist-empty">Selecciona una unidad arriba para ver su historial.</div>'; currentRecords = []; return; }
+    try {
+      currentRecords = await api(`/maintenance-records/buses/${busId}/all`);
+      renderHistory();
+    } catch { list.innerHTML = '<div class="hist-empty">No se pudo cargar el historial.</div>'; }
+  };
+
+  const setupCategoryLogic = () => {
+    const areaWrap = document.getElementById('area-wrap');
+    if (!areaWrap) return;
+    const update = () => {
+      const selected = (document.querySelector<HTMLInputElement>('input[name="category"]:checked')?.value ?? '') as keyof typeof categoryLabels;
+      areaWrap.hidden = selected !== 'MANTENIMIENTO';
+    };
+    document.querySelectorAll<HTMLInputElement>('input[name="category"]').forEach((input) => input.addEventListener('change', update));
+    update();
+  };
+
+  const setupPhotoDrop = () => {
+    const drop = document.getElementById('photo-drop') as HTMLElement;
+    const input = document.getElementById('photo') as HTMLInputElement;
+    const name = document.getElementById('photo-name') as HTMLElement;
+    const preview = document.getElementById('photo-preview') as HTMLImageElement;
+    const prompt = drop.querySelector('.photo-drop-prompt') as HTMLElement;
+    const update = (file?: File) => {
+      if (!file) return;
+      name.textContent = file.name;
+      name.hidden = false;
+      prompt.hidden = true;
+      const reader = new FileReader();
+      reader.onload = (event) => { preview.src = String(event.target?.result ?? ''); preview.hidden = false; };
+      reader.readAsDataURL(file);
+    };
+    input.addEventListener('change', () => update(input.files?.[0]));
+    drop.addEventListener('click', () => input.click());
+    drop.addEventListener('dragover', (event) => { event.preventDefault(); drop.classList.add('is-active'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('is-active'));
+    drop.addEventListener('drop', (event) => {
+      event.preventDefault(); drop.classList.remove('is-active');
+      const file = event.dataTransfer?.files?.[0]; if (!file) return;
+      const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files; update(file);
+    });
+  };
+
+  const setupForm = () => {
+    const form = document.getElementById('hist-form') as HTMLFormElement;
+    const submit = document.getElementById('submit') as HTMLButtonElement;
+    const error = document.getElementById('error') as HTMLElement;
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      error.hidden = true;
+      const busId = (document.getElementById('bus') as HTMLSelectElement).value;
+      const category = (document.querySelector<HTMLInputElement>('input[name="category"]:checked')?.value ?? '') as 'MANTENIMIENTO' | 'COMBUSTIBLE' | 'PINCHAZO' | 'OTRO';
+      const area = (document.getElementById('area') as HTMLSelectElement).value || undefined;
+      const cost = (document.getElementById('cost') as HTMLInputElement).value;
+      const detail = (document.getElementById('detail') as HTMLTextAreaElement).value.trim();
+      const photo = (document.getElementById('photo') as HTMLInputElement).files?.[0];
+      if (!busId || !category || !cost || !detail) {
+        error.hidden = false; error.textContent = 'Completa unidad, categoría, costo y detalle.'; return;
+      }
+      submit.disabled = true;
+      try {
+        feedback.loading('Guardando reporte…');
+        const payload: { category: string; cost: string; detail: string; area?: string } = { category, cost, detail };
+        if (category === 'MANTENIMIENTO' && area) payload.area = area;
+        await api(`/maintenance-records/buses/${busId}`, { method: 'POST', body: JSON.stringify(payload) });
+        if (photo) {
+          const data = new FormData(); data.append('photo', photo);
+          await api(`/maintenance-records/buses/${busId}/photo`, { method: 'POST', body: data });
+        }
+        Swal.close();
+        await feedback.success('Reporte guardado. El administrador fue notificado.', 'Listo');
+        form.reset();
+        (document.getElementById('photo-name') as HTMLElement).hidden = true;
+        (document.getElementById('photo-preview') as HTMLElement).hidden = true;
+        (document.querySelector('.photo-drop-prompt') as HTMLElement).hidden = false;
+        setupCategoryLogic();
+        currentFilter = 'ALL';
+        document.querySelectorAll<HTMLButtonElement>('.hist-tab').forEach((b) => b.classList.toggle('is-active', b.dataset.filter === 'ALL'));
+        await loadHistory();
+      } catch (cause) {
+        Swal.close();
+        const message = cause instanceof ApiError ? cause.message : 'Error inesperado.';
+        error.hidden = false; error.textContent = message;
+        await feedback.error(message, 'No se pudo guardar');
+      } finally {
+        submit.disabled = false;
+      }
+    });
+    document.getElementById('reset')?.addEventListener('click', () => setTimeout(setupCategoryLogic, 0));
+    document.getElementById('history-bus')?.addEventListener('change', () => { void loadHistory(); });
+    document.querySelectorAll<HTMLButtonElement>('.hist-tab').forEach((button) => {
+      button.addEventListener('click', () => {
+        currentFilter = (button.dataset.filter ?? 'ALL') as typeof currentFilter;
+        document.querySelectorAll<HTMLButtonElement>('.hist-tab').forEach((b) => b.classList.toggle('is-active', b === button));
+        renderHistory();
+      });
+    });
+    (document.getElementById('bus') as HTMLSelectElement)?.addEventListener('change', () => { void loadHistory(); });
+  };
+
+  const init = async () => {
+    const root = document.getElementById('hist-form');
+    if (!root) return;
+    setupCategoryLogic();
+    setupPhotoDrop();
+    setupForm();
+    try { await loadBuses(); }
+    catch (cause) {
+      await feedback.error(cause instanceof Error ? cause.message : 'Error inesperado.', 'No se pudo cargar');
+    }
+  };
+
+  document.addEventListener('astro:page-load', () => { void init(); });
+  void init();
+</script>

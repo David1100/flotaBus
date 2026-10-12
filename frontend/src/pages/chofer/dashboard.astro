@@ -69,8 +69,8 @@ export function getStaticPaths() { return [{ params: {} }]; }
         </div>
       </dl>
       <div class="mt-4 flex flex-wrap gap-[.5rem]">
-        <a id="bus-maint-link" class="btn btn-primary" href="/chofer/mantenimiento" data-spa-link><span aria-hidden="true">🔧</span> Registrar mantenimiento</a>
-        <a class="btn btn-secondary" href="/chofer/mensajes" data-spa-link><span aria-hidden="true">✉</span> Enviar mensaje al administrador</a>
+        <a id="bus-maint-link" class="btn btn-primary" href="/chofer/historial" data-spa-link><span class="mr-2 inline-flex" aria-hidden="true">🔧</span>Registrar mantenimiento</a>
+        <a class="btn btn-secondary" href="/chofer/mensajes" data-spa-link><span class="mr-2 inline-flex" aria-hidden="true">✉</span>Enviar mensaje al administrador</a>
       </div>
     </article>
 
@@ -165,7 +165,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
         setText('bus-km', `${Number(currentBus.kilometraje).toLocaleString('es-ES')} km`);
         setText('bus-type', currentBus.busType === 'DOBLE_PISO' ? 'Doble piso' : 'Normal');
         const link = document.getElementById('bus-maint-link') as HTMLAnchorElement | null;
-        if (link) link.href = `/chofer/mantenimiento?busId=${encodeURIComponent(currentBus.id)}`;
+        if (link) link.href = `/chofer/historial?busId=${encodeURIComponent(currentBus.id)}`;
       }
 
       upcomingList.innerHTML = upcoming.length

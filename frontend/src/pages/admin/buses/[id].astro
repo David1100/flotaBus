@@ -117,7 +117,8 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
 
   const init = () => {
     const content = document.querySelector<HTMLElement>('#bus-content');
-    if (!content || content.dataset.ready === 'true') return;
+    if (!content) return;
+    if (content.dataset.ready === 'true') return;
     content.dataset.ready = 'true';
 
     const requestedId = new URLSearchParams(window.location.search).get('id');

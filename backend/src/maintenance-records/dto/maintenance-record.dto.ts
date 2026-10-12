@@ -9,8 +9,16 @@ export enum MaintenanceArea {
   MOTOR = 'MOTOR',
 }
 
+export enum MaintenanceCategory {
+  MANTENIMIENTO = 'MANTENIMIENTO',
+  COMBUSTIBLE = 'COMBUSTIBLE',
+  PINCHAZO = 'PINCHAZO',
+  OTRO = 'OTRO',
+}
+
 export class CreateMaintenanceRecordDto {
-  @IsEnum(MaintenanceArea) area!: MaintenanceArea;
+  @IsEnum(MaintenanceCategory) category!: MaintenanceCategory;
+  @IsOptional() @IsEnum(MaintenanceArea) area?: MaintenanceArea;
   @IsString() @Matches(/^\d{1,12}(?:\.\d{1,2})?$/) cost!: string;
   @IsString() @Length(1, 2000) detail!: string;
   @IsOptional() @IsString() @MaxLength(500) photoUrl?: string;

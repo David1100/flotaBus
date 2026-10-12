@@ -66,14 +66,16 @@ import AdminShell from '../../../components/AdminShell.astro';
   .msg-ticks.is-pending { color: rgba(234,239,226,.45); }
   .day-divider { display: grid; place-items: center; margin: .35rem 0; }
   .day-divider > span { padding: .25rem .7rem; border-radius: 999px; background: rgba(234,239,226,.05); border: 1px solid rgba(234,239,226,.08); font-size: .66rem; color: var(--subtle); text-transform: uppercase; letter-spacing: .12em; }
-  .thread-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .65rem; padding: .65rem .7rem; border-radius: .8rem; border: 1px solid transparent; cursor: pointer; transition: background .2s, border-color .2s; }
-  .thread-row:hover { background: rgba(72,228,224,.06); border-color: rgba(72,228,224,.16); }
-  .thread-row.is-active { background: rgba(72,228,224,.12); border-color: rgba(72,228,224,.28); }
-  .thread-row .thread-avatar { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 999px; background: linear-gradient(135deg, var(--cyan), #56b8b0); color: #0a1410; font-weight: 800; font-size: .82rem; }
-  .thread-row .thread-snippet { color: var(--muted); font-size: .72rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; }
-  .thread-row .thread-time { font-size: .62rem; color: var(--subtle); }
-  .thread-row .thread-unread { display: inline-grid; place-items: center; min-width: 1.2rem; height: 1.2rem; padding: 0 .3rem; border-radius: 999px; background: linear-gradient(135deg, #ff7474, #ff4848); color: #fff; font-size: .65rem; font-weight: 800; }
-  .thread-row .thread-unread[hidden] { display: none; }
+  :global(.thread-row) { display: grid; grid-template-columns: 3rem minmax(0, 1fr) auto; align-items: center; gap: .85rem; padding: .75rem .85rem; border-radius: 1rem; border: 1px solid rgba(234,239,226,.08); background: rgba(5,11,14,.24); cursor: pointer; transition: border-color .2s, background .2s, transform .15s, box-shadow .2s; }
+  :global(.thread-row:hover) { border-color: rgba(72,228,224,.32); background: rgba(72,228,224,.05); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  :global(.thread-row.is-active) { border-color: rgba(72,228,224,.5); background: linear-gradient(95deg, rgba(72,228,224,.14), rgba(72,228,224,.05)); box-shadow: inset 3px 0 0 var(--cyan), 0 6px 18px rgba(0,0,0,.18); }
+  :global(.thread-row .thread-avatar) { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 1rem; background: linear-gradient(135deg, var(--cyan), #56b8b0); color: #0a1410; font-weight: 800; font-size: .92rem; box-shadow: 0 4px 12px rgba(72,228,224,.18); }
+  :global(.thread-row .thread-name) { color: var(--ink); font-size: .86rem; font-weight: 700; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+  :global(.thread-row .thread-snippet) { color: var(--muted); font-size: .72rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; }
+  :global(.thread-row .thread-meta) { display: grid; justify-items: end; gap: .35rem; }
+  :global(.thread-row .thread-time) { font-size: .62rem; color: var(--subtle); font-variant-numeric: tabular-nums; }
+  :global(.thread-row .thread-unread) { display: inline-grid; place-items: center; min-width: 1.3rem; height: 1.3rem; padding: 0 .4rem; border-radius: 999px; background: linear-gradient(135deg, #ff7474, #ff4848); color: #fff; font-size: .66rem; font-weight: 800; box-shadow: 0 3px 10px rgba(255,72,72,.4); }
+  :global(.thread-row .thread-unread[hidden]) { display: none; }
   .poll-pill { display: inline-flex; align-items: center; gap: .35rem; font-size: .62rem; color: var(--subtle); }
   .poll-pill .poll-dot { width: .45rem; height: .45rem; border-radius: 999px; background: var(--cyan); box-shadow: 0 0 8px rgba(72,228,224,.65); animation: poll-breathe 2.4s ease-in-out infinite; }
   @keyframes poll-breathe { 50% { opacity: .35; } }
@@ -106,11 +108,11 @@ import AdminShell from '../../../components/AdminShell.astro';
     list.innerHTML = allThreads.map((t) => `
       <button class="thread-row ${t.otherId === activeOtherId ? 'is-active' : ''}" data-other="${t.otherId}" type="button">
         <span class="thread-avatar" aria-hidden="true">${escape(initials(t.other?.nombres || t.other?.username || ''))}</span>
-        <span class="grid min-w-0 gap-[.15rem]">
-          <strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(t.other?.nombres || t.other?.username || 'Conductor')}</strong>
+        <span class="grid min-w-0 gap-[.2rem]">
+          <strong class="thread-name">${escape(t.other?.nombres || t.other?.username || 'Conductor')}</strong>
           <small class="thread-snippet">${escape((t.lastMessage?.body || '').slice(0, 60))}</small>
         </span>
-        <span class="grid justify-items-end gap-[.15rem]">
+        <span class="thread-meta">
           <small class="thread-time">${escape(formatTime(t.lastMessage?.createdAt))}</small>
           ${t.unread > 0 ? `<span class="thread-unread">${t.unread > 99 ? '99+' : t.unread}</span>` : ''}
         </span>

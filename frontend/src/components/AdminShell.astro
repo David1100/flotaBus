@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import NotificationsBell from './NotificationsBell.astro';
 const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
 ---
 <Base title={title}>
@@ -20,7 +21,7 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
            <span class="nav-icon" aria-hidden="true">♙</span><span>Conductores</span><span class="nav-arrow" aria-hidden="true">↗</span>
          </a>
          <a class:list:active={active === 'messages'} href="/admin/mensajes" data-spa-link>
-           <span class="nav-icon" aria-hidden="true">✉</span><span>Mensajes</span><span id="messages-badge" class="nav-badge" hidden>0</span><span class="nav-arrow" aria-hidden="true">↗</span>
+           <span class="nav-icon" aria-hidden="true">✉</span><span>Mensajes</span><span class="nav-arrow" aria-hidden="true">↗</span>
          </a>
          <a class:list:active={active === 'buses'} href="/admin/buses" data-spa-link>
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 9h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="16" r=".8" fill="currentColor"/><circle cx="16" cy="16" r=".8" fill="currentColor"/></svg></span><span>Buses</span><span class="nav-arrow" aria-hidden="true">↗</span>
@@ -35,10 +36,11 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
           <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 10h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
           <span class="brand-copy"><strong>flotaBus</strong><small>Control de flota</small></span>
         </a>
-          <div class="topbar-status flex flex-[0_1_auto] items-center gap-[.65rem]">
+<div class="topbar-status flex flex-[0_1_auto] items-center gap-[.65rem] relative">
+          <NotificationsBell />
           <span class="status-dot h-[.48rem] w-[.48rem] shrink-0 rounded-full bg-[var(--cyan)] shadow-[0_0_0_4px_rgba(72,228,224,.1),0_0_14px_rgba(72,228,224,.75)]" aria-hidden="true"></span>
            <span class="grid gap-[.2rem] text-right"><strong class="font-display text-[.78rem] font-bold leading-none tracking-[-.01em] text-[var(--ink)] max-md:text-[.7rem]">Sistema operativo</strong><small class="text-[.64rem] uppercase tracking-[.1em] text-[var(--subtle)] max-md:text-[.58rem]">Sesión protegida</small></span>
-       </div>
+        </div>
       </header>
         <button class="sidebar-toggle fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-[calc(1rem+env(safe-area-inset-right))] z-40 hidden h-14 w-14 place-items-center rounded-2xl border border-[rgba(72,228,224,.42)] bg-[linear-gradient(145deg,rgba(28,143,153,.96),rgba(17,26,31,.98))] p-3 text-[var(--ink)] shadow-[0_14px_32px_rgba(0,0,0,.38),0_0_0_5px_rgba(72,228,224,.08),inset_0_1px_rgba(255,255,255,.16)] transition hover:-translate-y-0.5 hover:border-[var(--amber)] active:translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--amber)] focus-visible:outline-offset-4 max-md:grid" type="button" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="admin-sidebar" data-sidebar-toggle>
          <span class="sidebar-toggle-icon grid w-[1.15rem] gap-[.22rem]" aria-hidden="true"><i class="block h-0.5 rounded-full bg-[var(--ink)]"></i><i class="block h-0.5 rounded-full bg-[var(--ink)]"></i><i class="block h-0.5 rounded-full bg-[var(--ink)]"></i></span>
@@ -126,19 +128,16 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
     });
   }
 
-  async function refreshMessagesBadge() {
-    const badge = document.getElementById('messages-badge');
-    if (!badge) return;
-    try {
-      const result = await api('/messages/threads');
-      const unread = Number(result?.totalUnread ?? 0);
-      if (unread > 0) { badge.textContent = unread > 99 ? '99+' : String(unread); badge.hidden = false; }
-      else { badge.hidden = true; }
-    } catch { badge.hidden = true; }
-  }
+  async function refreshMessagesBadge(): Promise<void> { /* deprecated: notifications handled by NotificationsBell */ }
 
   function syncNavigation() {
-     const current = window.location.pathname.startsWith('/admin/drivers') ? '/admin/drivers' : window.location.pathname.startsWith('/admin/buses') ? '/admin/buses' : window.location.pathname.startsWith('/admin/trips') ? '/admin/trips' : '/admin';
+    const path = window.location.pathname;
+    let current = '/admin';
+    if (path.startsWith('/admin/drivers')) current = '/admin/drivers';
+    else if (path.startsWith('/admin/mensajes')) current = '/admin/mensajes';
+    else if (path.startsWith('/admin/buses/mantenimiento')) current = '/admin/buses/mantenimiento';
+    else if (path.startsWith('/admin/buses')) current = '/admin/buses';
+    else if (path.startsWith('/admin/trips')) current = '/admin/trips';
     document.querySelectorAll<HTMLAnchorElement>('.admin-sidebar nav a').forEach((link) => {
       link.classList.toggle('active', link.pathname === current);
       link.setAttribute('aria-current', link.pathname === current ? 'page' : 'false');
@@ -256,8 +255,8 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
     });
   }
 
-document.addEventListener('astro:page-load', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindSidebarMenu(); bindClientRouter(); refreshMessagesBadge(); });
-  document.addEventListener('astro:after-swap', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindSidebarMenu(); bindClientRouter(); refreshMessagesBadge(); });
+document.addEventListener('astro:page-load', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindSidebarMenu(); bindClientRouter(); });
+  document.addEventListener('astro:after-swap', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindSidebarMenu(); bindClientRouter(); });
   protectAdminShell();
    bindLogout();
    syncNavigation();

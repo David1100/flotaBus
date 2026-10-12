@@ -1,0 +1,140 @@
+---
+---
+<button id="driver-notif-bell" class="notif-bell" type="button" aria-label="Notificaciones" aria-haspopup="true" aria-expanded="false">
+  <span class="notif-bell-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+    </svg>
+  </span>
+  <span id="driver-notif-badge" class="notif-badge" hidden>0</span>
+</button>
+<div id="driver-notif-panel" class="notif-panel" role="dialog" aria-label="Notificaciones" hidden>
+  <div class="notif-panel-head">
+    <div>
+      <h3 class="m-0 font-display text-base font-bold text-[var(--ink)]">Mensajes del administrador</h3>
+      <p class="m-0 mt-[.15rem] text-[.7rem] text-[var(--subtle)]">Respuestas a tus mensajes.</p>
+    </div>
+  </div>
+  <div id="driver-notif-list" class="notif-list"></div>
+  <a href="/chofer/mensajes" data-spa-link class="notif-panel-foot">Ir a mensajes</a>
+</div>
+
+<script>
+  import { api } from '../lib/api';
+  import { showChatNotification } from '../lib/notifications';
+
+  type NotificationItem = { id: string; kind: 'MESSAGE'; title: string; body: string; url: string; createdAt: string; read: boolean; meta: Record<string, unknown> };
+  type NotificationPayload = { items: NotificationItem[]; totalUnread: number };
+
+  const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
+  const relativeTime = (value: string) => {
+    const diff = (Date.now() - new Date(value).getTime()) / 1000;
+    if (diff < 60) return 'ahora';
+    if (diff < 3600) return `hace ${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `hace ${Math.floor(diff / 3600)}h`;
+    return `hace ${Math.floor(diff / 86400)}d`;
+  };
+
+  let knownIds: Set<string> = new Set();
+  let pollTimer: number | null = null;
+  let isPolling = false;
+
+  const updateBadge = (count: number) => {
+    const badge = document.getElementById('driver-notif-badge');
+    if (!badge) return;
+    if (count > 0) { badge.textContent = count > 99 ? '99+' : String(count); badge.hidden = false; }
+    else { badge.hidden = true; }
+  };
+
+  const renderList = (items: NotificationItem[]) => {
+    const list = document.getElementById('driver-notif-list');
+    if (!list) return;
+    if (!items.length) { list.innerHTML = '<div class="notif-empty">Sin mensajes nuevos del administrador.</div>'; return; }
+    list.innerHTML = items.slice(0, 12).map((n) => {
+      const icon = '✉';
+      return `<a class="notif-row is-message ${n.read ? '' : 'is-unread'}" href="${escape(n.url)}" data-notif-id="${escape(n.id)}" data-spa-link><span class="notif-kind" aria-hidden="true">${escape(icon)}</span><span class="grid min-w-0 gap-[.1rem]"><strong class="notif-title">${escape(n.title)}</strong><small class="notif-body">${escape(n.body)}</small></span><span class="notif-time">${escape(relativeTime(n.createdAt))}</span></a>`;
+    }).join('');
+    list.querySelectorAll<HTMLAnchorElement>('.notif-row').forEach((link) => {
+      link.addEventListener('click', () => closePanel());
+    });
+  };
+
+  const closePanel = () => {
+    const panel = document.getElementById('driver-notif-panel');
+    const bell = document.getElementById('driver-notif-bell');
+    if (panel) panel.hidden = true;
+    if (bell) { bell.classList.remove('is-open'); bell.setAttribute('aria-expanded', 'false'); }
+  };
+
+  const fetchOnce = async () => {
+    if (isPolling) return;
+    isPolling = true;
+    try {
+      const payload = await api('/driver-portal/notifications') as NotificationPayload;
+      const items = payload?.items ?? [];
+      updateBadge(payload?.totalUnread ?? 0);
+      renderList(items);
+      if (knownIds.size > 0) {
+        for (const n of items) {
+          if (n.read) continue;
+          if (knownIds.has(n.id)) continue;
+          void showChatNotification({
+            title: n.title,
+            body: n.body,
+            url: n.url,
+            tag: `flotabus-driver-msg-${n.id}`,
+          });
+        }
+      }
+      knownIds = new Set(items.map((n) => n.id));
+    } catch { /* silent */ }
+    finally { isPolling = false; }
+  };
+
+  const startPolling = () => {
+    if (pollTimer !== null) return;
+    void fetchOnce();
+    pollTimer = window.setInterval(fetchOnce, 8000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') void fetchOnce();
+    });
+  };
+
+  const stopPolling = () => {
+    if (pollTimer !== null) { window.clearInterval(pollTimer); pollTimer = null; }
+  };
+
+  const bind = () => {
+    const bell = document.getElementById('driver-notif-bell');
+    if (!bell || bell.dataset.bound === 'true') return;
+    bell.dataset.bound = 'true';
+    bell.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const panel = document.getElementById('driver-notif-panel');
+      if (!panel) return;
+      const isOpen = !panel.hidden;
+      if (isOpen) { closePanel(); return; }
+      panel.hidden = false;
+      bell.classList.add('is-open');
+      bell.setAttribute('aria-expanded', 'true');
+      void fetchOnce();
+    });
+    document.addEventListener('click', (event) => {
+      const panel = document.getElementById('driver-notif-panel');
+      const bell = document.getElementById('driver-notif-bell');
+      if (!panel || panel.hidden) return;
+      const target = event.target as HTMLElement;
+      if (bell?.contains(target)) return;
+      if (panel.contains(target)) return;
+      closePanel();
+    });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closePanel(); });
+  };
+
+  document.addEventListener('astro:page-load', () => { bind(); startPolling(); });
+  document.addEventListener('astro:after-swap', () => { bind(); startPolling(); });
+  window.addEventListener('beforeunload', stopPolling);
+  bind();
+  startPolling();
+</script>
