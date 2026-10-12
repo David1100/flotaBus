@@ -60,4 +60,32 @@ export class MessagesService {
     if (message.readAt) return this.db.message.findUnique({ where: { id: messageId }, select: messageSelect });
     return this.db.message.update({ where: { id: messageId }, data: { readAt: new Date() }, select: messageSelect });
   }
+
+  async threads(actorId: number) {
+    const messages = await this.db.message.findMany({
+      where: { OR: [{ senderId: actorId }, { recipientId: actorId }] },
+      orderBy: { createdAt: 'desc' },
+      select: { ...messageSelect, sender: { select: { id: true, nombres: true, username: true, rol: true } }, recipient: { select: { id: true, nombres: true, username: true, rol: true } } },
+    });
+    const map = new Map<number, { otherId: number; other: typeof messages[number]['sender']; lastMessage: typeof messages[number]; unread: number }>();
+    for (const m of messages) {
+      const otherId = m.senderId === actorId ? m.recipientId : m.senderId;
+      const other = m.senderId === actorId ? m.recipient : m.sender;
+      if (!map.has(otherId)) {
+        map.set(otherId, { otherId, other, lastMessage: m, unread: 0 });
+      }
+      if (m.recipientId === actorId && !m.readAt) {
+        map.get(otherId)!.unread += 1;
+      }
+    }
+    return { items: Array.from(map.values()), totalUnread: messages.filter(m => m.recipientId === actorId && !m.readAt).length };
+  }
+
+  async markThreadRead(actorId: number, otherId: number) {
+    const result = await this.db.message.updateMany({
+      where: { recipientId: actorId, senderId: otherId, readAt: null },
+      data: { readAt: new Date() },
+    });
+    return { updated: result.count };
+  }
 }

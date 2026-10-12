@@ -31,4 +31,14 @@ export class MessagesController {
   markRead(@Req() req: any, @Param('id', ParseIntPipe) id: number) {
     return this.service.markRead(req.user.id, id);
   }
+
+  @Get('threads')
+  threads(@Req() req: any) {
+    return this.service.threads(req.user.id);
+  }
+
+  @Patch('threads/:otherId/read')
+  markThreadRead(@Req() req: any, @Param('otherId', ParseIntPipe) otherId: number) {
+    return this.service.markThreadRead(req.user.id, otherId);
+  }
 }

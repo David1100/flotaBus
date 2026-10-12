@@ -16,10 +16,13 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
           <a class:list:active={active === 'dashboard'} href="/admin" data-spa-link>
            <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 19V9.5L12 4l8 5.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 20v-6h6v6" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><span>Dashboard</span><span class="nav-arrow" aria-hidden="true">↗</span>
          </a>
-         <a class:list:active={active === 'drivers'} href="/admin/drivers" data-spa-link>
+<a class:list:active={active === 'drivers'} href="/admin/drivers" data-spa-link>
            <span class="nav-icon" aria-hidden="true">♙</span><span>Conductores</span><span class="nav-arrow" aria-hidden="true">↗</span>
-        </a>
-        <a class:list:active={active === 'buses'} href="/admin/buses" data-spa-link>
+         </a>
+         <a class:list:active={active === 'messages'} href="/admin/mensajes" data-spa-link>
+           <span class="nav-icon" aria-hidden="true">✉</span><span>Mensajes</span><span id="messages-badge" class="nav-badge" hidden>0</span><span class="nav-arrow" aria-hidden="true">↗</span>
+         </a>
+         <a class:list:active={active === 'buses'} href="/admin/buses" data-spa-link>
           <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V7.8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9.7M5 13h14M8 17.5v1.2M16 17.5v1.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 9h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="16" r=".8" fill="currentColor"/><circle cx="16" cy="16" r=".8" fill="currentColor"/></svg></span><span>Buses</span><span class="nav-arrow" aria-hidden="true">↗</span>
         </a>
         <a class:list:active={active === 'trips'} href="/admin/trips" data-spa-link><span class="nav-icon" aria-hidden="true">↝</span><span>Viajes</span><span class="nav-arrow" aria-hidden="true">↗</span></a>
@@ -123,6 +126,17 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
     });
   }
 
+  async function refreshMessagesBadge() {
+    const badge = document.getElementById('messages-badge');
+    if (!badge) return;
+    try {
+      const result = await api('/messages/threads');
+      const unread = Number(result?.totalUnread ?? 0);
+      if (unread > 0) { badge.textContent = unread > 99 ? '99+' : String(unread); badge.hidden = false; }
+      else { badge.hidden = true; }
+    } catch { badge.hidden = true; }
+  }
+
   function syncNavigation() {
      const current = window.location.pathname.startsWith('/admin/drivers') ? '/admin/drivers' : window.location.pathname.startsWith('/admin/buses') ? '/admin/buses' : window.location.pathname.startsWith('/admin/trips') ? '/admin/trips' : '/admin';
     document.querySelectorAll<HTMLAnchorElement>('.admin-sidebar nav a').forEach((link) => {
@@ -197,7 +211,7 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
   async function navigateAdmin(href: string, addHistory = true) {
     const token = ++navigationToken;
     const url = new URL(href, window.location.href);
-      const adminRoutes = new Set(['/admin', '/admin/drivers', '/admin/buses', '/admin/buses/mantenimiento', '/admin/buses/mantenimiento/historial', '/admin/buses/detail', '/admin/trips', '/admin/trips/detail']);
+      const adminRoutes = new Set(['/admin', '/admin/drivers', '/admin/buses', '/admin/buses/mantenimiento', '/admin/buses/mantenimiento/historial', '/admin/buses/detail', '/admin/trips', '/admin/trips/detail', '/admin/mensajes']);
      const isAdminRoute = adminRoutes.has(url.pathname);
      if (url.origin !== window.location.origin || !isAdminRoute) return;
 
@@ -242,8 +256,8 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
     });
   }
 
-   document.addEventListener('astro:page-load', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindSidebarMenu(); bindClientRouter(); });
-   document.addEventListener('astro:after-swap', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindSidebarMenu(); bindClientRouter(); });
+document.addEventListener('astro:page-load', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindSidebarMenu(); bindClientRouter(); refreshMessagesBadge(); });
+  document.addEventListener('astro:after-swap', () => { syncNavigation(); protectAdminShell(); bindLogout(); bindSidebarMenu(); bindClientRouter(); refreshMessagesBadge(); });
   protectAdminShell();
    bindLogout();
    syncNavigation();

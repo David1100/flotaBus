@@ -1,0 +1,314 @@
+---
+import AdminShell from '../../../components/AdminShell.astro';
+---
+<AdminShell title="Mensajes · flotaBus" active="messages">
+  <div class="messages-page mx-auto grid min-w-0 gap-4 lg:grid-cols-[minmax(0,320px)_minmax(0,1fr)]">
+    <header class="fade-in col-span-full">
+      <div class="eyebrow">MENSAJERÍA · CONDUCTORES</div>
+      <h1 class="m-0 mt-2 font-display tracking-[-.035em] text-[var(--ink)]">Bandeja de <em>mensajes.</em></h1>
+      <p class="m-0 mt-2 text-[var(--muted)]">Conversaciones con cada conductor. Selecciona una para responder.</p>
+    </header>
+
+    <aside class="glass fleet-card min-w-0 rounded-[1.25rem] p-[1rem] lg:max-h-[calc(100dvh-220px)] lg:overflow-y-auto">
+      <div class="eyebrow">CONVERSACIONES</div>
+      <h2 class="m-0 mt-1 font-display text-[1.1rem] text-[var(--ink)]">Conductores</h2>
+      <div id="thread-list" class="mt-3 grid gap-[.35rem]"></div>
+    </aside>
+
+    <section class="glass fleet-card min-w-0 rounded-[1.25rem] p-[1rem]">
+      <div id="chat-empty" class="grid place-items-center min-h-[20rem] text-center">
+        <div class="grid max-w-[18rem] gap-2">
+          <span class="grid h-12 w-12 mx-auto place-items-center rounded-2xl bg-[rgba(72,228,224,.12)] font-display text-base font-bold text-[var(--cyan)]" aria-hidden="true">✉</span>
+          <h2 class="m-0 font-display text-base text-[var(--ink)]">Selecciona una conversación</h2>
+          <p class="m-0 text-[.78rem] text-[var(--muted)]">Los mensajes que recibas de los conductores aparecerán aquí.</p>
+        </div>
+      </div>
+
+      <div id="chat-active" hidden>
+        <div class="flex items-start justify-between gap-3 border-b border-[rgba(234,239,226,.08)] pb-3">
+          <div class="flex items-center gap-3">
+            <div id="chat-avatar" class="grid h-10 w-10 place-items-center rounded-full bg-[linear-gradient(135deg,var(--cyan),#56b8b0)] font-display text-[.82rem] font-bold text-[#0a1410]"></div>
+            <div>
+              <div class="font-display text-base font-bold text-[var(--ink)]" id="chat-name">—</div>
+              <small class="text-[.68rem] uppercase tracking-[.12em] text-[var(--subtle)]">Conductor</small>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="poll-pill"><span class="poll-dot" aria-hidden="true"></span>En vivo</span>
+            <button id="chat-back" class="icon-button md:hidden" type="button" aria-label="Volver a la lista">←</button>
+          </div>
+        </div>
+
+        <div id="chat-thread" class="msg-thread grid max-h-[calc(100dvh-26rem)] gap-3 overflow-y-auto p-[1rem]"></div>
+
+        <form id="chat-form" class="mt-3 grid gap-2 border-t border-[rgba(234,239,226,.08)] pt-3">
+          <textarea id="chat-body" class="input" rows="2" required minlength="1" maxlength="2000" placeholder="Escribe tu respuesta…"></textarea>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span id="chat-hint" class="text-[.7rem] text-[var(--subtle)]">Tus respuestas aparecen al lado derecho del chat.</span>
+            <button id="chat-send" class="btn btn-primary" type="submit">Enviar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+</AdminShell>
+
+<style>
+  .msg-thread { scrollbar-width: thin; }
+  .msg-bubble { max-width: min(85%, 38rem); padding: .55rem .85rem .65rem; border-radius: 1rem; font-size: .82rem; line-height: 1.45; word-wrap: break-word; overflow-wrap: anywhere; }
+  .msg-bubble.from-me { align-self: flex-end; background: linear-gradient(135deg, rgba(72,228,224,.32), rgba(72,228,224,.14)); color: var(--ink); border: 1px solid rgba(72,228,224,.32); border-bottom-right-radius: .35rem; }
+  .msg-bubble.from-them { align-self: flex-start; background: rgba(234,239,226,.06); color: var(--ink); border: 1px solid rgba(234,239,226,.14); border-bottom-left-radius: .35rem; }
+  .msg-text { margin: 0; white-space: pre-wrap; }
+  .msg-meta { display: flex; align-items: center; justify-content: flex-end; gap: .25rem; margin-top: .25rem; font-size: .62rem; opacity: .78; }
+  .msg-bubble.from-them .msg-meta { justify-content: flex-start; }
+  .msg-ticks { display: inline-flex; align-items: center; font-size: .85rem; line-height: 1; }
+  .msg-ticks.is-read { color: var(--cyan); }
+  .msg-ticks.is-pending { color: rgba(234,239,226,.45); }
+  .day-divider { display: grid; place-items: center; margin: .35rem 0; }
+  .day-divider > span { padding: .25rem .7rem; border-radius: 999px; background: rgba(234,239,226,.05); border: 1px solid rgba(234,239,226,.08); font-size: .66rem; color: var(--subtle); text-transform: uppercase; letter-spacing: .12em; }
+  .thread-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .65rem; padding: .65rem .7rem; border-radius: .8rem; border: 1px solid transparent; cursor: pointer; transition: background .2s, border-color .2s; }
+  .thread-row:hover { background: rgba(72,228,224,.06); border-color: rgba(72,228,224,.16); }
+  .thread-row.is-active { background: rgba(72,228,224,.12); border-color: rgba(72,228,224,.28); }
+  .thread-row .thread-avatar { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 999px; background: linear-gradient(135deg, var(--cyan), #56b8b0); color: #0a1410; font-weight: 800; font-size: .82rem; }
+  .thread-row .thread-snippet { color: var(--muted); font-size: .72rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; }
+  .thread-row .thread-time { font-size: .62rem; color: var(--subtle); }
+  .thread-row .thread-unread { display: inline-grid; place-items: center; min-width: 1.2rem; height: 1.2rem; padding: 0 .3rem; border-radius: 999px; background: linear-gradient(135deg, #ff7474, #ff4848); color: #fff; font-size: .65rem; font-weight: 800; }
+  .thread-row .thread-unread[hidden] { display: none; }
+  .poll-pill { display: inline-flex; align-items: center; gap: .35rem; font-size: .62rem; color: var(--subtle); }
+  .poll-pill .poll-dot { width: .45rem; height: .45rem; border-radius: 999px; background: var(--cyan); box-shadow: 0 0 8px rgba(72,228,224,.65); animation: poll-breathe 2.4s ease-in-out infinite; }
+  @keyframes poll-breathe { 50% { opacity: .35; } }
+</style>
+
+<script>
+  import { api, ApiError } from '../../../lib/api';
+  import { feedback, Swal } from '../../../lib/feedback';
+  import { currentPermission, requestPermission, showChatNotification } from '../../../lib/notifications';
+
+  const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
+  const formatTime = (value: string) => new Date(value).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+  const formatDayLabel = (value: string) => { const d = new Date(value); const today = new Date(); const yesterday = new Date(); yesterday.setDate(today.getDate() - 1); const same = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); if (same(d, today)) return 'Hoy'; if (same(d, yesterday)) return 'Ayer'; return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }); };
+  const initials = (name: string) => (name || '').trim().split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || '·';
+
+  let myId = 0;
+  let activeOtherId: number | null = null;
+  let allThreads: Array<{ otherId: number; other: { id: number; nombres: string; username: string; rol: string }; lastMessage: any; unread: number }> = [];
+  let knownInboxIds: Set<string> = new Set();
+  let pollTimer: number | null = null;
+  let isPolling = false;
+
+  const renderThreads = () => {
+    const list = document.getElementById('thread-list') as HTMLElement | null;
+    if (!list) return;
+    if (!allThreads.length) {
+      list.innerHTML = '<div class="empty-row" style="padding:1rem .6rem;font-size:.78rem;color:var(--subtle);text-align:center;border:1px dashed rgba(234,239,226,.1);border-radius:.7rem">Sin conversaciones aún.</div>';
+      return;
+    }
+    list.innerHTML = allThreads.map((t) => `
+      <button class="thread-row ${t.otherId === activeOtherId ? 'is-active' : ''}" data-other="${t.otherId}" type="button">
+        <span class="thread-avatar" aria-hidden="true">${escape(initials(t.other?.nombres || t.other?.username || ''))}</span>
+        <span class="grid min-w-0 gap-[.15rem]">
+          <strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(t.other?.nombres || t.other?.username || 'Conductor')}</strong>
+          <small class="thread-snippet">${escape((t.lastMessage?.body || '').slice(0, 60))}</small>
+        </span>
+        <span class="grid justify-items-end gap-[.15rem]">
+          <small class="thread-time">${escape(formatTime(t.lastMessage?.createdAt))}</small>
+          ${t.unread > 0 ? `<span class="thread-unread">${t.unread > 99 ? '99+' : t.unread}</span>` : ''}
+        </span>
+      </button>
+    `).join('');
+    list.querySelectorAll<HTMLButtonElement>('.thread-row').forEach((button) => {
+      button.addEventListener('click', () => { void openThread(Number(button.dataset.other)); });
+    });
+  };
+
+  const renderConversation = (incoming: any[], sent: any[]) => {
+    const thread = document.getElementById('chat-thread') as HTMLElement | null;
+    if (!thread) return;
+    const all = [...incoming, ...sent].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    if (!all.length) {
+      thread.innerHTML = '<div class="empty-row" style="padding:1.5rem .6rem;font-size:.78rem;color:var(--subtle);text-align:center">Sin mensajes. Envía el primero ↓</div>';
+      return;
+    }
+    let lastDay = '';
+    const html = all.map((m) => {
+      const day = formatDayLabel(m.createdAt);
+      const dayDivider = day !== lastDay ? `<div class="day-divider"><span>${escape(day)}</span></div>` : '';
+      lastDay = day;
+      const mine = m.senderId === myId;
+      const ticks = mine ? `<span class="msg-ticks ${m.readAt ? 'is-read' : 'is-pending'}" aria-label="${m.readAt ? 'Leído' : 'Enviado'}">${m.readAt ? '✓✓' : '✓'}</span>` : '';
+      return `${dayDivider}<div class="msg-bubble ${mine ? 'from-me' : 'from-them'}"><p class="msg-text">${escape(m.body)}</p><span class="msg-meta">${ticks}<span>${escape(formatTime(m.createdAt))}</span></span></div>`;
+    }).join('');
+    thread.innerHTML = html;
+    thread.scrollTop = thread.scrollHeight;
+  };
+
+  const loadThreads = async (seed = false) => {
+    const result = await api('/messages/threads');
+    allThreads = result?.items ?? [];
+    if (seed) {
+      knownInboxIds = new Set(allThreads.filter((t) => t.lastMessage?.recipientId === myId).map((t) => String(t.lastMessage!.id)));
+    }
+    renderThreads();
+  };
+
+  const pollOnce = async () => {
+    if (isPolling) return;
+    isPolling = true;
+    try {
+      const result = await api('/messages/threads');
+      const items = result?.items ?? [];
+      const previous = allThreads;
+      allThreads = items;
+      const latestIncomingIds = new Set<string>();
+      for (const t of items) {
+        if (t.lastMessage?.recipientId === myId) latestIncomingIds.add(String(t.lastMessage.id));
+      }
+      if (knownInboxIds.size > 0) {
+        for (const t of items) {
+          const m = t.lastMessage;
+          if (!m || m.recipientId !== myId) continue;
+          const idStr = String(m.id);
+          if (!knownInboxIds.has(idStr)) {
+            const previousForOther = previous.find((p) => p.otherId === t.otherId);
+            if (previousForOther && previousForOther.lastMessage && previousForOther.lastMessage.id !== m.id) continue;
+            const senderName = t.other?.nombres || t.other?.username || 'Conductor';
+            void showChatNotification({
+              title: `Nuevo mensaje de ${senderName}`,
+              body: (m.body ?? '').slice(0, 140),
+              url: `/admin/mensajes?with=${t.otherId}`,
+              tag: `flotabus-msg-${t.otherId}`,
+            });
+          }
+          latestIncomingIds.add(idStr);
+        }
+      }
+      knownInboxIds = new Set<string>([...knownInboxIds, ...latestIncomingIds].slice(-500));
+      renderThreads();
+      if (activeOtherId !== null) await loadConversation(activeOtherId);
+    } catch { /* silent */ }
+    finally { isPolling = false; }
+  };
+
+  const startPolling = () => {
+    if (pollTimer !== null) return;
+    pollTimer = window.setInterval(pollOnce, 4000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && pollTimer !== null) void pollOnce();
+    });
+  };
+
+  const stopPolling = () => {
+    if (pollTimer !== null) { window.clearInterval(pollTimer); pollTimer = null; }
+  };
+
+  const loadConversation = async (otherId: number) => {
+    const [incoming, sent] = await Promise.all([
+      api(`/messages/inbox?limit=100`),
+      api(`/messages/sent?limit=100`),
+    ]);
+    const thread = allThreads.find((t) => t.otherId === otherId);
+    const other = thread?.other;
+    const incomingFiltered = (incoming?.items ?? []).filter((m: any) => m.senderId === otherId);
+    const sentFiltered = (sent?.items ?? []).filter((m: any) => m.recipientId === otherId);
+    const chatAvatar = document.getElementById('chat-avatar');
+    const chatName = document.getElementById('chat-name');
+    if (chatAvatar) chatAvatar.textContent = initials(other?.nombres || other?.username || '');
+    if (chatName) chatName.textContent = other?.nombres || other?.username || 'Conductor';
+    renderConversation(incomingFiltered, sentFiltered);
+    if (thread?.unread) {
+      await api(`/messages/threads/${otherId}/read`, { method: 'PATCH' }).catch(() => undefined);
+      await loadThreads();
+    }
+  };
+
+  const openThread = async (otherId: number) => {
+    activeOtherId = otherId;
+    const chatEmpty = document.getElementById('chat-empty') as HTMLElement | null;
+    const chatActive = document.getElementById('chat-active') as HTMLElement | null;
+    if (chatEmpty) chatEmpty.hidden = true;
+    if (chatActive) chatActive.hidden = false;
+    renderThreads();
+    await loadConversation(otherId);
+  };
+
+  const init = async () => {
+    try {
+      const me = await api('/auth/me');
+      myId = Number((me as any)?.id ?? 0);
+      const params = new URLSearchParams(window.location.search);
+      const preset = Number(params.get('with') ?? 0);
+      await loadThreads(true);
+      if (preset && allThreads.find((t) => t.otherId === preset)) await openThread(preset);
+
+      const form = document.getElementById('chat-form') as HTMLFormElement | null;
+      const send = document.getElementById('chat-send') as HTMLButtonElement | null;
+      const body = document.getElementById('chat-body') as HTMLTextAreaElement | null;
+      if (!form || !send || !body) return;
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (activeOtherId === null) return;
+        const text = body.value.trim();
+        if (!text) return;
+        send.disabled = true;
+        try {
+          await api('/messages', { method: 'POST', body: JSON.stringify({ recipientId: activeOtherId, body: text }) });
+          body.value = '';
+          await loadThreads();
+          await loadConversation(activeOtherId);
+        } catch (cause) {
+          await feedback.error(cause instanceof ApiError ? cause.message : 'Error inesperado.', 'No se pudo enviar');
+        } finally {
+          send.disabled = false;
+        }
+      });
+
+      const back = document.getElementById('chat-back');
+      back?.addEventListener('click', () => {
+        activeOtherId = null;
+        const chatEmpty = document.getElementById('chat-empty');
+        const chatActive = document.getElementById('chat-active');
+        if (chatEmpty) chatEmpty.hidden = false;
+        if (chatActive) chatActive.hidden = true;
+        renderThreads();
+      });
+
+      void maybeOfferNotifications();
+      startPolling();
+    } catch (cause) {
+      await feedback.error(cause instanceof Error ? cause.message : 'Error inesperado.', 'No se pudo cargar');
+    }
+  };
+
+  const NOTIF_PROMPT_KEY = 'flotabus_notif_prompt_dismissed';
+
+  async function maybeOfferNotifications() {
+    if (currentPermission() !== 'default') return;
+    if (sessionStorage.getItem(NOTIF_PROMPT_KEY) === '1') return;
+    const result = await Swal.fire({
+      title: '¿Recibir avisos en tu celular?',
+      html: '<p class="text-[.85rem] text-[#c9d2cc]">Te avisaremos con una notificación nativa cuando un conductor te escriba, incluso si la app está en segundo plano.</p>',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Activar avisos',
+      cancelButtonText: 'Más tarde',
+      confirmButtonColor: '#48e4e0',
+      background: '#0d1519',
+      color: '#eae9e2',
+      customClass: { popup: 'swal-flotabus' },
+    });
+    if (result.isConfirmed) {
+      const permission = await requestPermission();
+      if (permission === 'granted') {
+        await feedback.success('Avisos activados. Recibirás notificaciones nativas.', 'Listo');
+        void showChatNotification({ title: 'flotaBus', body: 'Los avisos ya están activos. Te avisaremos cuando recibas mensajes.' });
+      } else if (permission === 'denied') {
+        await feedback.error('Bloqueaste los avisos. Puedes activarlos desde la configuración de tu navegador.', 'Avisos desactivados');
+      }
+    } else {
+      sessionStorage.setItem(NOTIF_PROMPT_KEY, '1');
+    }
+  }
+
+  document.addEventListener('astro:page-load', () => { void init(); });
+  window.addEventListener('beforeunload', stopPolling);
+</script>
