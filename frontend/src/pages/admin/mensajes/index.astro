@@ -203,10 +203,10 @@ import AdminShell from '../../../components/AdminShell.astro';
     if (pollTimer !== null) { window.clearInterval(pollTimer); pollTimer = null; }
   };
 
-  const loadConversation = async (otherId: number) => {
+const loadConversation = async (otherId: number, markAsRead = true) => {
     const [incoming, sent] = await Promise.all([
-      api(`/messages/inbox?limit=100`),
-      api(`/messages/sent?limit=100`),
+      api('/messages/inbox?limit=100'),
+      api('/messages/sent?limit=100'),
     ]);
     const thread = allThreads.find((t) => t.otherId === otherId);
     const other = thread?.other;
@@ -217,20 +217,20 @@ import AdminShell from '../../../components/AdminShell.astro';
     if (chatAvatar) chatAvatar.textContent = initials(other?.nombres || other?.username || '');
     if (chatName) chatName.textContent = other?.nombres || other?.username || 'Conductor';
     renderConversation(incomingFiltered, sentFiltered);
-    if (thread?.unread) {
+    if (markAsRead && thread?.unread) {
       await api(`/messages/threads/${otherId}/read`, { method: 'PATCH' }).catch(() => undefined);
       await loadThreads();
     }
   };
 
-  const openThread = async (otherId: number) => {
+  const openThread = async (otherId: number, markAsRead = true) => {
     activeOtherId = otherId;
     const chatEmpty = document.getElementById('chat-empty') as HTMLElement | null;
     const chatActive = document.getElementById('chat-active') as HTMLElement | null;
     if (chatEmpty) chatEmpty.hidden = true;
     if (chatActive) chatActive.hidden = false;
     renderThreads();
-    await loadConversation(otherId);
+    await loadConversation(otherId, markAsRead);
   };
 
   const init = async () => {
@@ -240,7 +240,7 @@ import AdminShell from '../../../components/AdminShell.astro';
       const params = new URLSearchParams(window.location.search);
       const preset = Number(params.get('with') ?? 0);
       await loadThreads(true);
-      if (preset && allThreads.find((t) => t.otherId === preset)) await openThread(preset);
+      if (preset && allThreads.find((t) => t.otherId === preset)) await openThread(preset, false);
 
       const form = document.getElementById('chat-form') as HTMLFormElement | null;
       const send = document.getElementById('chat-send') as HTMLButtonElement | null;
