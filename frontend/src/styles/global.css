@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -22,7 +22,7 @@
   --scrollbar-thumb-active: #f5ad4b;
   --scrollbar-track: rgba(5, 11, 14, .42);
   --modal-radius: 1.25rem;
-  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: var(--ink);
   background: var(--night);
 }
@@ -30,7 +30,9 @@
 /* Base global: no es un componente, así que se queda en CSS. */
 * { box-sizing: border-box; }
 html { background: var(--night); overflow-x: clip; }
-body { margin: 0; min-width: 320px; max-width: 100%; overflow-x: clip; background: radial-gradient(circle at 14% -12%, #1b3740 0, transparent 34rem), radial-gradient(circle at 90% 8%, rgba(184, 91, 50, .13), transparent 28rem); }
+body { margin: 0; min-width: 320px; max-width: 100%; overflow-x: clip; font-family: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: radial-gradient(circle at 14% -12%, #1b3740 0, transparent 34rem), radial-gradient(circle at 90% 8%, rgba(184, 91, 50, .13), transparent 28rem); }
+button, input, select, textarea { font-family: inherit; }
+h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', 'Inter', sans-serif; letter-spacing: -.02em; }
 body.menu-lock { overflow: hidden; }
 html.modal-lock, body.modal-lock { overscroll-behavior: none; }
 body.modal-lock { position: fixed; inset-inline: 0; width: 100%; overflow: hidden; }
@@ -55,7 +57,11 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opa
 }
 button, input, select, textarea { box-sizing: border-box; font: inherit; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
-h1, h2, h3, .font-display { font-family: 'Outfit', sans-serif; }
+h1, h2, h3, h4, h5, h6, .font-display { font-family: 'Outfit', 'Inter', sans-serif; }
+h1 { margin: 0; font-size: clamp(1.85rem, 4vw, 2.6rem); font-weight: 700; line-height: 1.05; letter-spacing: -.035em; color: var(--ink); }
+h1 em { color: var(--amber); font-style: normal; font-weight: 600; }
+h2 { margin: 0; font-size: clamp(1.35rem, 2.6vw, 1.65rem); font-weight: 700; line-height: 1.15; letter-spacing: -.025em; color: var(--ink); }
+h3 { margin: 0; font-size: 1.05rem; font-weight: 700; line-height: 1.25; color: var(--ink); }
 
 /* Inputs nativos. Excepción documentada: Tailwind no expone los pseudo-elementos
    ::-webkit-datetime-edit / ::-webkit-calendar-picker-indicator, así que estas
@@ -183,7 +189,7 @@ input::placeholder, textarea::placeholder, .input::placeholder { color: #657277;
 
 /* Alertas de SweetAlert: el popup lo crea la librería, no el markup, así que
    sus clases personalizadas se definen aquí. */
-.swal2-popup.fb-alert { @apply rounded-[1.2rem] border border-[rgba(245,173,75,.3)] bg-[#111a1f] text-[var(--ink)] shadow-[0_24px_80px_rgba(0,0,0,.5)]; font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.swal2-popup.fb-alert { @apply rounded-[1.2rem] border border-[rgba(245,173,75,.3)] bg-[#111a1f] text-[var(--ink)] shadow-[0_24px_80px_rgba(0,0,0,.5)]; font-family: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 .fb-alert-title { font-family: 'Outfit', sans-serif; }
 .fb-alert-confirm { @apply !font-extrabold !text-[#101813]; }
 .fb-alert-cancel { @apply !font-bold !text-[#dce8e6]; }
@@ -312,7 +318,7 @@ input::placeholder, textarea::placeholder, .input::placeholder { color: #657277;
   .maintenance-card:hover { transform: translateY(-4px); border-color: rgba(72,228,224,.38); background: linear-gradient(145deg, rgba(31,53,56,.98), rgba(11,22,26,.94)); box-shadow: 0 18px 34px rgba(0,0,0,.25), 0 0 26px rgba(72,228,224,.06); }
   .system-icon { display: grid; place-items: center; width: 2.45rem; height: 2.45rem; flex: 0 0 auto; border: 1px solid rgba(245,173,75,.2); border-radius: .75rem; color: var(--amber); background: rgba(245,173,75,.08); }
   .system-icon svg { width: 1.35rem; height: 1.35rem; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; }
-  .card-arrow { position: absolute; right: 1rem; bottom: 1.1rem; color: var(--cyan); font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; opacity: .7; transition: transform .2s, opacity .2s; }
+  .card-arrow { position: absolute; right: 1rem; bottom: 1.1rem; color: var(--cyan); font-family: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; opacity: .7; transition: transform .2s, opacity .2s; }
   .maintenance-card:hover .card-arrow { opacity: 1; transform: translate(2px, -2px); }
   @media (max-width: 760px) {
     .maintenance-hero { align-items: flex-start; flex-direction: column; gap: 1.25rem; }
@@ -490,6 +496,12 @@ input::placeholder, textarea::placeholder, .input::placeholder { color: #657277;
     .admin-modal-card .form-actions > .btn,
     .admin-modal-card .form-actions .trip-navigation { flex: 1 1 0; }
     .admin-modal-card .form-actions .btn { width: auto; min-width: 0; min-height: 2.75rem; }
+    /* Trip modal has three action buttons (Cancel + Back/Next). On narrow screens
+       stack them: Cancel full-width above, Back/Next paired below. */
+    .trip-modal-card .form-actions { flex-direction: column; align-items: stretch; gap: .55rem; }
+    .trip-modal-card .form-actions > .btn { flex: 0 0 auto; width: 100%; }
+    .trip-modal-card .form-actions .trip-navigation { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; flex: 0 0 auto; }
+    .trip-modal-card .form-actions .trip-navigation .btn { width: 100%; flex: 0 0 auto; }
     /* Keep modal content touch-scrollable without painting a second scrollbar over
        the footer on narrow screens. This is intentionally scoped to modal regions;
        tables and desktop surfaces retain their existing scrollbar affordances. */
@@ -514,15 +526,6 @@ input::placeholder, textarea::placeholder, .input::placeholder { color: #657277;
   }
   @media (prefers-reduced-motion: reduce) {
     .modal-backdrop, .modal-card, .trip-step-panel { transition-duration: .01ms; animation-duration: .01ms; }
-  }
-  .admin-modal-card {
-    width: min(100%, 32rem);
-    max-height: min(calc(100dvh - 2rem), 48rem);
-    min-height: 0;
-    overflow: hidden;
-    padding: 1.7rem;
-    padding-top: max(1.7rem, env(safe-area-inset-top));
-    padding-bottom: max(1.7rem, env(safe-area-inset-bottom));
   }
   .admin-modal-card .modal-heading {
     position: relative;
@@ -608,6 +611,22 @@ input::placeholder, textarea::placeholder, .input::placeholder { color: #657277;
     .admin-modal-card .form-actions { gap: .55rem; margin-top: .7rem; }
   }
   .trip-detail-grid .fleet-card { padding: 1.35rem; }
+  /* Trip detail page ([id].astro): responsive adjustments */
+  @media (max-width: 760px) {
+    #trip-title { font-size: clamp(1.65rem, 7vw, 2.1rem); }
+    #trip-content { grid-template-columns: minmax(0, 1fr)!important; gap: .75rem!important; }
+    #trip-content > article { padding: 1rem!important; }
+    #trip-content > article h2 { font-size: 1.2rem; }
+    #trip-assignments > div { grid-template-columns: 1fr!important; gap: .5rem; padding: .75rem; }
+    #trip-assignments > div > span:first-child { display: none; }
+    #trip-legs > div { grid-template-columns: 2rem minmax(0, 1fr)!important; padding: .75rem; }
+    #trip-legs > div > div > div { grid-template-columns: 1fr 1fr; gap: .35rem; }
+    #timeline > li { gap: .55rem; padding: .55rem .7rem; }
+    #timeline > li > div > div:first-child { flex-wrap: wrap; }
+    #timeline > li > div > div:first-child time { font-size: .65rem; }
+    #trip-content [for='event-type'] { flex-basis: 100%; }
+    #event { width: 100%; }
+  }
   /* Bus fleet cards: a quiet industrial plinth for the shared 3D model. */
   .bus-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 18.5rem), 1fr)); gap: 1.1rem!important; padding: 1rem; }
   .bus-visual-stage { position: relative; min-height: 0; overflow: hidden; isolation: isolate; border-bottom: 1px solid rgba(234,239,226,.1); background: radial-gradient(circle at 50% 42%, rgba(72,228,224,.13), transparent 45%), linear-gradient(135deg, #1b3035, #0b1216 72%); }
@@ -670,6 +689,46 @@ input::placeholder, textarea::placeholder, .input::placeholder { color: #657277;
   }
   @media (prefers-reduced-motion: reduce) {
     .skip-link { transition: none; }
+  }
+
+  /* Trips table on narrow screens: convert each row into a stacked card
+     and surface the column label via `data-label`. */
+  @media (max-width: 760px) {
+    .trips-table-wrap { margin: 0; padding: 0; }
+    .trips-table-wrap table,
+    .trips-table-wrap tbody,
+    .trips-table-wrap tr,
+    .trips-table-wrap td { display: block; width: 100%; }
+    .trips-table-wrap thead { display: none; }
+    .trips-table-wrap tr {
+      padding: .9rem .85rem;
+      border-radius: .9rem;
+      border: 1px solid rgba(234,239,226,.08);
+      background: rgba(5,11,14,.32);
+      margin-bottom: .65rem;
+    }
+    .trips-table-wrap td {
+      padding: .35rem 0;
+      text-align: left;
+      border: 0;
+    }
+    .trips-table-wrap td[data-label]::before {
+      content: attr(data-label);
+      display: block;
+      margin-bottom: .25rem;
+      font-size: .6rem;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+    .trips-table-wrap td[data-label='Acciones'] {
+      margin-top: .55rem;
+      padding-top: .55rem;
+      border-top: 1px solid rgba(234,239,226,.08);
+      text-align: right;
+    }
+    .trips-table-wrap td[data-label='Acciones']::before { display: none; }
   }
 
 }

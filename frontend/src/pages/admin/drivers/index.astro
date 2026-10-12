@@ -28,7 +28,7 @@ import AdminShell from '../../../components/AdminShell.astro';
         <label class="full"> Contraseña <input id="driver-password" type="password" class="input" minlength="8" maxlength="128" autocomplete="new-password" /><small id="password-help" class="field-help">Mínimo 8 caracteres.</small></label>
         </div>
       </form>
-      <div class="form-actions" aria-label="Acciones del formulario"><button id="cancel" class="btn btn-secondary" type="button">Cancelar</button><button id="save" class="btn btn-primary" type="submit" form="driver-form">Guardar cambios</button></div>
+      <div class="form-actions" aria-label="Acciones del formulario"><button id="cancel" class="btn btn-secondary" type="button">Cancelar</button><button id="save" class="btn btn-primary" type="submit" form="driver-form">Guardar</button></div>
     </div>
   </div>
 </AdminShell>
@@ -137,7 +137,7 @@ import AdminShell from '../../../components/AdminShell.astro';
         feedback.loading(id ? 'Guardando cambios…' : 'Creando perfil…'); const saved = await api(id ? `/drivers/${id}` : '/drivers', { method: id ? 'PATCH' : 'POST', body: JSON.stringify(payload) });
         const photo = getPhotoPicker(form)?.getState().file; if (photo) { const data = new FormData(); data.append('photo', photo); await api(`/drivers/${id || saved.id}/photo`, { method: 'POST', body: data }); }
         Swal.close(); close(); await feedback.success(photo ? 'Perfil y foto guardados.' : (id ? 'Los cambios fueron guardados.' : 'El nuevo chofer ya está en la tripulación.'), id ? 'Perfil actualizado' : 'Chofer creado'); await load();
-      } catch (cause) { Swal.close(); await showError(cause, id ? 'No se pudo actualizar' : 'No se pudo crear'); } finally { save.disabled = false; save.textContent = 'Guardar cambios'; }
+      } catch (cause) { Swal.close(); await showError(cause, id ? 'No se pudo actualizar' : 'No se pudo crear'); } finally { save.disabled = false; save.textContent = 'Guardar'; }
     });
     loadBuses(); load();
   }
