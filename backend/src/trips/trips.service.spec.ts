@@ -1,6 +1,8 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { intervalsOverlap, STATE_TRANSITIONS, TripsService } from './trips.service';
 
+const whatsappStub = { notifyAdmin: jest.fn().mockResolvedValue(undefined) };
+
 describe('route management critical rules', () => {
   it('uses half-open intervals so adjacent assignments are allowed and real overlaps are rejected', () => {
     const start = new Date('2026-01-01T00:00:00Z');
@@ -17,14 +19,14 @@ describe('route management critical rules', () => {
 
   it('denies an unassigned driver before loading or mutating the trip', async () => {
     const db = { trip: { findUnique: jest.fn().mockResolvedValue({ id: 10, assignments: [{ driverId: 8 }] }) } } as any;
-    const service = new TripsService(db);
+    const service = new TripsService(db, whatsappStub as any);
     await expect((service as any).assertTripAccess(10, { id: 9, rol: 'CHOFER' })).rejects.toBeInstanceOf(ForbiddenException);
     expect(db.trip.findUnique).toHaveBeenCalledTimes(1);
   });
 
   it('rejects unknown event types instead of changing the derived state', async () => {
     const db = { trip: { findUnique: jest.fn().mockResolvedValue({ id: 10, status: 'IN_TRANSIT', assignments: [{ driverId: 8 }], legs: [] }) } } as any;
-    const service = new TripsService(db);
+    const service = new TripsService(db, whatsappStub as any);
     await expect(service.event(10, { type: 'NOT_A_STATE' }, { id: 8, rol: 'CHOFER' })).rejects.toBeInstanceOf(BadRequestException);
     expect(db.$transaction).toBeUndefined();
   });

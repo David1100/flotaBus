@@ -1,0 +1,167 @@
+---
+import Base from '../layouts/Base.astro';
+
+const { title = 'Conductor · flotaBus', active = 'dashboard' } = Astro.props;
+
+const navItems = [
+  { id: 'dashboard', href: '/chofer/dashboard', label: 'Mi ruta' },
+  { id: 'mantenimiento', href: '/chofer/mantenimiento', label: 'Mantenimiento' },
+  { id: 'mensajes', href: '/chofer/mensajes', label: 'Mensajes' },
+];
+---
+<Base title={title}>
+  <div class="driver-layout grid min-w-0 grid-rows-[auto_1fr]" data-driver-shell data-auth-pending="true">
+    <header class="driver-topbar sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-[var(--line)] bg-[rgba(8,13,17,.85)] px-[clamp(1.1rem,4vw,2.4rem)] py-3 backdrop-blur-md max-md:gap-3 max-md:px-4 max-md:py-2.5">
+      <a class="brand inline-flex items-center gap-2 no-underline" href="/chofer/dashboard" data-spa-link aria-label="Ir al inicio de flotaBus">
+        <span class="brand-mark grid h-10 w-10 place-items-center rounded-[.8rem] bg-[linear-gradient(135deg,var(--cyan),#56b8b0)] font-display text-[.95rem] font-bold text-[#0a1410] shadow-[0_8px_22px_rgba(72,228,224,.18)]" aria-hidden="true">fb</span>
+        <span class="brand-copy grid gap-[.12rem]"><strong class="font-display text-base font-bold tracking-[-.02em] text-[var(--ink)]">flotaBus</strong><small class="text-[.66rem] uppercase tracking-[.12em] text-[var(--subtle)]">Conductor</small></span>
+      </a>
+      <nav aria-label="Navegación del conductor" class="flex flex-1 items-center justify-center gap-1 max-md:hidden">
+        {navItems.map(item => (
+          <a class:list={['driver-nav-link', active === item.id && 'is-active']} href={item.href} data-spa-link>{item.label}</a>
+        ))}
+      </nav>
+      <div class="flex items-center gap-3 max-md:gap-2">
+        <div class="grid gap-[.15rem] text-right max-md:hidden">
+          <strong id="driver-name" class="font-display text-[.82rem] font-bold leading-none tracking-[-.01em] text-[var(--ink)]">Cargando…</strong>
+          <small id="driver-role" class="text-[.62rem] uppercase tracking-[.12em] text-[var(--subtle)]">Sesión activa</small>
+        </div>
+        <div id="driver-avatar" class="grid h-10 w-10 place-items-center rounded-full bg-[linear-gradient(135deg,var(--cyan),#56b8b0)] font-display text-[.78rem] font-bold text-[#0a1410] max-md:h-9 max-md:w-9" aria-hidden="true">•</div>
+        <button id="logout" class="logout-btn grid h-9 w-9 place-items-center rounded-full border border-[rgba(234,239,226,.12)] bg-[rgba(5,11,14,.4)] text-[var(--muted)] transition hover:border-[var(--amber)] hover:text-[var(--amber)]" type="button" aria-label="Cerrar sesión">↪</button>
+      </div>
+    </header>
+    <nav aria-label="Navegación inferior móvil" class="driver-bottom-nav fixed bottom-0 left-0 right-0 z-30 grid grid-cols-3 border-t border-[var(--line)] bg-[rgba(8,13,17,.92)] py-1 backdrop-blur-md md:hidden">
+      {navItems.map(item => (
+        <a class:list={['driver-bottom-link', active === item.id && 'is-active']} href={item.href} data-spa-link><span class="driver-bottom-label">{item.label}</span></a>
+      ))}
+    </nav>
+    <main id="driver-content" tabindex="-1" class="driver-content mx-auto w-full max-w-[1080px] px-[clamp(1.1rem,4vw,2.4rem)] py-6 pb-[calc(6rem+env(safe-area-inset-bottom))] max-md:px-4"><slot /></main>
+  </div>
+</Base>
+
+<style>
+  [data-driver-shell][data-auth-pending] { visibility: hidden; }
+  .driver-nav-link { display: inline-flex; min-height: 2.2rem; align-items: center; padding: .4rem .9rem; border-radius: .7rem; font-size: .82rem; font-weight: 700; letter-spacing: -.01em; color: var(--muted); text-decoration: none; transition: color .2s, background .2s; }
+  .driver-nav-link:hover { color: var(--ink); background: rgba(72,228,224,.06); }
+  .driver-nav-link.is-active { color: var(--ink); background: rgba(72,228,224,.12); border: 1px solid rgba(72,228,224,.22); }
+  .driver-bottom-link { display: grid; place-items: center; min-height: 3.5rem; padding: .5rem; font-size: .72rem; font-weight: 700; color: var(--muted); text-decoration: none; text-align: center; transition: color .2s; }
+  .driver-bottom-link.is-active { color: var(--cyan); }
+  .driver-bottom-link:hover { color: var(--ink); }
+  .logout-btn { cursor: pointer; }
+  .driver-content { min-height: calc(100dvh - 70px); }
+</style>
+
+<script>
+  import { api, ApiError, clearAuthTokens } from '../lib/api';
+  import { feedback, Swal } from '../lib/feedback';
+
+  const adminRoutes = new Set(['/chofer/dashboard', '/chofer/mantenimiento', '/chofer/mensajes']);
+
+  async function protectDriverShell() {
+    const shell = document.querySelector<HTMLElement>('[data-driver-shell]');
+    if (!shell || shell.dataset.authVerified === 'true' || shell.dataset.authChecking === 'true') return;
+    shell.dataset.authChecking = 'true';
+    shell.setAttribute('data-auth-pending', 'true');
+    try {
+      const user = await api('/auth/me');
+      if (!user || user.rol !== 'CHOFER') {
+        throw new ApiError('Esta sección es exclusiva para conductores.', 403, 'INSUFFICIENT_ROLE');
+      }
+      const nameEl = document.getElementById('driver-name');
+      const avatar = document.getElementById('driver-avatar');
+      if (nameEl) nameEl.textContent = user.nombres || user.username;
+      if (avatar) {
+        if (user.photoUrl) {
+          avatar.outerHTML = `<img src="${user.photoUrl}" alt="Foto de ${user.nombres}" class="h-10 w-10 rounded-full object-cover" />`;
+        } else {
+          avatar.textContent = (user.nombres || user.username || 'CH').slice(0, 2).toUpperCase();
+        }
+      }
+      shell.removeAttribute('data-auth-pending');
+      shell.dataset.authVerified = 'true';
+    } catch (cause) {
+      shell.removeAttribute('data-auth-pending');
+      const message = cause instanceof ApiError && cause.status === 403 ? cause.message : 'Tu sesión no permite acceder a esta sección.';
+      await feedback.error(message, 'Acceso no autorizado');
+      Swal.close();
+      clearAuthTokens();
+      window.location.assign('/login');
+    }
+  }
+
+  function bindLogout() {
+    const button = document.getElementById('logout');
+    if (!button || button.dataset.bound === 'true') return;
+    button.dataset.bound = 'true';
+    button.addEventListener('click', async () => {
+      try { await api('/auth/logout', { method: 'POST' }); } catch { /* La sesión expira de todos modos. */ }
+      clearAuthTokens();
+      window.location.assign('/login');
+    });
+  }
+
+  function bindClientRouter() {
+    const shell = document.querySelector<HTMLElement>('[data-driver-shell]');
+    if (!shell || shell.dataset.routerBound === 'true') return;
+    shell.dataset.routerBound = 'true';
+    shell.addEventListener('click', (event) => {
+      const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[data-spa-link]');
+      if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const url = new URL(link.href, window.location.href);
+      if (url.origin !== window.location.origin || !adminRoutes.has(url.pathname)) return;
+      event.preventDefault();
+      void navigateDriver(url.href);
+    });
+    window.addEventListener('popstate', () => { void navigateDriver(window.location.href, false); });
+  }
+
+  let navigationToken = 0;
+
+  async function navigateDriver(href: string, addHistory = true) {
+    const token = ++navigationToken;
+    const url = new URL(href, window.location.href);
+    if (url.origin !== window.location.origin || !adminRoutes.has(url.pathname)) return;
+    try {
+      const response = await fetch(url, { headers: { Accept: 'text/html' }, credentials: 'include' });
+      if (!response.ok) throw new Error(`Navigation failed with ${response.status}`);
+      const html = await response.text();
+      if (token !== navigationToken) return;
+      const next = new DOMParser().parseFromString(html, 'text/html');
+      const nextContent = next.querySelector<HTMLElement>('.driver-content');
+      const currentContent = document.querySelector<HTMLElement>('.driver-content');
+      if (!nextContent || !currentContent) throw new Error('Driver content is unavailable');
+      if (addHistory) history.pushState({}, '', url.pathname + url.search + url.hash);
+      currentContent.replaceChildren(...Array.from(nextContent.childNodes).map((node) => document.importNode(node, true)));
+      await loadScripts(Array.from(next.querySelectorAll<HTMLScriptElement>('script[type="module"]')).map((s) => s.src).filter((src): src is string => Boolean(src)));
+      if (token !== navigationToken) return;
+      document.title = next.title || document.title;
+      document.dispatchEvent(new CustomEvent('astro:page-load'));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      window.location.assign(url.href);
+    }
+  }
+
+  async function loadScripts(scripts: string[]) {
+    await Promise.all(scripts.map((src) => new Promise<void>((resolve) => {
+      if (document.querySelector(`script[src="${src}"]`)) return resolve();
+      const s = document.createElement('script');
+      s.type = 'module'; s.src = src; s.onload = () => resolve(); s.onerror = () => resolve(); document.body.append(s);
+    })));
+  }
+
+  function syncActive() {
+    const current = window.location.pathname;
+    document.querySelectorAll<HTMLAnchorElement>('.driver-nav-link, .driver-bottom-link').forEach((link) => {
+      const href = link.getAttribute('href') ?? '';
+      link.classList.toggle('is-active', href === current);
+    });
+  }
+
+  document.addEventListener('astro:page-load', () => { protectDriverShell(); bindLogout(); bindClientRouter(); syncActive(); });
+  document.addEventListener('astro:after-swap', () => { protectDriverShell(); bindLogout(); bindClientRouter(); syncActive(); });
+  protectDriverShell();
+  bindLogout();
+  syncActive();
+  bindClientRouter();
+</script>

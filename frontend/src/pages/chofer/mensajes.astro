@@ -1,0 +1,119 @@
+---
+import DriverShell from '../../components/DriverShell.astro';
+
+export function getStaticPaths() { return [{ params: {} }]; }
+---
+
+<DriverShell title="Mensajes · flotaBus" active="mensajes">
+  <div class="driver-msg grid gap-5">
+    <header class="fade-in">
+      <div class="eyebrow">CONDUCTOR · MENSAJES</div>
+      <h1 class="m-0 mt-2 font-display tracking-[-.035em] text-[var(--ink)]">Conversación con el <em>administrador.</em></h1>
+      <p class="m-0 mt-2 text-[var(--muted)]">Envía avisos, dudas o reportes directamente al administrador.</p>
+    </header>
+
+    <div id="error" class="state error-state" role="alert" hidden></div>
+
+    <article class="glass fleet-card grid gap-4 rounded-[1.25rem] p-[1.25rem]">
+      <div class="flex items-center justify-between gap-3 max-md:flex-col max-md:items-stretch">
+        <div>
+          <div class="eyebrow">MENSAJES ENVIADOS</div>
+          <h2 class="m-0 mt-1 font-display text-[1.2rem] text-[var(--ink)]">Tu historial con el administrador</h2>
+        </div>
+        <label class="grid gap-[.45rem] text-[.82rem] text-[#c9d2cc]">Destinatario
+          <select id="recipient" class="input w-auto min-w-60 max-md:w-full"></select>
+        </label>
+      </div>
+      <div id="thread" class="msg-thread grid max-h-[26rem] gap-3 overflow-y-auto rounded-[.85rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.3)] p-[1rem]"></div>
+    </article>
+
+    <article class="glass fleet-card rounded-[1.25rem] p-[1.25rem]">
+      <div class="eyebrow">NUEVO MENSAJE</div>
+      <h2 class="m-0 mt-1 font-display text-[1.2rem] text-[var(--ink)]">Escribe al administrador</h2>
+      <form id="msg-form" class="mt-4 grid gap-3">
+        <textarea id="body" class="input" rows="4" required minlength="3" maxlength="2000" placeholder="Hola, quería avisar que…"></textarea>
+        <div class="flex flex-wrap items-center gap-3">
+          <button id="send" class="btn btn-primary" type="submit">Enviar</button>
+          <span id="hint" class="text-[.7rem] text-[var(--subtle)]">El mensaje se envía al instante.</span>
+        </div>
+      </form>
+    </article>
+  </div>
+</DriverShell>
+
+<style>
+  .msg-thread { scrollbar-width: thin; }
+  .msg-bubble { max-width: min(85%, 38rem); padding: .65rem .85rem; border-radius: .85rem; font-size: .82rem; line-height: 1.45; }
+  .msg-bubble.from-me { align-self: flex-end; background: linear-gradient(135deg, rgba(72,228,224,.22), rgba(72,228,224,.08)); color: var(--ink); border: 1px solid rgba(72,228,224,.25); }
+  .msg-bubble.from-them { align-self: flex-start; background: rgba(234,239,226,.05); color: var(--ink); border: 1px solid rgba(234,239,226,.12); }
+  .msg-meta { display: block; margin-top: .25rem; font-size: .62rem; opacity: .7; }
+</style>
+
+<script>
+  import { api, ApiError } from '../../lib/api';
+  import { feedback, Swal } from '../../lib/feedback';
+
+  const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
+  const formatTime = (value: string) => new Date(value).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
+
+  type Admin = { id: number; nombres: string; username: string };
+
+  const renderThread = (incoming: any[], sent: any[], myId: number) => {
+    const thread = document.getElementById('thread') as HTMLElement;
+    const all = [...incoming, ...sent].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    if (!all.length) { thread.innerHTML = '<div class="empty-row">Aún no hay mensajes. Envía el primero ↓</div>'; return; }
+    thread.innerHTML = all.map((m) => {
+      const mine = m.senderId === myId;
+      return `<div class="msg-bubble ${mine ? 'from-me' : 'from-them'}"><p class="m-0 whitespace-pre-wrap break-words">${escape(m.body)}</p><span class="msg-meta">${mine ? 'Tú' : escape(m.sender?.nombres || m.sender?.username || 'Admin')} · ${escape(formatTime(m.createdAt))}${m.readAt && !mine ? ' · leído' : ''}</span></div>`;
+    }).join('');
+    thread.scrollTop = thread.scrollHeight;
+  };
+
+  const loadAdmins = async (): Promise<Admin[]> => {
+    const list = await api('/driver-portal/admins');
+    const select = document.getElementById('recipient') as HTMLSelectElement;
+    select.innerHTML = list.length
+      ? list.map((a: Admin) => `<option value="${a.id}">${escape(a.nombres)} · @${escape(a.username)}</option>`).join('')
+      : '<option value="" disabled>No hay administradores activos</option>';
+    return list;
+  };
+
+  const loadConversation = async () => {
+    const myId = Number(((await api('/auth/me') as any)?.id) ?? 0);
+    const [incoming, sent] = await Promise.all([
+      api('/messages/inbox?limit=100'),
+      api('/messages/sent?limit=100'),
+    ]);
+    renderThread(incoming?.items ?? [], sent?.items ?? [], myId);
+  };
+
+  const init = async () => {
+    try {
+      await loadAdmins();
+      await loadConversation();
+      const form = document.getElementById('msg-form') as HTMLFormElement;
+      const send = document.getElementById('send') as HTMLButtonElement;
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const recipientId = (document.getElementById('recipient') as HTMLSelectElement).value;
+        const body = (document.getElementById('body') as HTMLTextAreaElement).value.trim();
+        if (!recipientId || !body) return;
+        send.disabled = true;
+        try {
+          await api('/messages', { method: 'POST', body: JSON.stringify({ recipientId: Number(recipientId), body }) });
+          (document.getElementById('body') as HTMLTextAreaElement).value = '';
+          await loadConversation();
+        } catch (cause) {
+          await feedback.error(cause instanceof ApiError ? cause.message : 'Error inesperado.', 'No se pudo enviar');
+        } finally {
+          send.disabled = false;
+        }
+      });
+    } catch (cause) {
+      await feedback.error(cause instanceof Error ? cause.message : 'Error inesperado.', 'No se pudo cargar');
+    }
+  };
+
+  document.addEventListener('astro:page-load', () => { void init(); });
+  void init();
+</script>

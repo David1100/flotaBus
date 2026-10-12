@@ -29,7 +29,7 @@ export class CloudinaryService {
     if (!this.configured) throw new ServiceUnavailableException('Cloudinary no está configurado. Define CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY y CLOUDINARY_API_SECRET en el backend.');
   }
 
-  async upload(file: Express.Multer.File, entity: 'bus' | 'driver', id: number) {
+  async upload(file: Express.Multer.File, entity: 'bus' | 'driver' | 'maintenance', id: number) {
     this.validate(file);
     this.requireConfiguration();
     const publicId = `${this.folder}/${entity}/${id}`;

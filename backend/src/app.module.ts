@@ -9,9 +9,12 @@ import { MaintenanceRecordsModule } from './maintenance-records/maintenance-reco
 import { HealthController } from './health.controller';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { MessagesModule } from './messages/messages.module';
+import { DriverPortalModule } from './driver-portal/driver-portal.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), CloudinaryModule, PrismaModule, AuthModule, DriversModule, BusesModule, TripsModule, MaintenanceRecordsModule, DashboardModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), CloudinaryModule, PrismaModule, AuthModule, DriversModule, BusesModule, TripsModule, MaintenanceRecordsModule, DashboardModule, MessagesModule, DriverPortalModule, NotificationsModule],
   controllers: [HealthController],
 })
 export class AppModule {}

@@ -1,0 +1,241 @@
+---
+import DriverShell from '../../components/DriverShell.astro';
+
+export function getStaticPaths() { return [{ params: {} }]; }
+---
+
+<DriverShell title="Mi ruta · flotaBus" active="dashboard">
+  <div class="driver-dashboard grid gap-5">
+    <header class="fade-in">
+      <div class="eyebrow">CONDUCTOR · PANEL DE OPERACIONES</div>
+      <h1 id="dashboard-greeting" class="m-0 mt-2 font-display tracking-[-.035em] text-[var(--ink)]">Hola, <em id="dashboard-name">cargando.</em></h1>
+      <p id="dashboard-subtitle" class="m-0 mt-2 text-[var(--muted)]">Cargando tu información…</p>
+    </header>
+
+    <article id="active-trip-card" class="glass fleet-card rounded-[1.25rem] p-[1.25rem]" hidden>
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="eyebrow">VIAJE ACTIVO</div>
+          <h2 id="active-trip-code" class="m-0 mt-1 font-display text-[1.5rem] tracking-[-.03em] text-[var(--ink)]">—</h2>
+        </div>
+        <span id="active-trip-status" class="status-pill"><i></i>—</span>
+      </div>
+      <p id="active-trip-route" class="m-0 mt-3 text-[.82rem] text-[var(--muted)]">—</p>
+      <dl class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div class="grid gap-1 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]">
+          <dt class="text-[.58rem] uppercase tracking-[.12em] text-[var(--subtle)]">Salida</dt>
+          <dd id="active-trip-departure" class="m-0 text-[.82rem] font-extrabold text-[var(--ink)]">—</dd>
+        </div>
+        <div class="grid gap-1 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]">
+          <dt class="text-[.58rem] uppercase tracking-[.12em] text-[var(--subtle)]">Trayectos</dt>
+          <dd id="active-trip-legs" class="m-0 text-[.82rem] font-extrabold text-[var(--ink)]">—</dd>
+        </div>
+        <div class="grid gap-1 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]">
+          <dt class="text-[.58rem] uppercase tracking-[.12em] text-[var(--subtle)]">Notas</dt>
+          <dd id="active-trip-notes" class="m-0 text-[.82rem] text-[var(--muted)]">—</dd>
+        </div>
+      </dl>
+      <div class="mt-4 flex flex-wrap gap-[.5rem]">
+        <button id="event-started" data-event="STARTED" class="event-btn" type="button"><span class="event-dot bg-[var(--cyan)]" aria-hidden="true"></span>Iniciar ruta</button>
+        <button id="event-stopped" data-event="STOPPED" class="event-btn" type="button"><span class="event-dot bg-[#d4a72c]" aria-hidden="true"></span>Detener</button>
+        <button id="event-lunch" data-event="LUNCH_STARTED" class="event-btn" type="button"><span class="event-dot bg-[#c98c3a]" aria-hidden="true"></span>Almuerzo</button>
+        <button id="event-resume" data-event="LUNCH_ENDED" class="event-btn" type="button" hidden><span class="event-dot bg-[var(--cyan)]" aria-hidden="true"></span>Reanudar</button>
+        <button id="event-arrived" data-event="ARRIVED" class="event-btn" type="button"><span class="event-dot bg-[#5ec592]" aria-hidden="true"></span>Llegué</button>
+        <button id="event-returned" data-event="RETURNED" class="event-btn" type="button"><span class="event-dot bg-[var(--amber)]" aria-hidden="true"></span>Retorné</button>
+        <button id="event-incident" data-event="INCIDENT" class="event-btn event-btn-warn" type="button"><span class="event-dot bg-[#ff7474]" aria-hidden="true"></span>Incidencia</button>
+      </div>
+    </article>
+
+    <article id="bus-card" class="glass fleet-card rounded-[1.25rem] p-[1.25rem]" hidden>
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="eyebrow">MI VEHÍCULO</div>
+          <h2 id="bus-title" class="m-0 mt-1 font-display text-[1.5rem] tracking-[-.03em] text-[var(--ink)]">—</h2>
+        </div>
+        <span id="bus-status" class="status-pill"><i></i>—</span>
+      </div>
+      <dl class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div class="grid gap-1 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]">
+          <dt class="text-[.58rem] uppercase tracking-[.12em] text-[var(--subtle)]">Marca / Modelo</dt>
+          <dd id="bus-brand" class="m-0 text-[.82rem] font-extrabold text-[var(--ink)]">—</dd>
+        </div>
+        <div class="grid gap-1 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]">
+          <dt class="text-[.58rem] uppercase tracking-[.12em] text-[var(--subtle)]">Kilometraje</dt>
+          <dd id="bus-km" class="m-0 text-[.82rem] font-extrabold text-[var(--cyan)]">—</dd>
+        </div>
+        <div class="grid gap-1 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]">
+          <dt class="text-[.58rem] uppercase tracking-[.12em] text-[var(--subtle)]">Tipo</dt>
+          <dd id="bus-type" class="m-0 text-[.82rem] text-[var(--ink)]">—</dd>
+        </div>
+      </dl>
+      <div class="mt-4 flex flex-wrap gap-[.5rem]">
+        <a id="bus-maint-link" class="btn btn-primary" href="/chofer/mantenimiento" data-spa-link><span aria-hidden="true">🔧</span> Registrar mantenimiento</a>
+        <a class="btn btn-secondary" href="/chofer/mensajes" data-spa-link><span aria-hidden="true">✉</span> Enviar mensaje al administrador</a>
+      </div>
+    </article>
+
+    <section class="grid gap-4 md:grid-cols-2">
+      <article class="glass fleet-card rounded-[1.25rem] p-[1.25rem]">
+        <div class="eyebrow">PRÓXIMOS VIAJES</div>
+        <h2 class="m-0 mt-1 font-display text-[1.2rem] text-[var(--ink)]">Asignaciones próximas</h2>
+        <div id="upcoming-list" class="mt-4 grid gap-[.5rem]"></div>
+      </article>
+      <article class="glass fleet-card rounded-[1.25rem] p-[1.25rem]">
+        <div class="eyebrow">MANTENIMIENTO RECIENTE</div>
+        <h2 class="m-0 mt-1 font-display text-[1.2rem] text-[var(--ink)]">Últimos reportes</h2>
+        <div id="maintenance-list" class="mt-4 grid gap-[.5rem]"></div>
+      </article>
+    </section>
+
+    <div id="empty-state" class="glass fleet-card rounded-[1.25rem] p-[1.5rem] text-center" hidden>
+      <h2 class="m-0 font-display text-[1.3rem] text-[var(--ink)]">Sin viajes asignados</h2>
+      <p class="m-0 mt-2 text-[.82rem] text-[var(--muted)]">Cuando se te asigne un viaje aparecerá aquí con todos los detalles.</p>
+    </div>
+  </div>
+</DriverShell>
+
+<style>
+  .event-btn { display: inline-flex; min-height: 2.6rem; align-items: center; gap: .5rem; padding: .55rem .9rem; border-radius: .75rem; border: 1px solid rgba(234,239,226,.18); background: rgba(5,11,14,.35); color: var(--ink); font-size: .78rem; font-weight: 700; cursor: pointer; transition: border-color .2s, background .2s, transform .15s; }
+  .event-btn:hover { border-color: rgba(72,228,224,.4); background: rgba(72,228,224,.06); }
+  .event-btn:active { transform: translateY(1px); }
+  .event-btn[hidden] { display: none; }
+  .event-btn-warn { border-color: rgba(255,116,116,.35); color: #ff9daa; }
+  .event-btn-warn:hover { border-color: rgba(255,116,116,.55); background: rgba(255,116,116,.08); }
+  .event-dot { width: .55rem; height: .55rem; border-radius: 999px; }
+  .empty-row { display: grid; place-items: center; padding: 1.4rem .8rem; border: 1px dashed rgba(234,239,226,.1); border-radius: .8rem; color: var(--subtle); font-size: .78rem; text-align: center; }
+</style>
+
+<script>
+  import { api, ApiError } from '../../lib/api';
+  import { feedback, Swal } from '../../lib/feedback';
+  import { tripStatusClass, tripStatusLabel } from '../../lib/trip-labels';
+
+  const formatDate = (value: string | null | undefined) => value ? new Date(value).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+  const formatMoney = (value: string | number) => Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+  const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
+
+  const init = async () => {
+    const greeting = document.getElementById('dashboard-greeting');
+    const nameEl = document.getElementById('dashboard-name');
+    const subtitle = document.getElementById('dashboard-subtitle');
+    const tripCard = document.getElementById('active-trip-card') as HTMLElement;
+    const busCard = document.getElementById('bus-card') as HTMLElement;
+    const emptyState = document.getElementById('empty-state') as HTMLElement;
+
+    try {
+      const data = await api('/driver-portal/dashboard');
+      const driver = data?.driver;
+      if (nameEl && driver?.nombres) nameEl.textContent = driver.nombres;
+      if (subtitle && driver?.codigo) subtitle.textContent = `Código ${driver.codigo} · Listo para operar`;
+
+      const activeTrip = data?.activeTrip;
+      const currentBus = data?.currentBus;
+      const upcoming = data?.upcomingTrips ?? [];
+      const maintenance = data?.recentMaintenance ?? [];
+
+      if (!activeTrip && !currentBus) {
+        emptyState.hidden = false;
+        tripCard.hidden = true;
+        busCard.hidden = true;
+      }
+
+      if (activeTrip) {
+        tripCard.hidden = false;
+        (document.getElementById('active-trip-code') as HTMLElement).textContent = activeTrip.code;
+        (document.getElementById('active-trip-status') as HTMLElement).className = `status-pill ${tripStatusClass(activeTrip.status)}`;
+        (document.getElementById('active-trip-status') as HTMLElement).innerHTML = `<i></i>${tripStatusLabel(activeTrip.status)}`;
+        const lastLeg = activeTrip.legs?.at(-1);
+        (document.getElementById('active-trip-route') as HTMLElement).textContent = `${activeTrip.origin}${lastLeg ? ` → ${lastLeg.destination}` : ''}`;
+        (document.getElementById('active-trip-departure') as HTMLElement).textContent = formatDate(activeTrip.initialStartAt);
+        (document.getElementById('active-trip-legs') as HTMLElement).textContent = `${activeTrip.legs?.length ?? 0} tramos`;
+        (document.getElementById('active-trip-notes') as HTMLElement).textContent = activeTrip.notes || 'Sin observaciones';
+        renderEventButtons(activeTrip.status);
+      }
+
+      if (currentBus) {
+        busCard.hidden = false;
+        (document.getElementById('bus-title') as HTMLElement).textContent = currentBus.placa;
+        (document.getElementById('bus-status') as HTMLElement).className = `status-pill ${tripStatusClass(currentBus.status)}`;
+        (document.getElementById('bus-status') as HTMLElement).innerHTML = `<i></i>${tripStatusLabel(currentBus.status)}`;
+        (document.getElementById('bus-brand') as HTMLElement).textContent = `${currentBus.marca} · ${currentBus.modelo}`;
+        (document.getElementById('bus-km') as HTMLElement).textContent = `${Number(currentBus.kilometraje).toLocaleString('es-ES')} km`;
+        (document.getElementById('bus-type') as HTMLElement).textContent = currentBus.busType === 'DOBLE_PISO' ? 'Doble piso' : 'Normal';
+        const link = document.getElementById('bus-maint-link') as HTMLAnchorElement;
+        link.href = `/chofer/mantenimiento?busId=${encodeURIComponent(currentBus.id)}`;
+      }
+
+      const upcomingList = document.getElementById('upcoming-list') as HTMLElement;
+      upcomingList.innerHTML = upcoming.length
+          ? upcoming.map((u: any) => `<a href="/chofer/dashboard" class="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem] no-underline transition-colors hover:border-[rgba(72,228,224,.2)] hover:bg-[rgba(72,228,224,.05)]"><span class="grid h-[1.9rem] w-[1.9rem] place-items-center rounded-[.55rem] bg-[rgba(72,228,224,.12)] font-display text-[.7rem] font-extrabold text-[var(--cyan)]">→</span><div class="grid min-w-0 gap-1"><strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(u.trip.code)}</strong><small class="text-[.66rem] text-[var(--muted)]">${escape(formatDate(u.trip.initialStartAt))} · ${escape(u.trip.origin)}${u.trip.firstDestination ? ` → ${escape(u.trip.firstDestination)}` : ''}</small></div><span class="status-pill ${tripStatusClass(u.trip.status)}"><i></i>${tripStatusLabel(u.trip.status)}</span></a>`).join('')
+          : '<div class="empty-row">Sin viajes próximos asignados.</div>';
+
+      const maintenanceList = document.getElementById('maintenance-list') as HTMLElement;
+      maintenanceList.innerHTML = maintenance.length
+          ? maintenance.map((m: any) => `<div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]"><span class="grid h-[1.9rem] w-[1.9rem] place-items-center rounded-[.55rem] bg-[rgba(245,173,75,.12)] font-display text-[.7rem] font-extrabold text-[var(--amber)]">${escape((m.area || '').slice(0, 2).toUpperCase())}</span><div class="grid min-w-0 gap-1"><strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(m.area)}</strong><small class="text-[.66rem] text-[var(--muted)]">${escape(formatDate(m.recordedAt))}</small></div><strong class="font-display text-[.82rem] text-[var(--amber)]">${escape(formatMoney(m.cost))}</strong></div>`).join('')
+          : '<div class="empty-row">Sin mantenimientos recientes.</div>';
+
+      if (greeting) greeting.dataset.ready = 'true';
+    } catch (cause) {
+      if (subtitle) subtitle.textContent = 'No pudimos cargar tu panel. Intenta actualizar.';
+      await feedback.error(cause instanceof ApiError ? cause.message : 'Error inesperado.', 'Sin conexión con el servidor');
+    }
+  };
+
+  function renderEventButtons(status: string) {
+    const all: Record<string, boolean> = { STARTED: true, STOPPED: true, LUNCH_STARTED: true, ARRIVED: true, RETURNED: true, INCIDENT: true };
+    if (status === 'PAUSED_LUNCH') {
+      all.LUNCH_STARTED = false;
+      all.STARTED = false;
+      all.ARRIVED = false;
+      all.RETURNED = false;
+    } else if (status === 'STOPPED') {
+      all.LUNCH_STARTED = false;
+    } else if (status === 'ARRIVED') {
+      all.LUNCH_STARTED = false;
+      all.STARTED = false;
+      all.ARRIVED = false;
+    } else if (status === 'RETURNED' || status === 'CANCELLED') {
+      Object.keys(all).forEach((k) => (all[k] = false));
+    }
+    document.querySelectorAll<HTMLButtonElement>('[data-event]').forEach((button) => {
+      const event = button.dataset.event ?? '';
+      button.hidden = !all[event];
+    });
+    const resume = document.getElementById('event-resume') as HTMLButtonElement;
+    resume.hidden = status !== 'PAUSED_LUNCH';
+  }
+
+  async function sendEvent(button: HTMLButtonElement) {
+    const tripCard = document.getElementById('active-trip-card') as HTMLElement;
+    const code = (document.getElementById('active-trip-code') as HTMLElement).textContent ?? '';
+    const type = button.dataset.event ?? '';
+    const labels: Record<string, string> = {
+      STARTED: 'Iniciar ruta', STOPPED: 'Detener el bus', LUNCH_STARTED: 'Iniciar almuerzo',
+      LUNCH_ENDED: 'Reanudar ruta', ARRIVED: 'Marcar llegada', RETURNED: 'Marcar retorno', INCIDENT: 'Reportar incidencia',
+    };
+    const wantsNotes = type === 'INCIDENT';
+    const notes = wantsNotes ? (prompt('Describe brevemente la incidencia (opcional):') ?? undefined) : undefined;
+    button.disabled = true;
+    try {
+      feedback.loading(`${labels[type]}…`);
+      const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
+      if (!tripId) throw new Error('No hay viaje activo.');
+      await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type, notes }) });
+      Swal.close();
+      await feedback.success(`${labels[type]} registrado. El administrador fue notificado.`, 'Estado actualizado');
+      await init();
+    } catch (cause) {
+      Swal.close();
+      await feedback.error(cause instanceof Error ? cause.message : 'Error inesperado.', 'No se pudo registrar el evento');
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-event]').forEach((button) => {
+    button.addEventListener('click', () => { void sendEvent(button); });
+  });
+
+  document.addEventListener('astro:page-load', () => { void init(); });
+  void init();
+</script>

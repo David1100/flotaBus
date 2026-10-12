@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { TripsService } from './trips.service';
 
+const whatsappStub = { notifyAdmin: jest.fn().mockResolvedValue(undefined) };
 const actor = (id: number, rol: string = 'CHOFER') => ({ id, rol });
 const start = new Date('2026-10-10T22:00:00.000Z');
 
@@ -19,7 +20,7 @@ describe('TripsService runtime scenarios', () => {
     const findUnique = jest.fn().mockResolvedValue(tripWith({
       assignments: [{ driverId: 7, status: 'ACTIVE' }],
     }));
-    const service = new TripsService({ trip: { findUnique } } as any);
+    const service = new TripsService({ trip: { findUnique } } as any, whatsappStub as any);
 
     await expect((service as any).assertTripAccess(10, actor(7))).resolves.toEqual(expect.objectContaining({ id: 10 }));
     await expect((service as any).assertTripAccess(10, actor(8))).rejects.toBeInstanceOf(ForbiddenException);
@@ -34,7 +35,7 @@ describe('TripsService runtime scenarios', () => {
       assignments: [{ driverId: 7, status: 'ACTIVE' }],
     });
     const db = eventDb(trip);
-    const service = new TripsService(db as any);
+    const service = new TripsService(db as any, whatsappStub as any);
     (service as any).get = jest.fn().mockResolvedValue({ status: 'IN_TRANSIT' });
 
     await service.event(10, { type: 'STARTED' }, actor(7));
@@ -56,7 +57,7 @@ describe('TripsService runtime scenarios', () => {
 
   it('filters the driver board to active assignments only', async () => {
     const findMany = jest.fn().mockResolvedValue([]);
-    const service = new TripsService({ trip: { findMany } } as any);
+    const service = new TripsService({ trip: { findMany } } as any, whatsappStub as any);
 
     await service.list(undefined, actor(7));
     expect(findMany).toHaveBeenCalledWith(expect.objectContaining({
@@ -75,7 +76,7 @@ describe('TripsService runtime scenarios', () => {
   ])('%s through the event command', async (_name, status, type, nextStatus) => {
     const trip = tripWith({ status, assignments: [{ driverId: 7, status: 'ACTIVE' }] });
     const db = eventDb(trip);
-    const service = new TripsService(db as any);
+    const service = new TripsService(db as any, whatsappStub as any);
     (service as any).get = jest.fn().mockResolvedValue({ status: nextStatus });
 
     await expect(service.event(10, { type, occurredAt: '2026-10-11T08:00:00.000Z' }, actor(7))).resolves.toEqual({ status: nextStatus });
@@ -88,7 +89,7 @@ describe('TripsService runtime scenarios', () => {
 
   it('rejects invalid transitions and does not open a transaction', async () => {
     const db = eventDb(tripWith({ status: 'PLANNED', assignments: [{ driverId: 7, status: 'ACTIVE' }] }));
-    const service = new TripsService(db as any);
+    const service = new TripsService(db as any, whatsappStub as any);
 
     await expect(service.event(10, { type: 'ARRIVED' }, actor(7))).rejects.toBeInstanceOf(BadRequestException);
     expect(db.$transaction).not.toHaveBeenCalled();
@@ -96,7 +97,7 @@ describe('TripsService runtime scenarios', () => {
 
   it('makes repeated events idempotent and does not duplicate the event', async () => {
     const db = eventDb(tripWith({ status: 'IN_TRANSIT', assignments: [{ driverId: 7, status: 'ACTIVE' }] }));
-    const service = new TripsService(db as any);
+    const service = new TripsService(db as any, whatsappStub as any);
     (service as any).get = jest.fn().mockResolvedValue({ status: 'IN_TRANSIT' });
 
     await service.event(10, { type: 'STARTED' }, actor(7));
@@ -107,7 +108,7 @@ describe('TripsService runtime scenarios', () => {
 
   it('stores lunch resume timestamps and actual start/arrival timestamps', async () => {
     const lunchDb = eventDb(tripWith({ status: 'PAUSED_LUNCH', assignments: [{ driverId: 7, status: 'ACTIVE' }] }));
-    const lunchService = new TripsService(lunchDb as any);
+    const lunchService = new TripsService(lunchDb as any, whatsappStub as any);
     (lunchService as any).get = jest.fn().mockResolvedValue({ status: 'IN_TRANSIT' });
     await lunchService.event(10, {
       type: 'LUNCH_ENDED',
@@ -121,7 +122,7 @@ describe('TripsService runtime scenarios', () => {
     const executionDb = eventDb(tripWith({
       status: 'ASSIGNED', assignments: [{ driverId: 7, status: 'ACTIVE' }], legs: [{ id: 4 }],
     }));
-    const executionService = new TripsService(executionDb as any);
+    const executionService = new TripsService(executionDb as any, whatsappStub as any);
     (executionService as any).get = jest.fn().mockResolvedValue({ status: 'IN_TRANSIT' });
     await executionService.event(10, { type: 'STARTED', occurredAt: '2026-10-11T08:00:00.000Z' }, actor(7));
     expect(executionDb.tx.legExecution.update).toHaveBeenCalledWith(expect.objectContaining({
@@ -145,7 +146,7 @@ describe('TripsService runtime scenarios', () => {
       assignments: [{ driverId: 7, status: 'ACTIVE' }],
       legs: [{ id: 2, destination: 'Bogotá' }],
     }));
-    const service = new TripsService(db as any);
+    const service = new TripsService(db as any, whatsappStub as any);
 
     await expect(service.event(10, { type: 'RETURNED' }, actor(7))).rejects.toBeInstanceOf(BadRequestException);
     expect(db.$transaction).not.toHaveBeenCalled();
@@ -157,7 +158,7 @@ describe('TripsService runtime scenarios', () => {
       assignments: [{ driverId: 7, status: 'ACTIVE' }],
       legs: [{ id: 2, destination: 'Bucaramanga' }],
     }));
-    const service = new TripsService(db as any);
+    const service = new TripsService(db as any, whatsappStub as any);
     (service as any).get = jest.fn().mockResolvedValue({ status: 'RETURNED' });
 
     await service.event(10, { type: 'RETURNED', occurredAt: '2026-10-12T06:00:00.000Z' }, actor(7));
@@ -184,7 +185,7 @@ describe('TripsService runtime scenarios', () => {
        assignment: { findMany: jest.fn().mockResolvedValue([]) },
       $transaction: jest.fn(async (callback: any) => callback(tx)),
     };
-    const service = new TripsService(db as any);
+    const service = new TripsService(db as any, whatsappStub as any);
 
     await service.assign(10, { busId: 3, driverId: 7 }, 99);
     expect(assignmentCreate).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ assignedById: 99 }) }));
@@ -205,7 +206,7 @@ describe('TripsService runtime scenarios', () => {
        assignment: { findMany: jest.fn(), create: assignmentCreate },
     };
 
-    await expect(new TripsService(db as any).assign(10, { busId: 3, driverId: 7 }, 99)).rejects.toBeInstanceOf(BadRequestException);
+    await expect(new TripsService(db as any, whatsappStub as any).assign(10, { busId: 3, driverId: 7 }, 99)).rejects.toBeInstanceOf(BadRequestException);
     expect(assignmentCreate).not.toHaveBeenCalled();
   });
 
@@ -226,7 +227,7 @@ describe('TripsService runtime scenarios', () => {
       },
       $transaction: jest.fn(async (callback: any) => callback(tx)),
     };
-    const service = new TripsService(db as any);
+    const service = new TripsService(db as any, whatsappStub as any);
 
     await expect(service.create({
       code: 'T-1', origin: 'Bucaramanga', initialStartAt: start.toISOString(),
@@ -273,7 +274,7 @@ describe('TripsService runtime scenarios', () => {
       $transaction: jest.fn(async (callback: any) => callback(tx)),
     };
 
-    await expect(new TripsService(db as any).update(10, { notes: 'Ajuste previo a salida' })).resolves.toEqual(expect.objectContaining({ status: 'ASSIGNED' }));
+    await expect(new TripsService(db as any, whatsappStub as any).update(10, { notes: 'Ajuste previo a salida' })).resolves.toEqual(expect.objectContaining({ status: 'ASSIGNED' }));
     expect(tx.trip.update).toHaveBeenCalled();
   });
 
@@ -282,7 +283,7 @@ describe('TripsService runtime scenarios', () => {
       trip: { findUnique: jest.fn().mockResolvedValue(tripWith({ status })) },
     };
 
-    await expect(new TripsService(db as any).update(10, { notes: 'No debe cambiar' })).rejects.toThrow('Sólo se puede editar un viaje que aún no ha iniciado.');
+    await expect(new TripsService(db as any, whatsappStub as any).update(10, { notes: 'No debe cambiar' })).rejects.toThrow('Sólo se puede editar un viaje que aún no ha iniciado.');
   });
 });
 

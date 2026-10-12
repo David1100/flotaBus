@@ -66,10 +66,11 @@ import Base from '../layouts/Base.astro';
         }
         loginSucceeded = true;
         // Confirm the HttpOnly session cookie is usable before changing the page.
-        await api('/auth/me');
+        const me = await api('/auth/me');
         Swal.close();
         await feedback.success('Sesión iniciada. Preparando tu consola…', 'Acceso concedido');
-        window.location.assign('/admin');
+        const target = me?.rol === 'CHOFER' ? '/chofer/dashboard' : '/admin';
+        window.location.assign(target);
       } catch (cause) {
         const message = cause instanceof ApiError && cause.status === 401 && !loginSucceeded
           ? 'Usuario o contraseña incorrectos. Verifica tus datos e inténtalo de nuevo.'
