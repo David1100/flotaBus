@@ -11,7 +11,7 @@ const navItems = [
 ---
 <Base title={title}>
   <div class="driver-layout grid min-w-0 grid-rows-[auto_1fr]" data-driver-shell data-auth-pending="true">
-    <header class="driver-topbar sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-[var(--line)] bg-[rgba(8,13,17,.85)] px-[clamp(1.1rem,4vw,2.4rem)] py-3 backdrop-blur-md max-md:gap-3 max-md:px-4 max-md:py-2.5">
+    <header class="driver-topbar sticky top-0 z-30 flex items-center justify-between gap-4 border-b border-[var(--line)] bg-[rgba(8,13,17,.85)] px-[clamp(1.1rem,4vw,2.4rem)] py-3 backdrop-blur-md max-md:gap-3 max-md:px-4 max-md:py-2.5" style="padding-top: max(.75rem, env(safe-area-inset-top));">
       <a class="brand inline-flex items-center gap-2 no-underline" href="/chofer/dashboard" data-spa-link aria-label="Ir al inicio de flotaBus">
         <span class="brand-mark grid h-10 w-10 place-items-center rounded-[.8rem] bg-[linear-gradient(135deg,var(--cyan),#56b8b0)] font-display text-[.95rem] font-bold text-[#0a1410] shadow-[0_8px_22px_rgba(72,228,224,.18)]" aria-hidden="true">fb</span>
         <span class="brand-copy grid gap-[.12rem]"><strong class="font-display text-base font-bold tracking-[-.02em] text-[var(--ink)]">flotaBus</strong><small class="text-[.66rem] uppercase tracking-[.12em] text-[var(--subtle)]">Conductor</small></span>
@@ -48,7 +48,7 @@ const navItems = [
   .driver-bottom-link.is-active { color: var(--cyan); }
   .driver-bottom-link:hover { color: var(--ink); }
   .logout-btn { cursor: pointer; }
-  .driver-content { min-height: calc(100dvh - 70px); }
+  .driver-content { min-height: calc(100dvh - 70px - env(safe-area-inset-top)); }
 </style>
 
 <script>

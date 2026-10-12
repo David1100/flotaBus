@@ -118,9 +118,15 @@ export function getStaticPaths() { return [{ params: {} }]; }
     const greeting = document.getElementById('dashboard-greeting');
     const nameEl = document.getElementById('dashboard-name');
     const subtitle = document.getElementById('dashboard-subtitle');
-    const tripCard = document.getElementById('active-trip-card') as HTMLElement;
-    const busCard = document.getElementById('bus-card') as HTMLElement;
-    const emptyState = document.getElementById('empty-state') as HTMLElement;
+    const tripCard = document.getElementById('active-trip-card') as HTMLElement | null;
+    const busCard = document.getElementById('bus-card') as HTMLElement | null;
+    const emptyState = document.getElementById('empty-state') as HTMLElement | null;
+    const upcomingList = document.getElementById('upcoming-list') as HTMLElement | null;
+    const maintenanceList = document.getElementById('maintenance-list') as HTMLElement | null;
+    if (!greeting || !tripCard || !busCard || !emptyState || !upcomingList || !maintenanceList) return;
+
+    const setText = (id: string, value: string) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+    const setStatusPill = (id: string, status: string) => { const el = document.getElementById(id); if (!el) return; el.className = `status-pill ${tripStatusClass(status)}`; el.innerHTML = `<i></i>${tripStatusLabel(status)}`; };
 
     try {
       const data = await api('/driver-portal/dashboard');
@@ -141,40 +147,36 @@ export function getStaticPaths() { return [{ params: {} }]; }
 
       if (activeTrip) {
         tripCard.hidden = false;
-        (document.getElementById('active-trip-code') as HTMLElement).textContent = activeTrip.code;
-        (document.getElementById('active-trip-status') as HTMLElement).className = `status-pill ${tripStatusClass(activeTrip.status)}`;
-        (document.getElementById('active-trip-status') as HTMLElement).innerHTML = `<i></i>${tripStatusLabel(activeTrip.status)}`;
+        setText('active-trip-code', activeTrip.code);
+        setStatusPill('active-trip-status', activeTrip.status);
         const lastLeg = activeTrip.legs?.at(-1);
-        (document.getElementById('active-trip-route') as HTMLElement).textContent = `${activeTrip.origin}${lastLeg ? ` → ${lastLeg.destination}` : ''}`;
-        (document.getElementById('active-trip-departure') as HTMLElement).textContent = formatDate(activeTrip.initialStartAt);
-        (document.getElementById('active-trip-legs') as HTMLElement).textContent = `${activeTrip.legs?.length ?? 0} tramos`;
-        (document.getElementById('active-trip-notes') as HTMLElement).textContent = activeTrip.notes || 'Sin observaciones';
+        setText('active-trip-route', `${activeTrip.origin}${lastLeg ? ` → ${lastLeg.destination}` : ''}`);
+        setText('active-trip-departure', formatDate(activeTrip.initialStartAt));
+        setText('active-trip-legs', `${activeTrip.legs?.length ?? 0} tramos`);
+        setText('active-trip-notes', activeTrip.notes || 'Sin observaciones');
         renderEventButtons(activeTrip.status);
       }
 
       if (currentBus) {
         busCard.hidden = false;
-        (document.getElementById('bus-title') as HTMLElement).textContent = currentBus.placa;
-        (document.getElementById('bus-status') as HTMLElement).className = `status-pill ${tripStatusClass(currentBus.status)}`;
-        (document.getElementById('bus-status') as HTMLElement).innerHTML = `<i></i>${tripStatusLabel(currentBus.status)}`;
-        (document.getElementById('bus-brand') as HTMLElement).textContent = `${currentBus.marca} · ${currentBus.modelo}`;
-        (document.getElementById('bus-km') as HTMLElement).textContent = `${Number(currentBus.kilometraje).toLocaleString('es-ES')} km`;
-        (document.getElementById('bus-type') as HTMLElement).textContent = currentBus.busType === 'DOBLE_PISO' ? 'Doble piso' : 'Normal';
-        const link = document.getElementById('bus-maint-link') as HTMLAnchorElement;
-        link.href = `/chofer/mantenimiento?busId=${encodeURIComponent(currentBus.id)}`;
+        setText('bus-title', currentBus.placa);
+        setStatusPill('bus-status', currentBus.status);
+        setText('bus-brand', `${currentBus.marca} · ${currentBus.modelo}`);
+        setText('bus-km', `${Number(currentBus.kilometraje).toLocaleString('es-ES')} km`);
+        setText('bus-type', currentBus.busType === 'DOBLE_PISO' ? 'Doble piso' : 'Normal');
+        const link = document.getElementById('bus-maint-link') as HTMLAnchorElement | null;
+        if (link) link.href = `/chofer/mantenimiento?busId=${encodeURIComponent(currentBus.id)}`;
       }
 
-      const upcomingList = document.getElementById('upcoming-list') as HTMLElement;
       upcomingList.innerHTML = upcoming.length
           ? upcoming.map((u: any) => `<a href="/chofer/dashboard" class="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem] no-underline transition-colors hover:border-[rgba(72,228,224,.2)] hover:bg-[rgba(72,228,224,.05)]"><span class="grid h-[1.9rem] w-[1.9rem] place-items-center rounded-[.55rem] bg-[rgba(72,228,224,.12)] font-display text-[.7rem] font-extrabold text-[var(--cyan)]">→</span><div class="grid min-w-0 gap-1"><strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(u.trip.code)}</strong><small class="text-[.66rem] text-[var(--muted)]">${escape(formatDate(u.trip.initialStartAt))} · ${escape(u.trip.origin)}${u.trip.firstDestination ? ` → ${escape(u.trip.firstDestination)}` : ''}</small></div><span class="status-pill ${tripStatusClass(u.trip.status)}"><i></i>${tripStatusLabel(u.trip.status)}</span></a>`).join('')
           : '<div class="empty-row">Sin viajes próximos asignados.</div>';
 
-      const maintenanceList = document.getElementById('maintenance-list') as HTMLElement;
       maintenanceList.innerHTML = maintenance.length
           ? maintenance.map((m: any) => `<div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]"><span class="grid h-[1.9rem] w-[1.9rem] place-items-center rounded-[.55rem] bg-[rgba(245,173,75,.12)] font-display text-[.7rem] font-extrabold text-[var(--amber)]">${escape((m.area || '').slice(0, 2).toUpperCase())}</span><div class="grid min-w-0 gap-1"><strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(m.area)}</strong><small class="text-[.66rem] text-[var(--muted)]">${escape(formatDate(m.recordedAt))}</small></div><strong class="font-display text-[.82rem] text-[var(--amber)]">${escape(formatMoney(m.cost))}</strong></div>`).join('')
           : '<div class="empty-row">Sin mantenimientos recientes.</div>';
 
-      if (greeting) greeting.dataset.ready = 'true';
+      greeting.dataset.ready = 'true';
     } catch (cause) {
       if (subtitle) subtitle.textContent = 'No pudimos cargar tu panel. Intenta actualizar.';
       await feedback.error(cause instanceof ApiError ? cause.message : 'Error inesperado.', 'Sin conexión con el servidor');
@@ -201,13 +203,11 @@ export function getStaticPaths() { return [{ params: {} }]; }
       const event = button.dataset.event ?? '';
       button.hidden = !all[event];
     });
-    const resume = document.getElementById('event-resume') as HTMLButtonElement;
-    resume.hidden = status !== 'PAUSED_LUNCH';
+    const resume = document.getElementById('event-resume');
+    if (resume) (resume as HTMLButtonElement).hidden = status !== 'PAUSED_LUNCH';
   }
 
   async function sendEvent(button: HTMLButtonElement) {
-    const tripCard = document.getElementById('active-trip-card') as HTMLElement;
-    const code = (document.getElementById('active-trip-code') as HTMLElement).textContent ?? '';
     const type = button.dataset.event ?? '';
     const labels: Record<string, string> = {
       STARTED: 'Iniciar ruta', STOPPED: 'Detener el bus', LUNCH_STARTED: 'Iniciar almuerzo',
@@ -232,10 +232,19 @@ export function getStaticPaths() { return [{ params: {} }]; }
     }
   }
 
-  document.querySelectorAll<HTMLButtonElement>('[data-event]').forEach((button) => {
-    button.addEventListener('click', () => { void sendEvent(button); });
-  });
+  function bindEventButtons() {
+    document.querySelectorAll<HTMLButtonElement>('[data-event]').forEach((button) => {
+      if (button.dataset.bound === 'true') return;
+      button.dataset.bound = 'true';
+      button.addEventListener('click', () => { void sendEvent(button); });
+    });
+  }
 
-  document.addEventListener('astro:page-load', () => { void init(); });
-  void init();
+  const start = () => {
+    bindEventButtons();
+    void init();
+  };
+
+  document.addEventListener('astro:page-load', start);
+  start();
 </script>
