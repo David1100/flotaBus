@@ -180,8 +180,8 @@ describe('TripsService runtime scenarios', () => {
     const db = {
       trip: { findUnique: jest.fn().mockResolvedValue(trip) },
        bus: { findUnique: jest.fn().mockResolvedValue({ id: 3, isActive: true }) },
-      user: { findUnique: jest.fn().mockResolvedValue({ id: 7, rol: 'CHOFER', isActive: true }) },
-      assignment: { findMany: jest.fn().mockResolvedValue([]) },
+       user: { findUnique: jest.fn().mockResolvedValue({ id: 7, rol: 'CHOFER', isActive: true }), findMany: jest.fn().mockResolvedValue([{ id: 7, rol: 'CHOFER', isActive: true }]) },
+       assignment: { findMany: jest.fn().mockResolvedValue([]) },
       $transaction: jest.fn(async (callback: any) => callback(tx)),
     };
     const service = new TripsService(db as any);
@@ -201,8 +201,8 @@ describe('TripsService runtime scenarios', () => {
     const db = {
       trip: { findUnique: jest.fn().mockResolvedValue(tripWith({ legs: [{ plannedArrivalAt: new Date('2026-10-12T22:00:00.000Z') }] })) },
       bus: { findUnique: jest.fn().mockResolvedValue({ id: 3, isActive: false }) },
-      user: { findUnique: jest.fn().mockResolvedValue({ id: 7, rol: 'CHOFER', isActive: true }) },
-      assignment: { findMany: jest.fn(), create: assignmentCreate },
+       user: { findUnique: jest.fn().mockResolvedValue({ id: 7, rol: 'CHOFER', isActive: true }), findMany: jest.fn().mockResolvedValue([{ id: 7, rol: 'CHOFER', isActive: true }]) },
+       assignment: { findMany: jest.fn(), create: assignmentCreate },
     };
 
     await expect(new TripsService(db as any).assign(10, { busId: 3, driverId: 7 }, 99)).rejects.toBeInstanceOf(BadRequestException);

@@ -21,7 +21,7 @@ export class UpdateTripDto {
   @IsOptional() @IsString() origin?: string;
   @IsOptional() @IsDateString() initialStartAt?: string;
 }
-export class AssignmentDto { @IsInt() busId!: number; @IsInt() driverId!: number; }
+export class AssignmentDto { @IsInt() busId!: number; @IsOptional() @IsInt() driverId?: number; @IsOptional() @IsArray() @IsInt({ each: true }) driverIds?: number[]; }
 export class EventDto {
   @IsString() type!: string;
   @IsOptional() @IsDateString() occurredAt?: string;
