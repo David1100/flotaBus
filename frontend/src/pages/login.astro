@@ -2,81 +2,40 @@
 import Base from '../layouts/Base.astro';
 ---
 <Base title="Acceso · flotaBus">
-  <main class="login-page">
-    <div class="login-orbit login-orbit-one" aria-hidden="true"></div>
-    <div class="login-orbit login-orbit-two" aria-hidden="true"></div>
-    <div class="login-layout">
-      <section class="login-intro fade-in" aria-labelledby="login-intro-title">
-        <div class="eyebrow">OPERACIONES · 04:20 UTC</div>
-        <div class="intro-rule" aria-hidden="true"></div>
-        <h1 id="login-intro-title">Cada salida empieza con <span>control.</span></h1>
-        <p>La consola nocturna para mantener tu flota en movimiento, con el equipo correcto detrás de cada volante.</p>
-        <div class="intro-pills" aria-label="Características de la plataforma">
-          <span>RUTA SEGURA</span><span>LIVE OPS</span>
+  <main class="relative grid min-h-screen place-items-center overflow-hidden p-[clamp(1.25rem,4vw,3.5rem)] max-md:p-4">
+    <div class="absolute top-[-24rem] right-[-10rem] h-[42rem] w-[42rem] rounded-full border border-[rgba(72,228,224,.12)] shadow-[0_0_100px_rgba(27,55,64,.55)] pointer-events-none max-md:hidden" aria-hidden="true"></div>
+    <div class="absolute bottom-[-19rem] left-[-12rem] h-[28rem] w-[28rem] rounded-full border border-[rgba(72,228,224,.12)] pointer-events-none max-md:hidden" aria-hidden="true"></div>
+    <div class="relative z-[1] grid w-[min(1160px,100%)] items-center gap-[clamp(3rem,8vw,8rem)] grid-cols-[minmax(0,1.08fr)_minmax(360px,.72fr)] max-[800px]:max-w-[520px] max-[800px]:grid-cols-1 max-[800px]:gap-8 max-md:block max-md:max-w-[28rem]">
+      <section class="fade-in max-w-[590px] py-4 max-[800px]:p-0 max-md:hidden" aria-labelledby="login-intro-title">
+        <div class="text-[.64rem] font-extrabold uppercase tracking-[.2em] text-[var(--amber)]">OPERACIONES · 04:20 UTC</div>
+        <div class="my-[1.65rem] mb-[1.35rem] h-px w-16 bg-[var(--amber)] shadow-[0_0_18px_rgba(245,173,75,.65)]" aria-hidden="true"></div>
+        <h1 id="login-intro-title" class="m-0 font-display text-[clamp(3.5rem,7vw,6.6rem)] font-bold leading-[.9] tracking-[-.07em] text-[var(--ink)] max-[800px]:text-[clamp(3rem,13vw,5rem)]">Cada salida empieza con <span class="text-[var(--cyan)]">control.</span></h1>
+        <p class="mt-8 max-w-[30rem] text-[1.08rem] leading-[1.65] text-[var(--muted)]">La consola nocturna para mantener tu flota en movimiento, con el equipo correcto detrás de cada volante.</p>
+        <div class="mt-14 flex flex-wrap gap-[.6rem] max-[800px]:hidden" aria-label="Características de la plataforma">
+          <span class="rounded-full border border-[rgba(234,239,226,.14)] px-[.8rem] py-[.6rem] text-[.66rem] font-bold tracking-[.12em] text-[var(--subtle)]">RUTA SEGURA</span><span class="rounded-full border border-[rgba(234,239,226,.14)] px-[.8rem] py-[.6rem] text-[.66rem] font-bold tracking-[.12em] text-[var(--subtle)]">LIVE OPS</span>
         </div>
       </section>
 
-      <section class="login-card glass fade-in" aria-labelledby="login-title">
-        <div class="eyebrow">BIENVENIDO DE VUELTA</div>
-        <h2 id="login-title">Inicia sesión</h2>
-        <p class="login-subtitle">Entra con tus credenciales de operación.</p>
-        <form id="login" class="login-form" data-login-form>
-          <label for="username">Usuario<input id="username" class="input" autocomplete="username" required minlength="3" /></label>
-          <label for="password">Contraseña<input id="password" class="input" type="password" autocomplete="current-password" required minlength="8" /></label>
-          <p id="error" class="login-error" aria-live="polite"></p>
-          <button id="submit" class="btn btn-primary login-submit" type="submit">Entrar a la consola <span aria-hidden="true">↗</span></button>
+      <section class="glass fade-in mx-auto flex w-full max-w-[440px] flex-col rounded-[2rem] p-[clamp(1.6rem,4vw,2.7rem)] max-md:max-w-none max-md:p-[clamp(1.35rem,6vw,2rem)]" aria-labelledby="login-title">
+        <div class="text-[.64rem] font-extrabold uppercase tracking-[.2em] text-[var(--amber)]">BIENVENIDO DE VUELTA</div>
+        <h2 id="login-title" class="mx-0 mb-[.45rem] mt-[.7rem] font-display text-[2rem] font-bold leading-[1.1] tracking-[-.04em] text-[var(--ink)]">Inicia sesión</h2>
+        <p class="mb-8 mt-0 text-[.88rem] text-[var(--muted)]">Entra con tus credenciales de operación.</p>
+        <form id="login" class="grid gap-4" data-login-form>
+          <label for="username" class="text-[.82rem] text-[#c9d2cc]">Usuario<input id="username" class="input mt-2 block px-4 py-[.9rem] max-md:text-base" autocomplete="username" required minlength="3" /></label>
+          <label for="password" class="text-[.82rem] text-[#c9d2cc]">Contraseña<input id="password" class="input mt-2 block px-4 py-[.9rem] max-md:text-base" type="password" autocomplete="current-password" required minlength="8" /></label>
+          <p id="error" class="-mt-[.1rem] min-h-5 text-[.8rem] leading-[1.4] text-[#ff9daa]" aria-live="polite"></p>
+          <button id="submit" class="btn btn-primary flex w-full items-center justify-between px-[1.1rem] py-[.95rem] disabled:cursor-wait disabled:translate-y-0 disabled:opacity-70" type="submit">Entrar a la consola <span aria-hidden="true">↗</span></button>
         </form>
-        <p class="login-security"><span aria-hidden="true">◈</span> Acceso protegido · Sesión cifrada</p>
-        <footer class="login-brand" aria-label="Marca flotaBus">
-          <div class="brand-mark" aria-hidden="true">fb</div>
-          <div><strong>flotaBus</strong><span>control de operaciones</span></div>
+        <p class="mb-0 mt-8 text-center text-[.68rem] text-[var(--subtle)]"><span class="mr-[.3rem] text-[var(--amber)]" aria-hidden="true">◈</span> Acceso protegido · Sesión cifrada</p>
+        <footer class="mt-[2.4rem] flex items-center justify-end gap-3 border-t border-[var(--line)] pt-[1.6rem] max-md:mt-6 max-md:justify-center max-md:pt-[1.1rem]" aria-label="Marca flotaBus">
+          <div class="grid h-10 w-10 place-items-center rounded-[.8rem] bg-[linear-gradient(135deg,var(--amber),#f8d477)] font-display text-[.95rem] font-bold text-[#10211c] shadow-[0_8px_22px_rgba(245,173,75,.18)]" aria-hidden="true">fb</div>
+          <div class="text-right max-md:text-left"><strong class="block font-display text-base font-bold tracking-[-.02em] text-[var(--ink)]">flotaBus</strong><span class="mt-[.15rem] block text-[.7rem] uppercase tracking-[.12em] text-[var(--subtle)] max-md:hidden">control de operaciones</span></div>
         </footer>
       </section>
     </div>
   </main>
 </Base>
 
-<style>
-  .login-page { min-height: 100vh; position: relative; overflow: hidden; padding: clamp(1.25rem, 4vw, 3.5rem); display: grid; place-items: center; }
-  .login-layout { width: min(1160px, 100%); display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(360px, .72fr); gap: clamp(3rem, 8vw, 8rem); align-items: center; position: relative; z-index: 1; }
-  .login-intro { max-width: 590px; padding: 1rem 0; }
-  .intro-rule { width: 4rem; height: 1px; margin: 1.65rem 0 1.35rem; background: var(--amber); box-shadow: 0 0 18px rgba(245, 173, 75, .65); }
-  .login-intro h1 { font: 700 clamp(3.5rem, 7vw, 6.6rem)/.9 'Outfit', sans-serif; letter-spacing: -.07em; margin: 0; color: var(--ink); }
-  .login-intro h1 span { color: var(--cyan); }
-  .login-intro p { color: var(--muted); font-size: 1.08rem; line-height: 1.65; max-width: 30rem; margin: 2rem 0 0; }
-  .intro-pills { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 3.5rem; }
-  .intro-pills span { border: 1px solid rgba(234, 239, 226, .14); border-radius: 999px; color: var(--subtle); font-size: .66rem; font-weight: 700; letter-spacing: .12em; padding: .6rem .8rem; }
-  .login-card { width: 100%; max-width: 440px; border-radius: 2rem; padding: clamp(1.6rem, 4vw, 2.7rem); margin-inline: auto; display: flex; flex-direction: column; }
-  .login-card h2 { font: 700 2rem/1.1 'Outfit', sans-serif; letter-spacing: -.04em; margin: .7rem 0 .45rem; color: var(--ink); }
-  .login-subtitle { color: var(--muted); font-size: .88rem; margin: 0 0 2rem; }
-  .login-form { display: grid; gap: 1rem; }
-  .login-form label { color: #c9d2cc; font-size: .82rem; }
-  .login-form .input { display: block; margin-top: .5rem; padding: .9rem 1rem; }
-  .login-error { min-height: 1.25rem; color: #ff9daa; font-size: .8rem; line-height: 1.4; margin: -.1rem 0 0; }
-  .login-submit { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: .95rem 1.1rem; }
-  .login-submit:disabled { cursor: wait; opacity: .7; transform: none; }
-  .login-security { color: var(--subtle); font-size: .68rem; text-align: center; margin: 2rem 0 0; }
-  .login-security span { color: var(--amber); margin-right: .3rem; }
-  .login-brand { display: flex; align-items: center; justify-content: flex-end; gap: .75rem; margin-top: 2.4rem; padding-top: 1.6rem; border-top: 1px solid var(--line); }
-  .login-brand > div:last-child { text-align: right; }
-  .brand-mark { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: .8rem; color: #10211c; background: linear-gradient(135deg, var(--amber), #f8d477); font: 700 .95rem 'Outfit', sans-serif; box-shadow: 0 8px 22px rgba(245, 173, 75, .18); }
-  .login-brand strong, .login-brand span { display: block; }
-  .login-brand strong { font: 700 1rem 'Outfit', sans-serif; color: var(--ink); letter-spacing: -.02em; }
-  .login-brand span { color: var(--subtle); font-size: .7rem; margin-top: .15rem; letter-spacing: .12em; text-transform: uppercase; }
-  .login-orbit { position: absolute; border: 1px solid rgba(72, 228, 224, .12); border-radius: 50%; pointer-events: none; }
-  .login-orbit-one { width: 42rem; height: 42rem; top: -24rem; right: -10rem; box-shadow: 0 0 100px rgba(27, 55, 64, .55); }
-  .login-orbit-two { width: 28rem; height: 28rem; bottom: -19rem; left: -12rem; }
-  @media (max-width: 800px) { .login-layout { grid-template-columns: 1fr; gap: 2rem; max-width: 520px; } .login-intro { padding: 0; } .login-intro h1 { font-size: clamp(3rem, 13vw, 5rem); } .login-intro p, .intro-pills { margin-top: 1.2rem; } .intro-pills { display: none; } .login-brand { justify-content: center; } .login-brand > div:last-child { text-align: left; } }
-   @media (max-width: 760px) {
-     .login-page { padding: 1rem; }
-     .login-intro, .login-orbit { display: none; }
-     .login-layout { display: block; max-width: 28rem; }
-     .login-card { max-width: none; padding: clamp(1.35rem, 6vw, 2rem); }
-     .login-form .input { font-size: 16px; }
-     .login-brand { margin-top: 1.5rem; padding-top: 1.1rem; }
-     .login-brand span { display: none; }
-   }
-</style>
 <script>
   import { api, ApiError, CSRF_TOKEN_KEY, SESSION_TOKEN_KEY, clearAuthTokens } from '../lib/api';
   import { feedback, Swal } from '../lib/feedback';

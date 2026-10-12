@@ -4,12 +4,12 @@ import AdminShell from '../../../components/AdminShell.astro';
 
 <AdminShell title="Conductores · flotaBus" active="drivers">
   <div class="drivers-page">
-    <section class="page-header drivers-hero fade-in">
+    <section class="drivers-hero fade-in flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
       <div><div class="eyebrow">PANEL ADMINISTRATIVO · 01</div><h1>Tripulación <em>activa.</em></h1><p>Gestiona los perfiles que mantienen la ruta en movimiento.</p></div>
     </section>
     <section class="glass fleet-card drivers-table-card fade-in" style="animation-delay:.08s">
       <div class="toolbar"><label class="search-field"><span aria-hidden="true">⌕</span><input id="search" class="input" placeholder="Buscar por código, nombre o usuario…" aria-label="Buscar choferes" /></label><button id="new" class="btn btn-primary" type="button">+ Añadir chofer</button></div>
-      <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Chofer</th><th>Código</th><th>Bus por defecto</th><th>Teléfono</th><th>Estado</th><th class="table-actions">Acciones</th></tr></thead><tbody id="rows"><tr><td class="table-state" colspan="6">Cargando tripulación…</td></tr></tbody></table></div>
+      <div class="-mx-1 overflow-x-auto overflow-y-hidden pb-1 [scrollbar-gutter:stable] md:mx-0 md:overflow-hidden"><table class="w-full min-w-[42rem] border-collapse text-[.82rem] max-md:min-w-[36rem] max-md:text-[.76rem]"><thead class="sticky top-0 z-[1] bg-[rgba(17,27,30,.96)]"><tr class="[&_th]:whitespace-nowrap [&_th]:px-[1.15rem] [&_th]:py-[.82rem] [&_th]:text-left [&_th]:text-[.63rem] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-[.14em] [&_th]:text-[var(--subtle)] max-md:[&_th]:px-[.8rem] max-md:[&_th]:py-[.72rem]"><th>Chofer</th><th>Código</th><th>Bus por defecto</th><th>Teléfono</th><th>Estado</th><th class="text-right">Acciones</th></tr></thead><tbody id="rows"><tr><td class="px-6 py-[2.8rem] text-center text-[var(--subtle)]" colspan="6">Cargando tripulación…</td></tr></tbody></table></div>
     </section>
   </div>
 
@@ -71,14 +71,14 @@ import AdminShell from '../../../components/AdminShell.astro';
         const name = driver.nombres ?? driver.fullName ?? '—';
         const initials = name.split(' ').filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
         const avatar = driver.photoUrl ? `<img class="avatar avatar-photo" src="${escapeHtml(driver.photoUrl)}" alt="Foto de ${escapeHtml(name)}">` : `<span class="avatar">${escapeHtml(initials)}</span>`;
-        return `<tr><td><div class="person-cell">${avatar}<span><strong>${escapeHtml(name)}</strong><small>@${escapeHtml(driver.username)}</small></span></div></td><td><strong class="driver-code">${escapeHtml(driver.codigo ?? '—')}</strong></td><td><span>${escapeHtml(busLabel(driver.defaultBus))}</span></td><td>${escapeHtml(driver.telefono ?? driver.phone ?? 'Sin teléfono')}</td><td><span class="status-pill ${driver.isActive ? 'is-active' : 'is-inactive'}"><i></i>${driver.isActive ? 'Activo' : 'Inactivo'}</span></td><td class="table-actions"><button class="link-button" type="button" data-edit="${driver.id}">Editar</button>${driver.isActive ? `<button class="danger-link" type="button" data-delete="${driver.id}">Desactivar</button>` : ''}</td></tr>`;
-      }).join('') : '<tr><td class="table-state" colspan="6">No hay perfiles que coincidan.</td></tr>';
+        return `<tr class="border-t border-white/[.055] transition-colors duration-200 hover:bg-[rgba(72,228,224,.045)]"><td class="px-[1.15rem] py-[.82rem] align-middle max-md:px-[.8rem] max-md:py-[.72rem]"><div class="flex items-center gap-[.7rem]">${avatar}<span class="min-w-0"><strong class="block text-[.84rem] font-semibold text-[var(--ink)]">${escapeHtml(name)}</strong><small class="mt-[.18rem] block text-[.7rem] text-[var(--subtle)]">@${escapeHtml(driver.username)}</small></span></div></td><td class="px-[1.15rem] py-[.82rem] align-middle max-md:px-[.8rem] max-md:py-[.72rem]"><strong class="driver-code block text-[.84rem] font-semibold text-[var(--ink)]">${escapeHtml(driver.codigo ?? '—')}</strong></td><td class="px-[1.15rem] py-[.82rem] align-middle text-[#b4c0bd] max-md:px-[.8rem] max-md:py-[.72rem]"><span>${escapeHtml(busLabel(driver.defaultBus))}</span></td><td class="px-[1.15rem] py-[.82rem] align-middle text-[#b4c0bd] max-md:px-[.8rem] max-md:py-[.72rem]">${escapeHtml(driver.telefono ?? driver.phone ?? 'Sin teléfono')}</td><td class="px-[1.15rem] py-[.82rem] align-middle text-[#b4c0bd] max-md:px-[.8rem] max-md:py-[.72rem]"><span class="status-pill ${driver.isActive ? 'is-active' : 'is-inactive'}"><i></i>${driver.isActive ? 'Activo' : 'Inactivo'}</span></td><td class="px-[1.15rem] py-[.82rem] text-right align-middle whitespace-nowrap max-md:px-[.8rem] max-md:py-[.72rem]"><button class="link-button" type="button" data-edit="${driver.id}">Editar</button>${driver.isActive ? `<button class="danger-link" type="button" data-delete="${driver.id}">Desactivar</button>` : ''}</td></tr>`;
+      }).join('') : '<tr><td class="px-6 py-[2.8rem] text-center text-[var(--subtle)]" colspan="6">No hay perfiles que coincidan.</td></tr>';
     }
 
     async function load() {
-      rows.innerHTML = '<tr><td class="table-state" colspan="6">Actualizando tripulación…</td></tr>';
+      rows.innerHTML = '<tr><td class="px-6 py-[2.8rem] text-center text-[var(--subtle)]" colspan="6">Actualizando tripulación…</td></tr>';
       try { const result = await api('/drivers'); drivers = result.data ?? result; render(); }
-      catch (cause) { rows.innerHTML = '<tr><td class="table-state error" colspan="6">No pudimos cargar los choferes. Intenta actualizar.</td></tr>'; await showError(cause, 'Error al cargar la tripulación'); }
+      catch (cause) { rows.innerHTML = '<tr><td class="px-6 py-[2.8rem] text-center text-[#ff9daa]" colspan="6">No pudimos cargar los choferes. Intenta actualizar.</td></tr>'; await showError(cause, 'Error al cargar la tripulación'); }
     }
 
     async function loadBuses() {

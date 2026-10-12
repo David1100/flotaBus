@@ -6,13 +6,13 @@ import AdminShell from '../../../components/AdminShell.astro';
 
 <AdminShell title="Mantenimiento · Bus" active="buses">
    <div class="maintenance-page mx-auto max-w-[1120px]">
-    <section class="maintenance-hero page-header fade-in mb-[2.4rem] items-end max-md:items-start max-md:flex-col max-md:gap-5">
+    <section class="maintenance-hero fade-in mb-[2.4rem] flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
       <div>
         <div class="eyebrow">HOJA DE MANTENIMIENTO · PLACA <span data-bus-plate>—</span></div>
        <h1 class="max-md:max-w-[10ch]">Cuida cada <em>sistema.</em></h1>
         <p>Consulta y registra el historial técnico de esta unidad cuando esté disponible.</p>
       </div>
-      <a class="back-link" href="/admin/buses" data-spa-link>
+      <a class="inline-flex flex-[0_0_auto] items-center gap-[.45rem] text-[.8rem] font-bold text-[var(--cyan)] no-underline transition-all hover:-translate-x-[3px] hover:text-[var(--amber)]" href="/admin/buses" data-spa-link>
         <span aria-hidden="true">←</span> Volver a buses
       </a>
     </section>

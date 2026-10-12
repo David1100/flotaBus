@@ -2,22 +2,22 @@
 import AdminShell from '../../components/AdminShell.astro';
 ---
 <AdminShell title="Dashboard · flotaBus" active="dashboard">
-  <div class="dashboard-page mx-auto min-w-0 max-w-[1260px]">
-     <header class="command-header fade-in mb-[2.2rem] flex items-end justify-between gap-8 border-b border-[var(--line)] pb-7 max-md:mb-6 max-md:flex-col max-md:items-start max-md:gap-[1.4rem]">
-        <div class="header-copy min-w-0">
-        <div class="eyebrow">CONTROL DE FLOTA <span>/</span> TURNO 01</div>
+  <div class="mx-auto min-w-0 max-w-[1260px]">
+     <header class="fade-in mb-[2.2rem] flex items-end justify-between gap-8 border-b border-[var(--line)] pb-7 max-md:mb-6 max-md:flex-col max-md:items-start max-md:gap-[1.4rem]">
+        <div class="min-w-0">
+        <div class="text-[.64rem] font-extrabold uppercase tracking-[.2em] text-[var(--amber)]">CONTROL DE FLOTA <span class="text-[var(--subtle)]">/</span> TURNO 01</div>
          <h1 class="max-[430px]:text-[clamp(2.9rem,15vw,4.4rem)] max-[430px]:[overflow-wrap:anywhere]">La operación<br /><em>en una mirada.</em></h1>
          <p class="max-[430px]:max-w-[28ch] max-[430px]:leading-[1.45]">Lectura en tiempo real de disponibilidad, cobertura y asignaciones.</p>
       </div>
-        <div class="header-readout grid min-w-56 gap-[.45rem] border-l border-[var(--amber)] py-0 pb-[.2rem] pl-4 max-md:w-full max-md:min-w-0 max-md:pl-3" aria-label="Estado del sistema">
-        <span class="readout-line"><i class="status-dot" aria-hidden="true"></i> Sistema operativo</span>
-        <strong id="period-note">Periodo actual</strong>
-        <small>Última consulta del centro de control</small>
+        <div class="grid min-w-56 gap-[.45rem] border-l border-[var(--amber)] py-0 pb-[.2rem] pl-4 max-md:w-full max-md:min-w-0 max-md:pl-3" aria-label="Estado del sistema">
+        <span class="flex items-center gap-2 text-[.68rem] font-extrabold uppercase tracking-[.11em] text-[var(--cyan)]"><i class="status-dot" aria-hidden="true"></i> Sistema operativo</span>
+        <strong id="period-note" class="font-display text-base font-medium text-[var(--ink)]">Periodo actual</strong>
+        <small class="text-[.64rem] text-[var(--subtle)]">Última consulta del centro de control</small>
       </div>
     </header>
 
-      <section class="dashboard-toolbar fade-in grid grid-cols-[1.15fr_repeat(4,minmax(7rem,1fr))_auto] items-end gap-[.9rem] border-b border-[var(--line)] py-3 pb-4 max-lg:grid-cols-4 max-md:grid-cols-2 max-md:gap-[.65rem]" style="animation-delay:.05s" aria-label="Filtros del dashboard">
-       <div class="toolbar-title max-lg:col-span-full"><span class="eyebrow">CONSULTA</span><strong>Rango operativo</strong></div>
+      <section class="fade-in grid grid-cols-[1.15fr_repeat(4,minmax(7rem,1fr))_auto] items-end gap-[.9rem] border-b border-[var(--line)] py-3 pb-4 max-lg:grid-cols-4 max-md:grid-cols-2 max-md:gap-[.65rem] mb-5" style="animation-delay:.05s" aria-label="Filtros del dashboard">
+       <div class="grid min-w-0 content-center gap-1 pl-[.2rem] max-lg:col-span-full"><span class="text-[.64rem] font-extrabold uppercase tracking-[.2em] text-[var(--amber)]">CONSULTA</span><strong class="font-display text-base font-medium text-[var(--ink)]">Rango operativo</strong></div>
       <label><span>Desde</span><input class="input" id="from" type="date" /></label>
       <label><span>Hasta</span><input class="input" id="to" type="date" /></label>
       <label><span>Bus</span><select class="input" id="bus"><option value="">Todos los buses</option></select></label>
@@ -25,179 +25,43 @@ import AdminShell from '../../components/AdminShell.astro';
        <button class="btn btn-primary max-lg:col-start-4 max-md:col-span-full max-md:col-start-auto" id="apply" type="button">Actualizar <span aria-hidden="true">↗</span></button>
     </section>
 
-    <div id="dashboard-state" class="dashboard-state" role="status" aria-live="polite">Cargando resumen…</div>
+    <div id="dashboard-state" class="my-4 text-center text-[.78rem] text-[var(--muted)]" role="status" aria-live="polite">Cargando resumen…</div>
 
-      <main id="dashboard-content" class="command-center grid min-w-0 grid-cols-[minmax(0,1.35fr)_minmax(15rem,.65fr)] gap-[.85rem] max-md:block" hidden>
-        <section class="readiness-panel min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(72,228,224,.16)] bg-[linear-gradient(110deg,rgba(22,42,45,.88),rgba(10,17,21,.98)_70%)] p-[1.35rem] pb-[1.7rem] shadow-[0_16px_34px_rgba(0,0,0,.12),inset_0_1px_rgba(255,255,255,.025)] max-md:min-h-[21rem] max-md:px-4" aria-labelledby="readiness-title">
-        <div class="section-kicker"><span>01</span><span>Señal principal</span><i></i><time>LIVE</time></div>
-         <div class="readiness-heading max-md:mt-7 max-[379px]:gap-[.55rem]"><div><h2 id="readiness-title" class="max-md:text-[clamp(1.55rem,6vw,2.5rem)]">Disponibilidad<br /><em>de flota</em></h2><p id="coverage-summary" class="max-[379px]:max-w-[24ch]">Lectura de unidades listas para sostener la operación.</p></div><span class="signal-mark" aria-hidden="true">◌</span></div>
-         <div class="readiness-number max-md:my-8 max-md:mb-4 max-[379px]:gap-[.65rem]"><strong id="coverage-percent" class="max-md:text-[clamp(4rem,25vw,7rem)] max-[379px]:text-[clamp(4rem,24vw,5.5rem)]">—</strong><span class="max-[379px]:text-[.58rem]">cobertura<br />operativa</span></div>
-        <div class="coverage-track" aria-label="Cobertura operativa"><i id="coverage-meter"></i></div>
-       <div class="coverage-foot max-[430px]:grid max-[430px]:gap-[.55rem]"><span><i class="legend-dot is-cyan"></i><b id="coverage-covered">—</b> disponibles / en ruta</span><span><i class="legend-dot is-amber"></i><b id="coverage-maintenance">—</b> mantenimiento</span><span><i class="legend-dot is-muted"></i><b id="coverage-unassigned">—</b> sin asignación</span></div>
+      <main id="dashboard-content" class="grid min-w-0 grid-cols-[minmax(0,1.35fr)_minmax(15rem,.65fr)] gap-[.85rem] max-md:block" hidden>
+        <section class="min-h-[24rem] min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(72,228,224,.16)] bg-[linear-gradient(110deg,rgba(22,42,45,.88),rgba(10,17,21,.98)_70%)] px-[clamp(1.1rem,3vw,2.25rem)] pb-[1.7rem] pt-[1.35rem] shadow-[0_16px_34px_rgba(0,0,0,.12),inset_0_1px_rgba(255,255,255,.025)] max-md:min-h-[21rem] max-md:px-4" aria-labelledby="readiness-title">
+        <div class="flex items-center gap-[.55rem] text-[.6rem] font-extrabold uppercase tracking-[.14em] text-[var(--subtle)] max-md:flex-wrap max-md:gap-y-[.35rem]"><span class="font-display text-[var(--amber)]">01</span><span>Señal principal</span><i class="h-px w-[2.3rem] bg-[rgba(234,239,226,.15)] max-md:flex-1 max-md:min-w-4"></i><time class="text-[var(--cyan)]">LIVE</time></div>
+         <div class="mt-[2.2rem] flex items-start justify-between gap-4 max-md:mt-7 max-[379px]:gap-[.55rem]"><div class="min-w-0"><h2 id="readiness-title" class="m-0 font-display text-[clamp(1.65rem,3vw,2.5rem)] font-medium leading-[.94] tracking-[-.06em] text-[var(--ink)] max-md:text-[clamp(1.55rem,6vw,2.5rem)]">Disponibilidad<br /><em class="not-italic text-[var(--cyan)]">de flota</em></h2><p id="coverage-summary" class="mb-0 mt-[.6rem] text-[.74rem] leading-[1.45] text-[var(--muted)] max-[379px]:max-w-[24ch]">Lectura de unidades listas para sostener la operación.</p></div><span class="flex-none text-[4rem] leading-[.6] text-[var(--cyan)] opacity-75" aria-hidden="true">◌</span></div>
+         <div class="mb-[1.3rem] mt-[2.6rem] flex items-baseline gap-4 max-md:my-8 max-md:mb-4 max-[379px]:gap-[.65rem]"><strong id="coverage-percent" class="font-display text-[clamp(5rem,12vw,9rem)] font-medium leading-[.7] tracking-[-.1em] text-[var(--cyan)] max-md:text-[clamp(4rem,25vw,7rem)] max-[379px]:text-[clamp(4rem,24vw,5.5rem)]">—</strong><span class="text-[.68rem] uppercase leading-[1.3] tracking-[.1em] text-[var(--muted)] max-[379px]:text-[.58rem]">cobertura<br />operativa</span></div>
+        <div class="h-[.45rem] overflow-hidden rounded-[.35rem] bg-[rgba(234,239,226,.1)]" aria-label="Cobertura operativa"><i id="coverage-meter" class="block h-full w-0 bg-[var(--cyan)] transition-[width] duration-700 ease-out"></i></div>
+       <div class="mt-4 flex flex-wrap gap-x-[1.4rem] gap-y-[.8rem] text-[.67rem] text-[var(--muted)] max-[430px]:grid max-[430px]:gap-[.55rem]"><span class="inline-flex items-center gap-[.35rem] min-w-0"><i class="h-[.45rem] w-[.45rem] rounded-full bg-[var(--cyan)]"></i><b id="coverage-covered" class="text-[var(--ink)]">—</b> disponibles / en ruta</span><span class="inline-flex items-center gap-[.35rem] min-w-0"><i class="h-[.45rem] w-[.45rem] rounded-full bg-[var(--amber)]"></i><b id="coverage-maintenance" class="text-[var(--ink)]">—</b> mantenimiento</span><span class="inline-flex items-center gap-[.35rem] min-w-0"><i class="h-[.45rem] w-[.45rem] rounded-full bg-[var(--subtle)]"></i><b id="coverage-unassigned" class="text-[var(--ink)]">—</b> sin asignación</span></div>
       </section>
 
-        <aside class="signal-rail min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(72,228,224,.12)] bg-[rgba(11,18,22,.96)] p-5 shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-[430px]:px-[.9rem]" aria-label="Lecturas rápidas">
-        <div class="section-kicker"><span>02</span><span>Lecturas rápidas</span></div>
-        <div id="kpis" class="signal-list"></div>
+        <aside class="min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(72,228,224,.12)] bg-[rgba(11,18,22,.96)] p-5 pt-[1.35rem] pb-[1.2rem] shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-md:px-4 max-[430px]:px-[.9rem]" aria-label="Lecturas rápidas">
+        <div class="flex items-center gap-[.55rem] text-[.6rem] font-extrabold uppercase tracking-[.14em] text-[var(--subtle)] max-md:flex-wrap max-md:gap-y-[.35rem]"><span class="font-display text-[var(--amber)]">02</span><span>Lecturas rápidas</span></div>
+        <div id="kpis" class="mt-9 grid grid-cols-2 gap-[.65rem] max-[379px]:grid-cols-1"></div>
       </aside>
 
-        <section class="assignments-panel min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(234,239,226,.1)] bg-[rgba(11,18,22,.96)] p-[1.35rem] shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-md:px-4" aria-labelledby="assignments-title">
-        <div class="section-kicker"><span>03</span><span>Despacho</span><i></i><span id="assignment-count">Asignaciones activas</span></div>
-        <div class="panel-heading"><div><h2 id="assignments-title">Operación en curso</h2><p>Recursos que están moviendo la red ahora.</p></div><span class="panel-index">A / 01</span></div>
-        <div id="active-trips" class="assignment-list"></div>
+        <section class="min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(234,239,226,.1)] bg-[rgba(11,18,22,.96)] px-[clamp(1.1rem,3vw,2.25rem)] pb-[1.6rem] pt-[1.35rem] shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-md:px-4" aria-labelledby="assignments-title">
+        <div class="flex items-center gap-[.55rem] text-[.6rem] font-extrabold uppercase tracking-[.14em] text-[var(--subtle)] max-md:flex-wrap max-md:gap-y-[.35rem]"><span class="font-display text-[var(--amber)]">03</span><span>Despacho</span><i class="h-px w-[2.3rem] bg-[rgba(234,239,226,.15)] max-md:flex-1 max-md:min-w-4"></i><span id="assignment-count">Asignaciones activas</span></div>
+        <div class="mt-[1.35rem] flex items-start justify-between gap-4"><div class="min-w-0"><h2 id="assignments-title" class="m-0 font-display text-[1.6rem] font-medium leading-[.94] tracking-[-.06em] text-[var(--ink)]">Operación en curso</h2><p class="mb-0 mt-[.6rem] text-[.74rem] leading-[1.45] text-[var(--muted)]">Recursos que están moviendo la red ahora.</p></div><span class="font-[Outfit] text-[.7rem] text-[var(--subtle)] whitespace-nowrap">A / 01</span></div>
+        <div id="active-trips" class="mt-[1.4rem] grid gap-[.55rem]"></div>
       </section>
 
-        <aside class="watch-panel min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(245,173,75,.16)] bg-[rgba(11,18,22,.96)] p-[1.35rem] shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-md:px-4" aria-labelledby="watch-title">
-        <div class="section-kicker"><span>04</span><span>Atención</span></div>
-        <div class="panel-heading"><div><h2 id="watch-title">Fuera de servicio</h2><p>Buses que requieren seguimiento.</p></div></div>
-        <div id="maintenance-buses" class="stack-list"></div>
+        <aside class="min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(245,173,75,.16)] bg-[rgba(11,18,22,.96)] p-[1.35rem] pb-[1.6rem] shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-md:px-4" aria-labelledby="watch-title">
+        <div class="flex items-center gap-[.55rem] text-[.6rem] font-extrabold uppercase tracking-[.14em] text-[var(--subtle)] max-md:flex-wrap max-md:gap-y-[.35rem]"><span class="font-display text-[var(--amber)]">04</span><span>Atención</span></div>
+        <div class="mt-[1.35rem] flex items-start justify-between gap-4"><div class="min-w-0"><h2 id="watch-title" class="m-0 font-display text-[1.6rem] font-medium leading-[.94] tracking-[-.06em] text-[var(--ink)]">Fuera de servicio</h2><p class="mb-0 mt-[.6rem] text-[.74rem] leading-[1.45] text-[var(--muted)]">Buses que requieren seguimiento.</p></div></div>
+        <div id="maintenance-buses" class="mt-[1.4rem] grid gap-[.55rem]"></div>
       </aside>
 
-        <section class="spend-panel min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(245,173,75,.16)] bg-[rgba(11,18,22,.96)] p-[1.35rem] shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-md:px-4" aria-labelledby="spend-title">
-        <div class="section-kicker"><span>05</span><span>Registro financiero</span></div>
-         <div class="panel-heading max-md:items-start max-md:flex-col max-md:gap-3"><div><h2 id="spend-title" class="max-md:text-[1.45rem]">Mantenimiento por bus</h2><p>Inversión registrada en el periodo consultado.</p></div><strong id="period-cost" class="period-cost max-[430px]:text-[1.5rem]">$0</strong></div>
-        <div id="spend-empty" class="spend-empty" hidden><span aria-hidden="true">$</span><strong>Sin inversión registrada</strong><p>El periodo no contiene costos de mantenimiento.</p></div>
-        <div class="admin-table-wrap" id="spend-table-wrap"><table class="admin-table compact-table"><thead><tr><th>Unidad</th><th>Registros</th><th class="align-right">Costo</th></tr></thead><tbody id="maintenance-rows"></tbody></table></div>
+        <section class="col-span-full min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(245,173,75,.16)] bg-[rgba(11,18,22,.96)] px-[clamp(1.1rem,3vw,2.25rem)] pb-[1.6rem] pt-[1.35rem] shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-md:px-4" aria-labelledby="spend-title">
+        <div class="flex items-center gap-[.55rem] text-[.6rem] font-extrabold uppercase tracking-[.14em] text-[var(--subtle)] max-md:flex-wrap max-md:gap-y-[.35rem]"><span class="font-display text-[var(--amber)]">05</span><span>Registro financiero</span></div>
+         <div class="mt-[1.35rem] flex items-end justify-between gap-4 max-md:flex-col max-md:items-start max-md:gap-3"><div><h2 id="spend-title" class="m-0 font-display text-[1.6rem] font-medium leading-[.94] tracking-[-.06em] text-[var(--ink)] max-md:text-[1.45rem]">Mantenimiento por bus</h2><p class="mb-0 mt-[.6rem] text-[.74rem] leading-[1.45] text-[var(--muted)]">Inversión registrada en el periodo consultado.</p></div><strong id="period-cost" class="font-display text-[1.8rem] font-medium tracking-[-.05em] text-[var(--amber)] max-md:max-w-full max-md:break-words max-[430px]:text-[1.5rem]">$0</strong></div>
+        <div id="spend-empty" class="mt-5 grid grid-cols-[auto_1fr] items-center gap-x-[.8rem] gap-y-[.1rem] rounded-[.8rem] border border-dashed border-[rgba(245,173,75,.3)] bg-[rgba(245,173,75,.035)] p-4" hidden><span class="row-span-2 font-display text-[2rem] text-[var(--amber)]" aria-hidden="true">$</span><strong class="text-[.8rem] text-[var(--ink)]">Sin inversión registrada</strong><p class="m-0 text-[.68rem] text-[var(--muted)]">El periodo no contiene costos de mantenimiento.</p></div>
+        <div class="mt-5 overflow-hidden rounded-[.8rem] border border-white/10" id="spend-table-wrap"><table class="w-full border-collapse text-[.82rem]"><thead class="max-md:sr-only"><tr class="[&_th]:px-2 [&_th]:py-[.7rem] [&_th]:text-left [&_th]:text-[.63rem] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-[.14em] [&_th]:text-[var(--subtle)] [&_th:first-child]:pl-[.8rem] [&_th:last-child]:pr-[.8rem] [&_th:last-child]:text-right"><th>Unidad</th><th>Registros</th><th>Costo</th></tr></thead><tbody id="maintenance-rows" class="max-md:block"></tbody></table></div>
       </section>
     </main>
   </div>
 </AdminShell>
-
-<style>
-  .dashboard-page { --dashboard-radius: 1.25rem; --dashboard-radius-sm: .8rem; min-width: 0; max-width: 1260px; margin: 0 auto; }
-  .command-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin: .5rem 0 2.2rem; padding-bottom: 1.75rem; border-bottom: 1px solid var(--line); }
-  .header-copy h1 { margin: .6rem 0 .8rem; color: var(--ink); font: 600 clamp(3.2rem, 7vw, 6.4rem)/.84 'Outfit', sans-serif; letter-spacing: -.08em; }
-  .header-copy h1 em, .readiness-heading h2 em { color: var(--cyan); font-style: normal; }
-  .header-copy p { margin: 0; color: var(--muted); font-size: .83rem; }
-  .eyebrow span { color: var(--subtle); }
-  .header-readout { display: grid; min-width: 14rem; gap: .45rem; padding: 0 0 .2rem 1rem; border-left: 1px solid var(--amber); }
-  .readout-line { display: flex; align-items: center; gap: .5rem; color: var(--cyan); font-size: .68rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
-  .header-readout strong { color: var(--ink); font: 500 1rem 'Outfit', sans-serif; }
-  .header-readout small { color: var(--subtle); font-size: .64rem; }
-  .dashboard-toolbar { display: grid; grid-template-columns: 1.15fr repeat(4, minmax(7rem, 1fr)) auto; gap: .9rem; align-items: end; margin-bottom: 1.15rem; padding: .8rem 0 1rem; border-bottom: 1px solid var(--line); }
-  .toolbar-title { display: grid; min-width: 0; align-content: center; gap: .25rem; padding-left: .2rem; }
-  .toolbar-title strong { color: var(--ink); font: 500 1rem 'Outfit', sans-serif; }
-  .dashboard-toolbar label { display: grid; gap: .35rem; color: var(--subtle); font-size: .61rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
-  .dashboard-toolbar .input { min-height: 2.6rem; padding: .55rem .65rem; border-radius: .65rem; color-scheme: dark; font-size: .76rem; }
-  .dashboard-toolbar .btn { min-height: 2.6rem; border-radius: .7rem; padding-inline: .9rem; white-space: nowrap; }
-  .dashboard-toolbar .btn span { margin-left: .35rem; font-size: 1rem; }
-  .dashboard-state { margin: 1rem 0; color: var(--muted); font-size: .78rem; text-align: center; }
-  .dashboard-state.error { color: #ff9daa; }
-  .command-center { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(15rem, .65fr); gap: .85rem; }
-  .readiness-panel, .signal-rail, .assignments-panel, .watch-panel, .spend-panel { min-width: 0; overflow: hidden; border: 1px solid rgba(234,239,226,.1); border-radius: var(--dashboard-radius); background: rgba(11, 18, 22, .96); box-shadow: 0 16px 34px rgba(0,0,0,.12), inset 0 1px rgba(255,255,255,.025); }
-  .readiness-panel { min-height: 24rem; padding: 1.35rem clamp(1.1rem, 3vw, 2.25rem) 1.7rem; border-color: rgba(72,228,224,.16); background: linear-gradient(110deg, rgba(22,42,45,.88), rgba(10,17,21,.98) 70%); }
-  .section-kicker { display: flex; align-items: center; gap: .55rem; color: var(--subtle); font-size: .6rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-  .section-kicker > span:first-child { color: var(--amber); font-family: 'Outfit', sans-serif; }
-  .section-kicker i { width: 2.3rem; height: 1px; background: rgba(234,239,226,.15); }
-  .section-kicker time { color: var(--cyan); }
-  .readiness-heading, .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-  .readiness-heading > div, .panel-heading > div { min-width: 0; }
-  .readiness-heading { margin-top: 2.2rem; }
-  .readiness-heading h2, .panel-heading h2 { margin: 0; color: var(--ink); font: 500 clamp(1.65rem, 3vw, 2.5rem)/.94 'Outfit', sans-serif; letter-spacing: -.06em; }
-  .readiness-heading p, .panel-heading p { margin: .6rem 0 0; color: var(--muted); font-size: .74rem; line-height: 1.45; }
-  .signal-mark { flex: 0 0 auto; color: var(--cyan); font-size: 4rem; line-height: .6; opacity: .75; }
-  .readiness-number { display: flex; align-items: baseline; gap: 1rem; margin: 2.6rem 0 1.3rem; }
-  .readiness-number strong { color: var(--cyan); font: 500 clamp(5rem, 12vw, 9rem)/.7 'Outfit', sans-serif; letter-spacing: -.1em; }
-  .readiness-number span { color: var(--muted); font-size: .68rem; line-height: 1.3; text-transform: uppercase; letter-spacing: .1em; }
-  .coverage-track { height: .45rem; overflow: hidden; border-radius: .35rem; background: rgba(234,239,226,.1); }
-  .coverage-track i { display: block; width: 0%; height: 100%; background: var(--cyan); transition: width .7s ease; }
-  .coverage-foot { display: flex; flex-wrap: wrap; gap: .8rem 1.4rem; margin-top: 1rem; color: var(--muted); font-size: .67rem; }
-  .coverage-foot span { display: inline-flex; align-items: center; gap: .35rem; }
-  .coverage-foot b { color: var(--ink); }
-  .legend-dot { width: .45rem; height: .45rem; border-radius: 50%; background: var(--cyan); }
-  .legend-dot.is-amber { background: var(--amber); } .legend-dot.is-muted { background: var(--subtle); }
-  .signal-rail { padding: 1.35rem 1.25rem 1.2rem; border-color: rgba(72,228,224,.12); }
-  .signal-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: 2.25rem; }
-  .signal-item { position: relative; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr auto; gap: .45rem .65rem; min-width: 0; min-height: 7.8rem; padding: .85rem .75rem .8rem; border: 1px solid rgba(234,239,226,.1); border-radius: var(--dashboard-radius-sm); background: rgba(11,18,22,.62); transition: background .2s ease, border-color .2s ease, transform .2s ease; }
-  .signal-item:hover { z-index: 1; background: rgba(20,31,34,.9); transform: translateY(-1px); }
-  .signal-item::before { content: ''; position: absolute; inset: .65rem auto .65rem 0; width: 2px; border-radius: 0 3px 3px 0; background: var(--signal-accent, var(--subtle)); opacity: .8; }
-  .signal-item.is-cyan { --signal-accent: var(--cyan); }
-  .signal-item.is-amber { --signal-accent: var(--amber); }
-  .signal-item.is-zero { --signal-accent: var(--subtle); }
-  .signal-mark-mini { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border: 1px solid color-mix(in srgb, var(--signal-accent, var(--cyan)) 35%, transparent); border-radius: .55rem; color: var(--signal-accent, var(--cyan)); background: color-mix(in srgb, var(--signal-accent, var(--cyan)) 9%, transparent); font: 700 .58rem/1 'Outfit', sans-serif; letter-spacing: .04em; }
-  .signal-item small { grid-column: 2; align-self: center; color: var(--subtle); font-size: .56rem; font-weight: 800; letter-spacing: .08em; line-height: 1.1; text-transform: uppercase; }
-  .signal-value { display: inline-grid; grid-column: 1 / -1; place-items: center; align-self: end; justify-self: start; min-width: 2.7rem; min-height: 2.25rem; padding: .2rem .55rem; border-radius: .65rem; color: #101813; background: var(--amber); box-shadow: 0 8px 18px rgba(245,173,75,.14); font: 600 clamp(1.8rem, 3vw, 2.35rem)/.9 'Outfit', sans-serif; letter-spacing: -.07em; }
-  .signal-item p { grid-column: 1 / -1; align-self: end; min-width: 0; margin: 0; overflow-wrap: anywhere; color: var(--muted); font-size: .62rem; line-height: 1.25; }
-  .signal-item.is-zero strong { color: var(--muted); }
-  .signal-item.is-zero p::before { content: '— '; color: var(--subtle); }
-  .assignments-panel { grid-column: 1; padding: 1.35rem clamp(1.1rem, 3vw, 2.25rem) 1.6rem; }
-  .watch-panel { grid-column: 2; padding: 1.35rem 1.25rem 1.6rem; border-color: rgba(245,173,75,.16); }
-  .spend-panel { grid-column: 1 / -1; padding: 1.35rem clamp(1.1rem, 3vw, 2.25rem) 1.6rem; border-color: rgba(245,173,75,.16); }
-  .panel-heading { margin-top: 1.35rem; } .panel-heading h2 { font-size: 1.6rem; } .panel-index { color: var(--subtle); font: .7rem 'Outfit', sans-serif; }
-  .assignment-list, .stack-list { display: grid; gap: .55rem; margin-top: 1.4rem; }
-  .assignment-row { display: grid; grid-template-columns: 2.2rem minmax(8rem, 1fr) minmax(8rem, 1fr) auto; align-items: center; gap: .9rem; padding: .85rem; border: 1px solid rgba(234,239,226,.1); border-radius: var(--dashboard-radius-sm); background: rgba(5,11,14,.24); }
-  .assignment-row > * { min-width: 0; }
-  .assignment-icon { display: grid; place-items: center; width: 2rem; height: 2rem; border-left: 2px solid var(--cyan); border-radius: .55rem; color: var(--cyan); background: rgba(72,228,224,.06); font-weight: 800; }
-  .assignment-meta { min-width: 0; } .assignment-meta strong, .assignment-meta small, .assignment-label { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .assignment-meta strong { color: var(--ink); font-size: .78rem; } .assignment-meta small { margin-top: .25rem; color: var(--muted); font-size: .66rem; }
-  .assignment-label { margin-bottom: .25rem; color: var(--subtle); font-size: .57rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
-  .tag { flex: 0 0 auto; color: var(--cyan); font-size: .61rem; font-weight: 800; } .tag.is-amber { color: var(--amber); }
-  .stack-item { display: flex; min-width: 0; justify-content: space-between; gap: .7rem; padding: .85rem .8rem; border: 1px solid rgba(245,173,75,.12); border-radius: var(--dashboard-radius-sm); background: rgba(5,11,14,.24); }
-  .stack-item > span:first-child { min-width: 0; }
-  .stack-item strong, .stack-item small { display: block; } .stack-item strong { color: var(--ink); font: 500 1rem 'Outfit', sans-serif; } .stack-item small { margin-top: .25rem; color: var(--muted); font-size: .66rem; }
-  .spend-panel .panel-heading { align-items: end; } .period-cost { color: var(--amber); font: 500 1.8rem 'Outfit', sans-serif; letter-spacing: -.05em; }
-  .admin-table-wrap { margin-top: 1.25rem; overflow: hidden auto; border: 1px solid rgba(234,239,226,.1); border-radius: var(--dashboard-radius-sm); } .compact-table { min-width: 34rem; }
-  .compact-table th, .compact-table td { padding: .7rem .4rem; } .compact-table th:first-child, .compact-table td:first-child { padding-left: 0; }
-  .compact-table th:last-child, .compact-table td:last-child { padding-right: 0; } .align-right { text-align: right!important; }
-  .spend-empty { display: grid; grid-template-columns: auto 1fr; gap: .1rem .8rem; align-items: center; margin-top: 1.25rem; padding: 1rem; border: 1px dashed rgba(245,173,75,.3); border-radius: var(--dashboard-radius-sm); background: rgba(245,173,75,.035); }
-  .spend-empty > span { grid-row: span 2; color: var(--amber); font: 2rem 'Outfit', sans-serif; } .spend-empty strong { color: var(--ink); font-size: .8rem; } .spend-empty p { margin: 0; color: var(--muted); font-size: .68rem; }
-  .empty-state { padding: 1.35rem 0; color: var(--subtle); font-size: .73rem; }
-
-  /* The dashboard uses scoped rules, so responsive behavior belongs here too:
-     Astro's scoped selector is more specific than utility classes in markup. */
-  @media (max-width: 760px) {
-    .dashboard-page { width: 100%; max-width: 100%; overflow: hidden; }
-    .command-header { align-items: flex-start; flex-direction: column; gap: 1.4rem; margin-bottom: 1.5rem; }
-    .header-copy, .header-readout { width: 100%; min-width: 0; max-width: 100%; }
-    .header-copy h1 { overflow-wrap: anywhere; }
-    .header-readout { padding-left: .85rem; }
-
-    .dashboard-toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
-    .dashboard-toolbar > * { min-width: 0; }
-    .toolbar-title { grid-column: 1 / -1; }
-    .dashboard-toolbar .input, .dashboard-toolbar .btn { min-width: 0; min-height: 2.75rem; }
-    .dashboard-toolbar > .btn { grid-column: 1 / -1; width: 100%; }
-
-    .command-center { display: grid; grid-template-columns: minmax(0, 1fr); gap: .85rem; }
-    .readiness-panel, .signal-rail, .assignments-panel, .watch-panel, .spend-panel { grid-column: auto; width: 100%; max-width: 100%; }
-    .signal-rail, .assignments-panel, .watch-panel, .spend-panel { margin-top: 0; }
-    .readiness-panel { min-height: 21rem; padding-inline: 1rem; }
-    .signal-rail, .assignments-panel, .watch-panel, .spend-panel { padding-inline: 1rem; }
-    .section-kicker { flex-wrap: wrap; row-gap: .35rem; }
-    .section-kicker i { flex: 1 1 2rem; min-width: 1rem; }
-    .readiness-heading, .panel-heading { min-width: 0; }
-    .readiness-heading h2, .panel-heading h2, .readiness-heading p, .panel-heading p { overflow-wrap: anywhere; }
-    .readiness-number strong { max-width: 100%; }
-    .coverage-foot { gap: .55rem .8rem; }
-    .coverage-foot span { min-width: 0; }
-
-    .assignment-row { grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .65rem; }
-    .assignment-row .assignment-meta:nth-child(3) { grid-column: 2 / -1; }
-    .assignment-row .tag { grid-column: 3; grid-row: 1; }
-    .assignment-meta strong, .assignment-meta small, .assignment-label { max-width: 100%; }
-    .stack-item { align-items: flex-start; flex-wrap: wrap; }
-    .stack-item > span:first-child { flex: 1 1 8rem; }
-    .stack-item .tag { margin-left: auto; }
-    .spend-panel .panel-heading { align-items: flex-start; flex-direction: column; gap: .75rem; }
-    .period-cost { max-width: 100%; overflow-wrap: anywhere; }
-    .admin-table-wrap { width: 100%; max-width: 100%; overflow-x: auto; overflow-y: hidden; }
-  }
-
-  @media (max-width: 379px) {
-    .readiness-panel, .signal-rail, .assignments-panel, .watch-panel, .spend-panel { padding-inline: .85rem; }
-    .signal-list { grid-template-columns: 1fr; }
-    .assignment-row { grid-template-columns: 1.8rem minmax(0, 1fr); }
-    .assignment-row .tag { grid-column: 2; grid-row: auto; justify-self: start; }
-    .readiness-heading { gap: .55rem; }
-    .readiness-number { gap: .65rem; }
-  }
-
-  @media (max-width: 430px) {
-    .dashboard-toolbar { padding-inline: .1rem; }
-    .coverage-foot { display: grid; }
-    .panel-index { white-space: nowrap; }
-  }
-</style>
 
 <script>
   import { api } from '../../lib/api';
@@ -208,7 +72,7 @@ import AdminShell from '../../components/AdminShell.astro';
   const date = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
   const statusLabel: Record<string, string> = { PLANNED: 'Planeado', ASSIGNED: 'Asignado', IN_TRANSIT: 'En ruta', STOPPED: 'Detenido', PAUSED_LUNCH: 'Pausa', INCIDENT: 'Incidente', AVAILABLE: 'Disponible', MAINTENANCE: 'Mantenimiento' };
   const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (char) => ({ '&': '&#38;', '<': '&#60;', '>': '&#62;', "'": '&#39;', '"': '&#34;' }[char] ?? char));
-  const empty = (message: string) => `<div class="empty-state">${message}</div>`;
+  const empty = (message: string) => `<div class="py-[1.35rem] text-[.73rem] text-[var(--subtle)]">${message}</div>`;
   function render(data: Overview) {
     const k = data.kpis;
     const covered = k.availableBuses + k.operationalBuses;
@@ -218,11 +82,11 @@ import AdminShell from '../../components/AdminShell.astro';
     $('#coverage-summary').textContent = k.totalBuses ? `${covered} de ${k.totalBuses} buses sostienen la operación entre disponibilidad y ruta.` : 'Aún no hay buses registrados para calcular cobertura.';
     $('#coverage-covered').textContent = String(covered); $('#coverage-maintenance').textContent = String(k.maintenanceBuses); $('#coverage-unassigned').textContent = String(data.unassignedBuses.length);
     const signals = [{ label: 'Inventario total', value: k.totalBuses, note: 'Buses registrados', mark: 'FI', kind: '' }, { label: 'Choferes activos', value: k.activeDrivers, note: 'Personal disponible', mark: 'CH', kind: '' }, { label: 'Viajes activos', value: k.activeTrips, note: k.activeTrips ? 'Asignaciones abiertas' : 'Sin asignaciones', mark: 'VI', kind: 'is-cyan' }, { label: 'Mantenimiento', value: k.maintenanceBuses, note: k.maintenanceBuses ? 'Fuera de servicio' : 'Sin unidades fuera', mark: 'MT', kind: 'is-amber' }];
-     $('#kpis').innerHTML = signals.map((signal) => `<div class="signal-item ${signal.kind} ${signal.value === 0 ? 'is-zero' : ''} relative grid min-w-0 grid-cols-[auto_1fr] grid-rows-[auto_1fr_auto] gap-x-[.65rem] gap-y-[.45rem] rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(11,18,22,.62)] p-[.85rem_.75rem_.8rem] max-[379px]:min-h-[7.4rem]"><span class="signal-mark-mini grid h-6 w-6 place-items-center rounded-[.55rem] border border-[rgba(72,228,224,.35)] bg-[rgba(72,228,224,.09)] text-[.58rem] font-bold text-[var(--cyan)]" aria-hidden="true">${signal.mark}</span><small class="col-[2] self-center text-[.56rem] font-extrabold uppercase leading-tight tracking-[.08em] text-[var(--subtle)]">${signal.label}</small><span class="signal-value col-span-full inline-grid min-h-9 min-w-11 place-items-center justify-self-start self-end rounded-[.65rem] bg-[var(--amber)] px-2 py-1 text-[clamp(1.65rem,3vw,2.35rem)] font-semibold leading-[.9] tracking-[-.07em] text-[#101813]">${signal.value}</span><p class="col-span-full m-0 min-w-0 self-end break-words text-[.62rem] leading-tight text-[var(--muted)]">${signal.note}</p></div>`).join('');
+     $('#kpis').innerHTML = signals.map((signal) => `<div class="relative grid min-w-0 grid-cols-[auto_1fr] grid-rows-[auto_1fr_auto] gap-x-[.65rem] gap-y-[.45rem] rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(11,18,22,.62)] p-[.85rem_.75rem_.8rem] max-[379px]:min-h-[7.4rem]"><span class="grid h-6 w-6 place-items-center rounded-[.55rem] border border-[rgba(72,228,224,.35)] bg-[rgba(72,228,224,.09)] text-[.58rem] font-bold text-[var(--cyan)]" aria-hidden="true">${signal.mark}</span><small class="col-[2] self-center text-[.56rem] font-extrabold uppercase leading-tight tracking-[.08em] text-[var(--subtle)]">${signal.label}</small><span class="col-span-full inline-grid min-h-9 min-w-11 place-items-center justify-self-start self-end rounded-[.65rem] bg-[var(--amber)] px-2 py-1 text-[clamp(1.65rem,3vw,2.35rem)] font-semibold leading-[.9] tracking-[-.07em] text-[#101813]">${signal.value}</span><p class="col-span-full m-0 min-w-0 self-end break-words text-[.62rem] leading-tight text-[var(--muted)] ">${signal.value === 0 ? '<span class="text-[var(--subtle)]">— </span>' : ''}${signal.note}</p></div>`).join('');
     $('#assignment-count').textContent = `${k.activeTrips} asignación${k.activeTrips === 1 ? '' : 'es'} activa${k.activeTrips === 1 ? '' : 's'}`;
-    $('#maintenance-rows').innerHTML = data.maintenanceByBus.length ? data.maintenanceByBus.map((row) => `<tr><td><strong>${escapeHtml(row.placa)}</strong><small>Bus #${row.busId}</small></td><td>${row.records}</td><td class="align-right"><strong>${currency.format(row.total)}</strong></td></tr>`).join('') : `<tr><td class="table-state" colspan="3">No hay mantenimientos en este periodo.</td></tr>`;
-     $('#maintenance-buses').innerHTML = data.busesInMaintenance.length ? data.busesInMaintenance.map((bus) => `<div class="stack-item flex min-w-0 justify-between gap-3 rounded-[.8rem] border border-[rgba(245,173,75,.12)] bg-[rgba(5,11,14,.24)] p-[.85rem_.8rem]"><span class="min-w-0"><strong class="block truncate text-[var(--ink)]">${escapeHtml(bus.placa)}</strong><small class="mt-1 block truncate text-[.66rem] text-[var(--muted)]">${escapeHtml(bus.marca)} · ${escapeHtml(bus.modelo)}</small></span><span class="tag is-amber shrink-0 text-[.61rem] font-extrabold text-[var(--amber)]">Revisión</span></div>`).join('') : empty('No hay buses fuera de servicio.');
-     $('#active-trips').innerHTML = data.activeTrips.length ? data.activeTrips.map((trip) => { const assignment = trip.assignments[0]; return `<div class="assignment-row grid min-w-0 grid-cols-[2.2rem_minmax(8rem,1fr)_minmax(8rem,1fr)_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem] max-md:grid-cols-[2rem_minmax(0,1fr)_auto] max-md:gap-[.65rem] max-md:[&_.assignment-meta:nth-child(3)]:col-[2/-1] max-md:[&_.tag]:col-[3] max-md:[&_.tag]:row-[1] max-[379px]:grid-cols-[1.8rem_minmax(0,1fr)] max-[379px]:[&_.tag]:col-[2] max-[379px]:[&_.tag]:row-auto"><span class="assignment-icon grid h-8 w-8 place-items-center rounded-[.55rem] border-l-2 border-[var(--cyan)] bg-[rgba(72,228,224,.06)] text-[var(--cyan)]" aria-hidden="true">↝</span><span class="assignment-meta min-w-0"><span class="assignment-label mb-1 block truncate text-[.57rem] font-extrabold uppercase tracking-[.1em] text-[var(--subtle)]">Viaje · ${escapeHtml(trip.code)}</span><strong class="block truncate text-[.78rem] text-[var(--ink)]">${escapeHtml(trip.origin)}</strong><small class="mt-1 block truncate text-[.66rem] text-[var(--muted)]">${date.format(new Date(trip.initialStartAt))}</small></span><span class="assignment-meta min-w-0"><span class="assignment-label mb-1 block truncate text-[.57rem] font-extrabold uppercase tracking-[.1em] text-[var(--subtle)]">Recursos</span><strong class="block truncate text-[.78rem] text-[var(--ink)]">${assignment ? escapeHtml(assignment.bus.placa) : 'Bus pendiente'}</strong><small class="mt-1 block truncate text-[.66rem] text-[var(--muted)]">${assignment ? escapeHtml(assignment.driver.nombres) : 'Chofer pendiente'}</small></span><span class="tag shrink-0 text-[.61rem] font-extrabold text-[var(--cyan)]">${statusLabel[trip.status] ?? escapeHtml(trip.status)}</span></div>`; }).join('') : empty('No hay asignaciones activas para mostrar.');
+    $('#maintenance-rows').innerHTML = data.maintenanceByBus.length ? data.maintenanceByBus.map((row) => `<tr class="border-t border-white/[.055] transition-colors hover:bg-[rgba(72,228,224,.045)] max-md:flex max-md:flex-wrap max-md:items-center max-md:justify-between max-md:gap-x-3 max-md:gap-y-1 max-md:px-3 max-md:py-3"><td class="px-2 py-[.7rem] pl-[.8rem] align-middle max-md:block max-md:min-w-0 max-md:flex-1 max-md:p-0"><strong class="block font-semibold text-[var(--ink)]">${escapeHtml(row.placa)}</strong><small class="block text-[.65rem] text-[var(--muted)]">Bus #${row.busId}</small></td><td class="px-2 py-[.7rem] align-middle text-[#b4c0bd] max-md:p-0 max-md:text-[.72rem] max-md:text-[var(--muted)]"><span class="md:hidden">Registros: </span>${row.records}</td><td class="px-2 py-[.7rem] pr-[.8rem] text-right align-middle whitespace-nowrap max-md:p-0"><span class="font-bold text-[var(--amber)]">${currency.format(row.total)}</span></td></tr>`).join('') : `<tr><td class="px-6 py-[2.8rem] text-center text-[var(--subtle)]" colspan="3">No hay mantenimientos en este periodo.</td></tr>`;
+     $('#maintenance-buses').innerHTML = data.busesInMaintenance.length ? data.busesInMaintenance.map((bus) => `<div class="flex min-w-0 items-start justify-between gap-3 rounded-[.8rem] border border-[rgba(245,173,75,.12)] bg-[rgba(5,11,14,.24)] p-[.85rem_.8rem] max-md:flex-wrap"><span class="min-w-0"><strong class="block truncate text-[var(--ink)]">${escapeHtml(bus.placa)}</strong><small class="mt-1 block truncate text-[.66rem] text-[var(--muted)]">${escapeHtml(bus.marca)} · ${escapeHtml(bus.modelo)}</small></span><span class="shrink-0 text-[.61rem] font-extrabold text-[var(--amber)] max-md:ml-auto">Revisión</span></div>`).join('') : empty('No hay buses fuera de servicio.');
+     $('#active-trips').innerHTML = data.activeTrips.length ? data.activeTrips.map((trip) => { const assignment = trip.assignments[0]; return `<div class="grid min-w-0 grid-cols-[2.2rem_minmax(8rem,1fr)_minmax(8rem,1fr)_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem] max-md:grid-cols-[2rem_minmax(0,1fr)_auto] max-md:gap-[.65rem] max-[379px]:grid-cols-[1.8rem_minmax(0,1fr)]"><span class="grid h-8 w-8 place-items-center rounded-[.55rem] border-l-2 border-[var(--cyan)] bg-[rgba(72,228,224,.06)] text-[var(--cyan)]" aria-hidden="true">↝</span><span class="min-w-0"><span class="mb-1 block truncate text-[.57rem] font-extrabold uppercase tracking-[.1em] text-[var(--subtle)]">Viaje · ${escapeHtml(trip.code)}</span><strong class="block truncate text-[.78rem] text-[var(--ink)]">${escapeHtml(trip.origin)}</strong><small class="mt-1 block truncate text-[.66rem] text-[var(--muted)]">${date.format(new Date(trip.initialStartAt))}</small></span><span class="min-w-0"><span class="mb-1 block truncate text-[.57rem] font-extrabold uppercase tracking-[.1em] text-[var(--subtle)]">Recursos</span><strong class="block truncate text-[.78rem] text-[var(--ink)]">${assignment ? escapeHtml(assignment.bus.placa) : 'Bus pendiente'}</strong><small class="mt-1 block truncate text-[.66rem] text-[var(--muted)]">${assignment ? escapeHtml(assignment.driver.nombres) : 'Chofer pendiente'}</small></span><span class="shrink-0 text-[.61rem] font-extrabold text-[var(--cyan)]">${statusLabel[trip.status] ?? escapeHtml(trip.status)}</span></div>`; }).join('') : empty('No hay asignaciones activas para mostrar.');
     const totalCost = k.maintenanceCost;
     $('#period-cost').textContent = currency.format(totalCost);
     $('#spend-empty').hidden = totalCost !== 0 || data.maintenanceByBus.length > 0;
