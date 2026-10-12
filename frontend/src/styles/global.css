@@ -731,4 +731,25 @@ input::placeholder, textarea::placeholder, .input::placeholder { color: #657277;
     .trips-table-wrap td[data-label='Acciones']::before { display: none; }
   }
 
+  /* Bus detail page ([id].astro): sticky info card on the left, scrollable
+     detail on the right. On narrow screens the aside moves above the main. */
+  .bus-detail-page { padding-block: 1rem 2rem; }
+  @media (min-width: 1024px) {
+    .bus-detail-grid { align-items: start; }
+    .bus-detail-aside { position: sticky; top: 1rem; max-height: calc(100dvh - 1rem); overflow-y: auto; }
+    .bus-detail-main { min-width: 0; }
+  }
+  @media (max-width: 1023px) {
+    .bus-detail-aside { order: -1; }
+  }
+  @media (max-width: 760px) {
+    .bus-detail-grid { grid-template-columns: minmax(0, 1fr) !important; gap: .85rem !important; }
+    .bus-detail-grid > aside .fleet-card,
+    .bus-detail-grid > section > article { padding: 1rem !important; }
+    #bus-name { font-size: clamp(1.65rem, 7vw, 2.1rem); }
+    #bus-stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    #bus-trips > a, #bus-maintenance > div { grid-template-columns: auto minmax(0, 1fr) !important; }
+    #bus-trips > a > strong:last-child, #bus-maintenance > div > strong:last-child { grid-column: 1 / -1; text-align: right; padding-top: .4rem; border-top: 1px dashed rgba(234,239,226,.08); margin-top: .3rem; }
+  }
+
 }

@@ -16,6 +16,7 @@ export class BusesController {
   @Get() list(@Query('search') search = '', @Query('page') page = '1', @Query('limit') limit = '20') { return this.service.list(search, Number(page), Number(limit)); }
   @Get('catalog') catalog() { return this.service.listAvailable(); }
   @Get(':id') get(@Param('id', ParseIntPipe) id: number) { return this.service.get(id); }
+  @Get(':id/detail') detail(@Param('id', ParseIntPipe) id: number) { return this.service.getDetail(id); }
   @Post() create(@Body() dto: CreateBusDto) { return this.service.create(dto); }
   @Post(':id/photo')
   @UseInterceptors(FileInterceptor('photo', { limits: { fileSize: PHOTO_MAX_BYTES }, fileFilter: (_req, file, cb) => cb(null, /^image\/(jpeg|png|webp|gif)$/.test(file.mimetype)) }))

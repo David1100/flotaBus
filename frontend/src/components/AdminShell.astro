@@ -197,7 +197,7 @@ const { title = 'Consola · flotaBus', active = 'dashboard' } = Astro.props;
   async function navigateAdmin(href: string, addHistory = true) {
     const token = ++navigationToken;
     const url = new URL(href, window.location.href);
-      const adminRoutes = new Set(['/admin', '/admin/drivers', '/admin/buses', '/admin/buses/mantenimiento', '/admin/buses/mantenimiento/historial', '/admin/trips', '/admin/trips/detail']);
+      const adminRoutes = new Set(['/admin', '/admin/drivers', '/admin/buses', '/admin/buses/mantenimiento', '/admin/buses/mantenimiento/historial', '/admin/buses/detail', '/admin/trips', '/admin/trips/detail']);
      const isAdminRoute = adminRoutes.has(url.pathname);
      if (url.origin !== window.location.origin || !isAdminRoute) return;
 

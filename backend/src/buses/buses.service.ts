@@ -86,6 +86,92 @@ export class BusesService {
     return bus;
   }
 
+  async getDetail(id: number) {
+    const bus = await this.db.bus.findUnique({
+      where: { id },
+      include: {
+        defaultDrivers: {
+          where: { rol: 'CHOFER' },
+          orderBy: [{ nombres: 'asc' }, { username: 'asc' }],
+          select: { id: true, codigo: true, nombres: true, username: true, photoUrl: true },
+        },
+        assignments: {
+          orderBy: [{ status: 'asc' }, { assignedAt: 'desc' }],
+          select: {
+            id: true,
+            status: true,
+            assignedAt: true,
+            revokedAt: true,
+            trip: {
+              select: {
+                id: true, code: true, status: true, origin: true, initialStartAt: true,
+                legs: { orderBy: { sequence: 'asc' }, select: { destination: true, plannedArrivalAt: true } },
+              },
+            },
+            driver: { select: { id: true, nombres: true, username: true } },
+          },
+        },
+        maintenanceRecords: {
+          orderBy: { recordedAt: 'desc' },
+          select: { id: true, area: true, detail: true, cost: true, photoUrl: true, recordedAt: true },
+        },
+        _count: { select: { assignments: true, maintenanceRecords: true } },
+      },
+    });
+    if (!bus) throw new NotFoundException('Bus no encontrado.');
+
+    const tripsTotal = bus.assignments.length;
+    const tripsActive = bus.assignments.filter(a => a.status === 'ACTIVE').length;
+    const tripsCompleted = bus.assignments.filter(a => a.status === 'ACTIVE' && a.trip.status === 'RETURNED').length;
+    const maintenanceTotal = bus._count.maintenanceRecords;
+    const maintenanceCostTotal = bus.maintenanceRecords.reduce((sum, r) => sum + Number(r.cost), 0);
+
+    const currentAssignment = bus.assignments.find(a => a.status === 'ACTIVE' && !['RETURNED', 'CANCELLED'].includes(a.trip.status)) ?? null;
+
+    const tripHistory = bus.assignments.map(a => ({
+      assignmentId: a.id,
+      assignmentStatus: a.status,
+      assignedAt: a.assignedAt,
+      revokedAt: a.revokedAt,
+      trip: a.trip,
+      driver: a.driver,
+    }));
+
+    return {
+      id: bus.id,
+      placa: bus.placa,
+      marca: bus.marca,
+      modelo: bus.modelo,
+      kilometraje: bus.kilometraje,
+      busType: bus.busType,
+      isActive: bus.isActive,
+      photoUrl: bus.photoUrl,
+      manualStatus: bus.manualStatus,
+      manualStatusUpdatedAt: bus.manualStatusUpdatedAt,
+      createdAt: bus.createdAt,
+      updatedAt: bus.updatedAt,
+      defaultDrivers: bus.defaultDrivers,
+      currentAssignment: currentAssignment
+        ? {
+              id: currentAssignment.id,
+              tripId: currentAssignment.trip.id,
+              assignedAt: currentAssignment.assignedAt,
+              trip: currentAssignment.trip,
+              driver: currentAssignment.driver,
+            }
+          : null,
+      stats: {
+        tripsTotal,
+        tripsActive,
+        tripsCompleted,
+        maintenanceTotal,
+        maintenanceCostTotal,
+      },
+      tripHistory,
+      maintenanceHistory: bus.maintenanceRecords,
+    };
+  }
+
   async getPhoto(id: number) {
     const bus = await this.db.bus.findUnique({ where: { id }, select: { photoPublicId: true } });
     if (!bus) throw new NotFoundException('Bus no encontrado.');
