@@ -78,7 +78,15 @@ export function getStaticPaths() { return [{ params: {} }]; }
     return list;
   };
 
+  const threadSkeleton = () => {
+    const thread = document.getElementById('thread') as HTMLElement | null;
+    if (!thread) return;
+    const bubble = (mine: boolean) => `<div class="msg-bubble ${mine ? 'from-me' : 'from-them'} skeleton" style="height:2.6rem"></div>`;
+    thread.innerHTML = bubble(false) + bubble(true) + bubble(false);
+  };
+
   const loadConversation = async () => {
+    threadSkeleton();
     const myId = Number(((await api('/auth/me') as any)?.id) ?? 0);
     const [incoming, sent] = await Promise.all([
       api('/messages/inbox?limit=100'),
@@ -116,6 +124,8 @@ export function getStaticPaths() { return [{ params: {} }]; }
         }
       });
     } catch (cause) {
+      const thread = document.getElementById('thread');
+      if (thread) thread.innerHTML = '<div class="empty-row">No pudimos cargar la conversación. Intenta actualizar.</div>';
       await feedback.error(cause instanceof Error ? cause.message : 'Error inesperado.', 'No se pudo cargar');
     }
   };

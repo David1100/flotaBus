@@ -150,6 +150,8 @@ export function getStaticPaths() { return [{ params: {} }]; }
     OTRO: 'bg-[rgba(234,239,226,.1)]',
   };
 
+  const historySkeleton = () => `<div class="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[1.1rem] border border-[rgba(234,239,226,.08)] bg-[rgba(5,11,14,.24)] p-[.85rem]"><span class="skeleton h-14 w-14 rounded-[1rem]"><span class="skeleton-block"></span></span><div class="grid min-w-0 gap-[.5rem]"><span class="skeleton skeleton-line w-[45%]"></span><span class="skeleton skeleton-line w-[85%]"></span><span class="skeleton skeleton-line w-[60%]"></span></div><div class="grid justify-items-end gap-[.4rem]"><span class="skeleton skeleton-pill"></span><span class="skeleton skeleton-line w-[5rem]"></span></div></div>`;
+
   const renderHistory = () => {
     const list = document.getElementById('history-list') as HTMLElement;
     const filtered = currentFilter === 'ALL' ? currentRecords : currentRecords.filter((r) => r.category === currentFilter);
@@ -195,11 +197,14 @@ export function getStaticPaths() { return [{ params: {} }]; }
     const busId = (document.getElementById('bus') as HTMLSelectElement).value;
     const list = document.getElementById('history-list') as HTMLElement;
     if (!busId) { list.innerHTML = '<div class="rounded-[.8rem] border border-dashed border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.18)] px-[.85rem] py-[1.75rem] text-center text-[.78rem] text-[var(--subtle)]"><strong class="mb-[.25rem] block text-[.9rem] text-[var(--ink)]">Sin unidad seleccionada</strong>Elige un bus arriba para ver su historial.</div>'; currentRecords = []; renderSummary(); return; }
+    list.innerHTML = historySkeleton().repeat(3);
+    const summary = document.getElementById('hist-summary');
+    if (summary) summary.innerHTML = '<span class="skeleton skeleton-pill"></span><span class="skeleton skeleton-pill"></span>';
     try {
       currentRecords = await api(`/maintenance-records/buses/${busId}/all`);
       renderHistory();
       renderSummary();
-    } catch { list.innerHTML = '<div class="rounded-[.8rem] border border-dashed border-[rgba(255,116,116,.25)] bg-[rgba(255,116,116,.06)] px-[.85rem] py-[1.75rem] text-center text-[.78rem] text-[#ff9daa]"><strong class="mb-[.25rem] block text-[.9rem]">Error</strong>No se pudo cargar el historial. Intenta de nuevo.</div>'; }
+    } catch { list.innerHTML = '<div class="rounded-[.8rem] border border-dashed border-[rgba(255,116,116,.25)] bg-[rgba(255,116,116,.06)] px-[.85rem] py-[1.75rem] text-center text-[.78rem] text-[#ff9daa]"><strong class="mb-[.25rem] block text-[.9rem]">Error</strong>No se pudo cargar el historial. Intenta de nuevo.</div>'; if (summary) summary.innerHTML = ''; }
   };
 
   const setupCategoryLogic = () => {

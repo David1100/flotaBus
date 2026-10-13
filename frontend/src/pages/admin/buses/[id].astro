@@ -201,10 +201,21 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
     };
 
     const load = async () => {
+      // Esqueleto mientras llega la ficha.
+      const skeleton = (width: string, height = '.7rem') => `<span class="skeleton skeleton-line" style="width:${width};height:${height}"></span>`;
+      $('bus-name').innerHTML = `<span class="skeleton skeleton-line" style="height:1.6rem;width:55%"></span>`;
+      $('bus-subtitle').textContent = 'Cargando información de la unidad…';
+      $('bus-stats').innerHTML = Array.from({ length: 3 }, () => `<div class="grid gap-[.3rem]">${skeleton('3.5rem')}${skeleton('4.5rem')}</div>`).join('');
+      $('bus-trips').innerHTML = Array.from({ length: 2 }, () => `<div class="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]"><span class="skeleton h-[1.9rem] w-[1.9rem] rounded-[.55rem]"></span><div class="grid min-w-0 gap-[.45rem]">${skeleton('40%')}${skeleton('75%')}</div></div>`).join('');
+      $('bus-maintenance').innerHTML = Array.from({ length: 2 }, () => `<div class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]"><span class="skeleton h-[3rem] w-[3rem] rounded-[.55rem]"></span><div class="grid min-w-0 gap-[.45rem]">${skeleton('45%')}${skeleton('85%')}${skeleton('60%')}</div></div>`).join('');
+      $('bus-trips-count').textContent = '…';
+      $('bus-maint-count').textContent = '…';
+      content.hidden = false;
+
       try { render(await api(`/buses/${busId}/detail`)); }
       catch (cause) {
         const message = cause instanceof ApiError && cause.status === 404 ? 'No encontramos este bus. Verifica el identificador.' : 'No pudimos cargar la ficha del bus. Intenta actualizar.';
-        error.hidden = false; error.textContent = message;
+        error.hidden = false; error.textContent = message; content.hidden = true;
       }
     };
 

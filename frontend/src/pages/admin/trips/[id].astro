@@ -157,7 +157,13 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
         await feedback.error(cause instanceof Error ? cause.message : 'No se pudo registrar el evento.');
       }
     };
-    const load = async () => { try { render(await api(`/trips/${tripId}`)); } catch (cause) { setError(cause instanceof ApiError && cause.status === 403 ? 'No tienes permiso para consultar este viaje.' : 'No pudimos cargar el detalle del viaje. Intenta actualizar.'); } };
+    const load = async () => {
+      // Esqueleto del detalle mientras responde la API.
+      eventActions.innerHTML = '<span class="skeleton h-[2.6rem] w-[8.5rem] rounded-[.75rem]"></span><span class="skeleton h-[2.6rem] w-[7rem] rounded-[.75rem]"></span><span class="skeleton h-[2.6rem] w-[9rem] rounded-[.75rem]"></span>';
+      timeline.innerHTML = '<li class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 p-[.75rem]"><span class="skeleton h-[1.6rem] w-[1.6rem] rounded-full"></span><div class="grid min-w-0 gap-[.45rem]"><span class="skeleton skeleton-line w-[45%]"></span><span class="skeleton skeleton-line w-[80%]"></span></div></li>'.repeat(3);
+      content.hidden = false;
+      try { render(await api(`/trips/${tripId}`)); } catch (cause) { setError(cause instanceof ApiError && cause.status === 403 ? 'No tienes permiso para consultar este viaje.' : 'No pudimos cargar el detalle del viaje. Intenta actualizar.'); }
+    };
     void load();
   };
   document.addEventListener('astro:page-load', init);

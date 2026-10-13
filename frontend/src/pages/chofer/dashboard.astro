@@ -143,6 +143,24 @@ export function getStaticPaths() { return [{ params: {} }]; }
     const setText = (id: string, value: string) => { const el = document.getElementById(id); if (el) el.textContent = value; };
     const setStatusPill = (id: string, status: string) => { const el = document.getElementById(id); if (!el) return; el.className = `status-pill ${tripStatusClass(status)}`; el.innerHTML = `<i></i>${tripStatusLabel(status)}`; };
 
+    // Esqueletos mientras llega la data del portal.
+    tripCard.hidden = false; busCard.hidden = false; emptyState.hidden = true;
+    setText('dashboard-name', 'Cargando…');
+    setText('dashboard-subtitle', 'Consultando tu operación…');
+    setText('active-trip-code', '···');
+    setText('active-trip-route', '···');
+    setText('active-trip-departure', '···');
+    setText('active-trip-legs', '···');
+    setStatusPill('active-trip-status', 'ASSIGNED');
+    const legActions = document.getElementById('leg-actions');
+    const legTitle = document.getElementById('leg-title');
+    if (legTitle) legTitle.textContent = '···';
+    if (legActions) legActions.innerHTML = '<span class="skeleton h-[2.6rem] w-[8rem] rounded-[.75rem]"></span>';
+    const routeSkeleton = '<div class="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-[.85rem] rounded-2xl border border-[rgba(234,239,226,.08)] bg-[rgba(5,11,14,.24)] p-[.8rem_.95rem]"><span class="skeleton h-[1.9rem] w-[1.9rem] rounded-[.55rem]"></span><div class="grid min-w-0 gap-[.45rem]"><span class="skeleton skeleton-line w-[55%]"></span><span class="skeleton skeleton-line w-[80%]"></span></div></div>';
+    upcomingList.innerHTML = routeSkeleton.repeat(2);
+    const maintSkeleton = '<div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]"><span class="skeleton h-[2.6rem] w-[2.6rem] rounded-[.55rem]"></span><div class="grid min-w-0 gap-[.45rem]"><span class="skeleton skeleton-line w-[45%]"></span><span class="skeleton skeleton-line w-[65%]"></span></div><span class="skeleton skeleton-pill"></span></div>';
+    maintenanceList.innerHTML = maintSkeleton.repeat(2);
+
     try {
       const data = await api('/driver-portal/dashboard');
       const driver = data?.driver;
@@ -202,6 +220,9 @@ allTripsCache = allTrips;
       greeting.dataset.ready = 'true';
     } catch (cause) {
       if (subtitle) subtitle.textContent = 'No pudimos cargar tu panel. Intenta actualizar.';
+      upcomingList.innerHTML = '<div class="grid place-items-center px-5 py-3.5 border border-dashed border-[rgba(255,116,116,.25)] rounded-xl bg-[rgba(255,116,116,.06)] text-[#ff9daa] text-[.78rem] text-center">No pudimos cargar tus rutas. Intenta actualizar.</div>';
+      maintenanceList.innerHTML = '<div class="grid place-items-center px-5 py-3.5 border border-dashed border-[rgba(255,116,116,.25)] rounded-xl bg-[rgba(255,116,116,.06)] text-[#ff9daa] text-[.78rem] text-center">No pudimos cargar los mantenimientos.</div>';
+      if (legActions) legActions.innerHTML = '';
       await feedback.error(cause instanceof ApiError ? cause.message : 'Error inesperado.', 'Sin conexión con el servidor');
     }
   };
