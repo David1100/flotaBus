@@ -254,7 +254,9 @@ allTripsCache = allTrips;
     const primaryBtn = (type: string) => {
       const tone = primaryTone[type] ?? 'cyan';
       const dot = dotColor[type] ?? 'var(--cyan)';
-      return `<button class="${btnBase} ${toneClass[tone]}" data-event="${type}" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full" style="background:${dot}" aria-hidden="true"></span>${operationEventLabel(type)}</button>`;
+      const needsLeg = type === 'STARTED' || type === 'ARRIVED';
+      const legAttr = needsLeg ? ` data-leg-id="${currentLeg.id}"` : '';
+      return `<button class="${btnBase} ${toneClass[tone]}" data-event="${type}"${legAttr} type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full" style="background:${dot}" aria-hidden="true"></span>${operationEventLabel(type)}</button>`;
     };
     const incidentBtn = primaryBtn('INCIDENT');
 
@@ -308,7 +310,8 @@ allTripsCache = allTrips;
       feedback.loading(`${operationEventLabel(type)}…`);
       const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
       if (!tripId) throw new Error('No hay viaje activo.');
-      await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type }) });
+      const legId = button.dataset.legId ? Number(button.dataset.legId) : undefined;
+      await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify(legId ? { type, legId } : { type }) });
       Swal.close();
       await feedback.success(`${operationEventLabel(type)} registrado. El administrador fue notificado.`, 'Listo');
       await init();

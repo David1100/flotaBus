@@ -1,5 +1,5 @@
 /* flotaBus worker: deliberately small and conservative around session data. */
-const CACHE_VERSION = 'flotabus-public-v1';
+const CACHE_VERSION = 'flotabus-public-v2';
 const PUBLIC_CACHE = CACHE_VERSION;
 const PUBLIC_NAVIGATION = new Set(['/', '/login']);
 const SAFE_ASSET = /^\/(?:_astro\/|icons\/|manifest\.webmanifest$)/;

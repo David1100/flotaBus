@@ -73,6 +73,7 @@ enum MaintenanceCategory {
 
 enum OperationEventType {
   STARTED
+  RESUME
   STOPPED
   LUNCH_STARTED
   LUNCH_ENDED
@@ -80,6 +81,7 @@ enum OperationEventType {
   INCIDENT_RESOLVED
   ARRIVED
   RETURNED
+  FINISH
   CANCELLED
 }
 

@@ -73,12 +73,12 @@ export function getStaticPaths() { return [{ params: {} }]; }
         <div id="hist-summary" class="flex flex-wrap items-center gap-2 max-md:w-full"></div>
       </div>
 
-      <div class="mt-4 flex flex-wrap items-center gap-1 rounded-full border border-[rgba(234,239,226,.08)] bg-[rgba(5,11,14,.3)] p-1">
-        <button class="hist-tab is-active" data-filter="ALL" type="button">Todos</button>
-        <button class="hist-tab" data-filter="MANTENIMIENTO" type="button">🛠 Mantenimiento</button>
-        <button class="hist-tab" data-filter="COMBUSTIBLE" type="button">⛽ Tanquear</button>
-        <button class="hist-tab" data-filter="PINCHAZO" type="button">🛞 Pinchazo</button>
-        <button class="hist-tab" data-filter="OTRO" type="button">📦 Otros</button>
+      <div class="mt-4 flex gap-[.35rem] overflow-x-auto rounded-[1rem] border border-[rgba(234,239,226,.08)] bg-[rgba(5,11,14,.3)] p-[.35rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <button class="hist-tab inline-flex min-h-[2.4rem] flex-none items-center gap-[.35rem] whitespace-nowrap rounded-full border border-transparent px-[.85rem] py-[.5rem] text-[.75rem] font-bold text-[var(--muted)] transition-colors duration-200 hover:bg-[rgba(72,228,224,.06)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cyan)] [&.is-active]:border-[rgba(72,228,224,.3)] [&.is-active]:bg-[rgba(72,228,224,.16)] [&.is-active]:text-[var(--ink)]" data-filter="ALL" type="button" aria-pressed="true">Todos</button>
+        <button class="hist-tab inline-flex min-h-[2.4rem] flex-none items-center gap-[.35rem] whitespace-nowrap rounded-full border border-transparent px-[.85rem] py-[.5rem] text-[.75rem] font-bold text-[var(--muted)] transition-colors duration-200 hover:bg-[rgba(72,228,224,.06)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cyan)] [&.is-active]:border-[rgba(72,228,224,.3)] [&.is-active]:bg-[rgba(72,228,224,.16)] [&.is-active]:text-[var(--ink)]" data-filter="MANTENIMIENTO" type="button" aria-pressed="false"><span aria-hidden="true">🛠</span>Mantenimiento</button>
+        <button class="hist-tab inline-flex min-h-[2.4rem] flex-none items-center gap-[.35rem] whitespace-nowrap rounded-full border border-transparent px-[.85rem] py-[.5rem] text-[.75rem] font-bold text-[var(--muted)] transition-colors duration-200 hover:bg-[rgba(72,228,224,.06)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cyan)] [&.is-active]:border-[rgba(72,228,224,.3)] [&.is-active]:bg-[rgba(72,228,224,.16)] [&.is-active]:text-[var(--ink)]" data-filter="COMBUSTIBLE" type="button" aria-pressed="false"><span aria-hidden="true">⛽</span>Tanquear</button>
+        <button class="hist-tab inline-flex min-h-[2.4rem] flex-none items-center gap-[.35rem] whitespace-nowrap rounded-full border border-transparent px-[.85rem] py-[.5rem] text-[.75rem] font-bold text-[var(--muted)] transition-colors duration-200 hover:bg-[rgba(72,228,224,.06)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cyan)] [&.is-active]:border-[rgba(72,228,224,.3)] [&.is-active]:bg-[rgba(72,228,224,.16)] [&.is-active]:text-[var(--ink)]" data-filter="PINCHAZO" type="button" aria-pressed="false"><span aria-hidden="true">🛞</span>Pinchazo</button>
+        <button class="hist-tab inline-flex min-h-[2.4rem] flex-none items-center gap-[.35rem] whitespace-nowrap rounded-full border border-transparent px-[.85rem] py-[.5rem] text-[.75rem] font-bold text-[var(--muted)] transition-colors duration-200 hover:bg-[rgba(72,228,224,.06)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cyan)] [&.is-active]:border-[rgba(72,228,224,.3)] [&.is-active]:bg-[rgba(72,228,224,.16)] [&.is-active]:text-[var(--ink)]" data-filter="OTRO" type="button" aria-pressed="false"><span aria-hidden="true">📦</span>Otros</button>
       </div>
 
       <div id="history-list" class="mt-4 grid gap-[.5rem]"></div>
@@ -100,12 +100,6 @@ export function getStaticPaths() { return [{ params: {} }]; }
   .hist-cat:has(input:checked) .hist-cat-card { border-color: rgba(72,228,224,.45); background: rgba(72,228,224,.1); box-shadow: inset 0 0 0 1px rgba(72,228,224,.35); }
   .hist-cat:has(input:focus-visible) .hist-cat-card { border-color: var(--amber); }
 
-  .hist-tab { flex: 1 1 auto; min-height: 2.2rem; padding: .45rem .85rem; border: 1px solid transparent; border-radius: 999px; background: transparent; color: var(--muted); font-size: .72rem; font-weight: 700; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
-  .hist-tab:hover { color: var(--ink); background: rgba(72,228,224,.06); }
-  .hist-tab.is-active { color: var(--ink); background: rgba(72,228,224,.16); border-color: rgba(72,228,224,.3); }
-
-  .hist-summary-pill { display: inline-flex; align-items: center; gap: .35rem; padding: .35rem .7rem; border-radius: 999px; border: 1px solid rgba(72,228,224,.22); background: rgba(72,228,224,.08); font-size: .72rem; font-weight: 700; color: var(--ink); }
-  .hist-summary-pill strong { color: var(--cyan); font-family: 'Outfit', sans-serif; }
   .hist-card { display: grid; grid-template-columns: 4rem minmax(0, 1fr) auto; gap: 1rem; align-items: center; padding: 1rem 1.15rem; border-radius: 1.1rem; border: 1px solid rgba(234,239,226,.08); background: rgba(5,11,14,.24); transition: border-color .2s, background .2s, transform .15s; }
   .hist-card:hover { border-color: rgba(72,228,224,.32); background: rgba(72,228,224,.05); transform: translateY(-1px); }
   .hist-card .hist-icon { display: grid; place-items: center; width: 4rem; height: 4rem; border-radius: 1rem; font-size: 1.5rem; line-height: 1; overflow: hidden; }
@@ -212,12 +206,12 @@ export function getStaticPaths() { return [{ params: {} }]; }
     const byCategory = currentRecords.reduce<Record<string, number>>((acc, r) => { acc[r.category] = (acc[r.category] ?? 0) + Number(r.cost || 0); return acc; }, {});
     if (totalCount === 0) { summary.innerHTML = ''; return; }
     const parts = [
-      `<span class="hist-summary-pill"><strong>${totalCount}</strong> registros</span>`,
-      `<span class="hist-summary-pill">Total <strong>${escape(formatMoney(totalCost))}</strong></span>`,
+      `<span class="inline-flex items-center gap-[.35rem] rounded-full border border-[rgba(72,228,224,.22)] bg-[rgba(72,228,224,.08)] px-[.7rem] py-[.35rem] text-[.72rem] font-bold text-[var(--ink)]"><strong class="font-display text-[var(--cyan)]">${totalCount}</strong> registros</span>`,
+      `<span class="inline-flex items-center gap-[.35rem] rounded-full border border-[rgba(72,228,224,.22)] bg-[rgba(72,228,224,.08)] px-[.7rem] py-[.35rem] text-[.72rem] font-bold text-[var(--ink)]">Total <strong class="font-display text-[var(--cyan)]">${escape(formatMoney(totalCost))}</strong></span>`,
     ];
     for (const [key, value] of Object.entries(byCategory)) {
       const label = categoryLabels[key]?.name ?? key;
-      parts.push(`<span class="hist-summary-pill">${escape(label)} <strong>${escape(formatMoney(value))}</strong></span>`);
+      parts.push(`<span class="inline-flex items-center gap-[.35rem] rounded-full border border-[rgba(72,228,224,.22)] bg-[rgba(72,228,224,.08)] px-[.7rem] py-[.35rem] text-[.72rem] font-bold text-[var(--ink)]">${escape(label)} <strong class="font-display text-[var(--cyan)]">${escape(formatMoney(value))}</strong></span>`);
     }
     summary.innerHTML = parts.join('');
   };
@@ -320,7 +314,11 @@ export function getStaticPaths() { return [{ params: {} }]; }
         (document.querySelector('.photo-drop-prompt') as HTMLElement).hidden = false;
         setupCategoryLogic();
         currentFilter = 'ALL';
-        document.querySelectorAll<HTMLButtonElement>('.hist-tab').forEach((b) => b.classList.toggle('is-active', b.dataset.filter === 'ALL'));
+        document.querySelectorAll<HTMLButtonElement>('.hist-tab').forEach((b) => {
+          const active = b.dataset.filter === 'ALL';
+          b.classList.toggle('is-active', active);
+          b.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
         await loadHistory();
       } catch (cause) {
         Swal.close();
@@ -336,7 +334,11 @@ export function getStaticPaths() { return [{ params: {} }]; }
     document.querySelectorAll<HTMLButtonElement>('.hist-tab').forEach((button) => {
       button.addEventListener('click', () => {
         currentFilter = (button.dataset.filter ?? 'ALL') as typeof currentFilter;
-        document.querySelectorAll<HTMLButtonElement>('.hist-tab').forEach((b) => b.classList.toggle('is-active', b === button));
+        document.querySelectorAll<HTMLButtonElement>('.hist-tab').forEach((b) => {
+          const active = b === button;
+          b.classList.toggle('is-active', active);
+          b.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
         renderHistory();
       });
     });
