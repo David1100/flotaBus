@@ -38,7 +38,11 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
       <article class="glass fleet-card min-w-0 rounded-[1.25rem] p-[1.35rem]">
         <div class="flex items-start justify-between gap-4"><div class="min-w-0"><div class="eyebrow">AUDITORÍA DE OPERACIÓN</div><h2 class="m-0 font-display text-[1.45rem] text-[var(--ink)]">Historial operativo</h2></div></div>
         <ol id="timeline" class="mt-5 grid list-none gap-[.55rem] p-0"></ol>
-        <div class="mt-5 flex flex-wrap items-end gap-3 border-t border-[rgba(234,239,226,.1)] pt-4"><label class="grid min-w-0 flex-1 gap-[.45rem] text-[.82rem] text-[#c9d2cc]" for="event-type">Registrar nuevo evento<select id="event-type" class="input" aria-label="Tipo de evento"></select></label><button id="event" class="btn btn-primary" type="button">Registrar evento</button></div>
+        <div class="mt-5 border-t border-[rgba(234,239,226,.1)] pt-4">
+          <div class="eyebrow">REGISTRAR EVENTO OPERATIVO</div>
+          <p class="m-0 mt-1 text-[.72rem] text-[var(--muted)]">Acciones compartidas con el chofer: iniciar, reanudar, detener, marcar llegada o finalizar.</p>
+          <div id="event-actions" class="mt-3 flex flex-wrap gap-[.55rem]"></div>
+        </div>
       </article>
     </section>
   </div>
@@ -47,31 +51,55 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
 <script>
   import { api, ApiError } from '../../../lib/api';
   import { feedback, Swal } from '../../../lib/feedback';
-  import { OPERATION_EVENT_OPTIONS, operationEventLabel, tripStatusClass, tripStatusLabel } from '../../../lib/trip-labels';
+  import { OPERATION_EVENT_GROUPS, operationEventLabel, tripStatusClass, tripStatusLabel } from '../../../lib/trip-labels';
+
+  const BASE_BTN = 'inline-flex items-center gap-2 min-h-[2.6rem] px-[.9rem] py-[.55rem] rounded-[.75rem] text-[.78rem] font-bold cursor-pointer transition-all duration-200 active:translate-y-[1px] border';
+  const TONE_CLASS: Record<string, string> = {
+    cyan: 'border-[rgba(72,228,224,.3)] bg-[rgba(72,228,224,.08)] text-[var(--cyan)] hover:border-[rgba(72,228,224,.45)] hover:bg-[rgba(72,228,224,.16)]',
+    amber: 'border-[rgba(245,173,75,.35)] bg-[rgba(5,11,14,.35)] text-[var(--amber)] hover:border-[rgba(245,173,75,.55)] hover:bg-[rgba(245,173,75,.08)]',
+    gray: 'border-[rgba(234,239,226,.18)] bg-[rgba(5,11,14,.35)] text-[var(--ink)] hover:border-[rgba(72,228,224,.4)] hover:bg-[rgba(72,228,224,.06)]',
+    success: 'border-[rgba(94,197,146,.35)] bg-[rgba(94,197,146,.08)] text-[#5ec592] hover:border-[rgba(94,197,146,.55)] hover:bg-[rgba(94,197,146,.16)]',
+    warn: 'border-[rgba(255,116,116,.35)] bg-[rgba(5,11,14,.35)] text-[#ff9daa] hover:border-[rgba(255,116,116,.55)] hover:bg-[rgba(255,116,116,.08)]',
+  };
+  const PRIMARY_TONES: Record<string, string> = {
+    STARTED: 'cyan',
+    RESUME: 'cyan',
+    STOPPED: 'amber',
+    ARRIVED: 'success',
+    FINISH: 'success',
+    INCIDENT: 'warn',
+  };
 
   const init = () => {
      const content = document.querySelector<HTMLElement>('#trip-content');
-    if (!content || content.dataset.ready === 'true') return;
-    content.dataset.ready = 'true';
+    if (!content) return;
     const requestedId = new URLSearchParams(window.location.search).get('id');
-     // This route is intentionally generated at /admin/trips/detail. The real
-     // trip id always comes from the query string so the same page works for
-     // direct loads and the AdminShell partial router.
-     const tripId = requestedId || 'detail';
+     const tripId = requestedId || '';
+    if (content.dataset.ready === tripId) return;
+    content.dataset.ready = tripId;
      const error = document.querySelector<HTMLElement>('#trip-error');
      const title = document.querySelector<HTMLElement>('#trip-title');
      const summary = document.querySelector<HTMLElement>('#trip-summary');
      const timeline = document.querySelector<HTMLOListElement>('#timeline');
-     const eventType = document.querySelector<HTMLSelectElement>('#event-type');
-     const eventButton = document.querySelector<HTMLButtonElement>('#event');
-    if (!error || !title || !summary || !timeline || !eventType || !eventButton) return;
+     const eventActions = document.querySelector<HTMLElement>('#event-actions');
+    if (!error || !title || !summary || !timeline || !eventActions) return;
 
      const formatDate = (value: unknown) => value ? new Date(value as string | number | Date).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
      const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character] ?? character));
      const setError = (message: string) => { error.hidden = false; error.textContent = message; content.hidden = true; };
     if (!/^\d+$/.test(tripId)) { setError('No se indicó un viaje válido.'); return; }
 
-    eventType.innerHTML = OPERATION_EVENT_OPTIONS.map(({ value, label }) => `<option value="${value}">${label}</option>`).join('');
+    const renderEventActions = (status: string) => {
+      const list = [...OPERATION_EVENT_GROUPS.primary, ...OPERATION_EVENT_GROUPS.always];
+      const buttons = list.map((type) => {
+        const tone = PRIMARY_TONES[type] ?? 'cyan';
+        return `<button class="${BASE_BTN} ${TONE_CLASS[tone]}" data-event="${type}" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[var(--${tone})]" aria-hidden="true"></span>${escape(operationEventLabel(type))}</button>`;
+      }).join('');
+      eventActions.innerHTML = buttons;
+      eventActions.querySelectorAll<HTMLButtonElement>('[data-event]').forEach((button) => {
+        button.addEventListener('click', () => { void sendEvent(button.dataset.event ?? ''); });
+      });
+    };
     const renderAssignments = (assignments = []) => {
       const active = assignments.filter(item => !item.status || item.status === 'ACTIVE');
       const target = document.querySelector('#trip-assignments');
@@ -103,10 +131,33 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
       legsTarget.innerHTML = legs.length ? legs.map(leg => `<div class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]"><span class="grid h-8 w-8 place-items-center rounded-lg bg-[rgba(72,228,224,.12)] font-display text-[.8rem] font-semibold text-[var(--cyan)]">${leg.sequence}</span><div class="grid min-w-0 gap-2"><strong class="text-[.8rem] text-[var(--ink)]">${escape(leg.origin)} <span aria-hidden="true" class="text-[var(--cyan)]">→</span> ${escape(leg.destination)}</strong><div class="grid gap-2 text-[.7rem] text-[var(--muted)] sm:grid-cols-3"><span class="grid gap-[.15rem]"><small class="text-[.56rem] uppercase tracking-[.1em] text-[var(--subtle)]">Salida</small>${escape(formatDate(leg.plannedDepartureAt))}</span><span class="grid gap-[.15rem]"><small class="text-[.56rem] uppercase tracking-[.1em] text-[var(--subtle)]">Duración</small>${escape(String(leg.durationDays))} día${leg.durationDays === 1 ? '' : 's'}</span><span class="grid gap-[.15rem]"><small class="text-[.56rem] uppercase tracking-[.1em] text-[var(--subtle)]">Llegada estimada</small>${escape(formatDate(leg.plannedArrivalAt))}</span></div>${leg.notes ? `<p class="m-0 text-[.72rem] text-[var(--muted)]">${escape(leg.notes)}</p>` : ''}</div></div>`).join('') : '<p class="m-0 py-[1.35rem] text-[.73rem] text-[var(--subtle)]">No hay trayectos registrados para este viaje.</p>';
       renderAssignments(trip.assignments);
       renderTimeline(trip.events);
+      renderEventActions(trip.status);
+      (window as any).__currentTrip = trip;
       content.hidden = false;
     };
+    const sendEvent = async (type: string) => {
+      if (type === 'INCIDENT') {
+        const trip = (window as any).__currentTrip as { assignments?: Array<{ busId?: number; status?: string }> } | undefined;
+        const busId = trip?.assignments?.find((a) => a.busId && (!a.status || a.status === 'ACTIVE'))?.busId;
+        if (!busId) {
+          await feedback.error('Este viaje todavía no tiene un bus asignado. Asigna uno antes de registrar una incidencia.', 'Sin bus');
+          return;
+        }
+        window.location.assign(`/admin/buses/mantenimiento?busId=${busId}&incident=1&tripId=${encodeURIComponent(tripId)}`);
+        return;
+      }
+      try {
+        feedback.loading('Registrando evento…');
+        await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type }) });
+        Swal.close();
+        await feedback.success(`${operationEventLabel(type)} registrado.`);
+        await load();
+      } catch (cause) {
+        Swal.close();
+        await feedback.error(cause instanceof Error ? cause.message : 'No se pudo registrar el evento.');
+      }
+    };
     const load = async () => { try { render(await api(`/trips/${tripId}`)); } catch (cause) { setError(cause instanceof ApiError && cause.status === 403 ? 'No tienes permiso para consultar este viaje.' : 'No pudimos cargar el detalle del viaje. Intenta actualizar.'); } };
-    eventButton.addEventListener('click', async () => { try { eventButton.disabled = true; feedback.loading('Registrando evento…'); await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type: eventType.value }) }); Swal.close(); await feedback.success('El evento fue registrado.'); await load(); } catch (cause) { Swal.close(); await feedback.error(cause instanceof Error ? cause.message : 'No se pudo registrar el evento.'); } finally { eventButton.disabled = false; } });
     void load();
   };
   document.addEventListener('astro:page-load', init);

@@ -112,7 +112,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
 <script>
   import { api, ApiError } from '../../lib/api';
   import { feedback, Swal } from '../../lib/feedback';
-  import { tripStatusClass, tripStatusLabel } from '../../lib/trip-labels';
+  import { OPERATION_EVENT_GROUPS, operationEventLabel, tripStatusClass, tripStatusLabel } from '../../lib/trip-labels';
 
   const formatDate = (value: string | null | undefined) => value ? new Date(value).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
   const formatMoney = (value: string | number) => Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
@@ -223,40 +223,42 @@ allTripsCache = allTrips;
     }
     const buttons: string[] = [];
     const btnBase = 'inline-flex items-center gap-2 min-h-[2.6rem] px-[.9rem] py-[.55rem] rounded-[.75rem] text-[.78rem] font-bold cursor-pointer transition-all duration-200 active:translate-y-[1px] border';
-    const cyanBtn = `${btnBase} border-[rgba(72,228,224,.3)] bg-[rgba(72,228,224,.08)] text-[var(--cyan)] hover:border-[rgba(72,228,224,.45)] hover:bg-[rgba(72,228,224,.16)]`;
-    const amberBtn = `${btnBase} border-[rgba(245,173,75,.35)] bg-[rgba(5,11,14,.35)] text-[var(--amber)] hover:border-[rgba(245,173,75,.55)] hover:bg-[rgba(245,173,75,.08)]`;
-    const grayBtn = `${btnBase} border-[rgba(234,239,226,.18)] bg-[rgba(5,11,14,.35)] text-[var(--ink)] hover:border-[rgba(72,228,224,.4)] hover:bg-[rgba(72,228,224,.06)]`;
-    const returnBtn = `${btnBase} border-[rgba(245,173,75,.35)] bg-[rgba(245,173,75,.1)] text-[var(--amber)] hover:border-[rgba(245,173,75,.55)] hover:bg-[rgba(245,173,75,.2)]`;
-    const warnBtn = `${btnBase} border-[rgba(255,116,116,.35)] bg-[rgba(5,11,14,.35)] text-[#ff9daa] hover:border-[rgba(255,116,116,.55)] hover:bg-[rgba(255,116,116,.08)]`;
+    const toneClass: Record<string, string> = {
+      cyan: 'border-[rgba(72,228,224,.3)] bg-[rgba(72,228,224,.08)] text-[var(--cyan)] hover:border-[rgba(72,228,224,.45)] hover:bg-[rgba(72,228,224,.16)]',
+      amber: 'border-[rgba(245,173,75,.35)] bg-[rgba(5,11,14,.35)] text-[var(--amber)] hover:border-[rgba(245,173,75,.55)] hover:bg-[rgba(245,173,75,.08)]',
+      gray: 'border-[rgba(234,239,226,.18)] bg-[rgba(5,11,14,.35)] text-[var(--ink)] hover:border-[rgba(72,228,224,.4)] hover:bg-[rgba(72,228,224,.06)]',
+      success: 'border-[rgba(94,197,146,.35)] bg-[rgba(94,197,146,.08)] text-[#5ec592] hover:border-[rgba(94,197,146,.55)] hover:bg-[rgba(94,197,146,.16)]',
+      warn: 'border-[rgba(255,116,116,.35)] bg-[rgba(5,11,14,.35)] text-[#ff9daa] hover:border-[rgba(255,116,116,.55)] hover:bg-[rgba(255,116,116,.08)]',
+    };
+    const primaryTone: Record<string, string> = {
+      STARTED: 'cyan', RESUME: 'cyan', STOPPED: 'amber', ARRIVED: 'success', FINISH: 'success', INCIDENT: 'warn',
+    };
+    const dotColor: Record<string, string> = {
+      STARTED: 'var(--cyan)', RESUME: 'var(--cyan)', STOPPED: '#d4a72c', ARRIVED: '#5ec592', FINISH: 'var(--amber)', INCIDENT: '#ff7474',
+    };
+    const primaryBtn = (type: string) => {
+      const tone = primaryTone[type] ?? 'cyan';
+      const dot = dotColor[type] ?? 'var(--cyan)';
+      return `<button class="${btnBase} ${toneClass[tone]}" data-event="${type}" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full" style="background:${dot}" aria-hidden="true"></span>${operationEventLabel(type)}</button>`;
+    };
+    const incidentBtn = primaryBtn('INCIDENT');
 
     if (tripFinished) {
       buttons.push(`<div class="text-[.78rem] text-[#5ec592] font-bold">✓ Viaje finalizado</div>`);
-    } else if (tripIsStopped) {
-      buttons.push(`<button class="${cyanBtn}" data-event="RESUME_FAKE" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[var(--cyan)]" aria-hidden="true"></span>Retomar</button>`);
-      buttons.push(`<button class="${warnBtn}" data-event="INCIDENT" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[#ff7474]" aria-hidden="true"></span>Incidencia</button>`);
-    } else if (tripIsPaused) {
-      buttons.push(`<button class="${cyanBtn}" data-event="LUNCH_ENDED" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[var(--cyan)]" aria-hidden="true"></span>Reanudar</button>`);
-      buttons.push(`<button class="${warnBtn}" data-event="INCIDENT" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[#ff7474]" aria-hidden="true"></span>Incidencia</button>`);
-    } else if (legStatus === 'NOT_STARTED' && isFirstPending) {
-      buttons.push(`<button class="${cyanBtn}" data-leg-action="start-leg" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[var(--cyan)]" aria-hidden="true"></span>Iniciar tramo</button>`);
-      buttons.push(`<button class="${warnBtn}" data-event="INCIDENT" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[#ff7474]" aria-hidden="true"></span>Incidencia</button>`);
-    } else if (legStatus === 'RUNNING') {
-      buttons.push(`<button class="${grayBtn}" data-event="STOPPED" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[#d4a72c]" aria-hidden="true"></span>Detener</button>`);
-      buttons.push(`<button class="${amberBtn}" data-leg-action="arrive-leg" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[#5ec592]" aria-hidden="true"></span>Llegué</button>`);
-      buttons.push(`<button class="${warnBtn}" data-event="INCIDENT" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[#ff7474]" aria-hidden="true"></span>Incidencia</button>`);
-    } else if (allFinished) {
-      buttons.push(`<button class="${returnBtn}" data-event="RETURNED" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[var(--amber)]" aria-hidden="true"></span>Retornar al origen</button>`);
+    } else {
+      if (tripIsStopped) buttons.push(primaryBtn('RESUME'));
+      else if (tripIsPaused) buttons.push(primaryBtn('RESUME'));
+      else if (legStatus === 'NOT_STARTED' && isFirstPending) buttons.push(primaryBtn('STARTED'));
+      else if (legStatus === 'RUNNING') {
+        buttons.push(primaryBtn('STOPPED'));
+        buttons.push(primaryBtn('ARRIVED'));
+      } else if (allFinished) buttons.push(primaryBtn('FINISH'));
+      buttons.push(incidentBtn);
     }
     if (legActions) {
       legActions.innerHTML = buttons.join('');
       legActions.querySelectorAll<HTMLButtonElement>('[data-event]').forEach((button) => {
         button.addEventListener('click', () => { void sendEvent(button); });
-      });
-      legActions.querySelectorAll<HTMLButtonElement>('[data-leg-action="start-leg"]').forEach((button) => {
-        button.addEventListener('click', () => { void legAction('start', currentLeg.id); });
-      });
-      legActions.querySelectorAll<HTMLButtonElement>('[data-leg-action="arrive-leg"]').forEach((button) => {
-        button.addEventListener('click', () => { void legAction('arrive', currentLeg.id); });
       });
     }
     if (legProgress) {
@@ -266,53 +268,34 @@ allTripsCache = allTrips;
     }
   };
 
-  const legAction = async (action: 'start' | 'arrive', legId: number) => {
-    try {
-      feedback.loading(action === 'start' ? 'Iniciando tramo…' : 'Marcando llegada…');
-      await api(`/trips/${(await api('/driver-portal/dashboard')).activeTrip?.id}/events`, { method: 'POST', body: JSON.stringify({ type: action === 'start' ? 'STARTED' : 'ARRIVED', legId }) });
-      Swal.close();
-      await init();
-    } catch (cause) {
-      Swal.close();
-      await feedback.error(cause instanceof ApiError ? cause.message : 'Error inesperado.', 'No se pudo registrar');
-    }
-  };
-
   async function sendEvent(button: HTMLButtonElement) {
     const type = button.dataset.event ?? '';
-    const labels: Record<string, string> = { STOPPED: 'Detener el bus', LUNCH_ENDED: 'Reanudar ruta', RETURNED: 'Marcar retorno', RESUME: 'Retomar ruta' };
+    const allowed = [...OPERATION_EVENT_GROUPS.primary, ...OPERATION_EVENT_GROUPS.always];
+    if (!allowed.includes(type as (typeof allowed)[number])) return;
     if (type === 'INCIDENT') {
-      const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
-      if (!tripId) {
+      const dashboard = await api('/driver-portal/dashboard');
+      const activeTrip = dashboard?.activeTrip;
+      const currentBus = dashboard?.currentBus;
+      if (!activeTrip) {
         await feedback.error('No hay viaje activo.', 'No se puede reportar');
         return;
       }
-      window.location.assign(`/chofer/historial?busId=${tripId}&incident=1`);
-      return;
-    }
-    if (type === 'RESUME_FAKE') {
-      feedback.loading('Retomando ruta…');
-      try {
-        const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
-        if (!tripId) throw new Error('No hay viaje activo.');
-        await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type: 'STARTED' }) });
-        Swal.close();
-        await feedback.success('Ruta retomada.', 'Listo');
-      } catch (cause) {
-        Swal.close();
-        await feedback.error(cause instanceof ApiError ? cause.message : 'Error inesperado.', 'No se pudo retomar');
+      const busId = currentBus?.id ?? activeTrip.assignments?.[0]?.busId;
+      if (!busId) {
+        await feedback.error('No se pudo identificar la unidad del viaje.', 'No se puede reportar');
+        return;
       }
-      await init();
+      window.location.assign(`/chofer/historial?busId=${busId}&incident=1`);
       return;
     }
     button.disabled = true;
     try {
-      feedback.loading(`${labels[type] ?? 'Registrando'}…`);
+      feedback.loading(`${operationEventLabel(type)}…`);
       const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
       if (!tripId) throw new Error('No hay viaje activo.');
       await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type }) });
       Swal.close();
-      await feedback.success(`${labels[type] ?? 'Acción'} registrada. El administrador fue notificado.`, 'Listo');
+      await feedback.success(`${operationEventLabel(type)} registrado. El administrador fue notificado.`, 'Listo');
       await init();
     } catch (cause) {
       Swal.close();

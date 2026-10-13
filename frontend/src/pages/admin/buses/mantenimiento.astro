@@ -56,7 +56,8 @@ import AdminShell from '../../../components/AdminShell.astro';
   async function initMaintenanceAreas() {
     const grid = document.querySelector<HTMLElement>('[data-maintenance-areas]');
     if (!grid) return;
-    const busId = new URLSearchParams(window.location.search).get('id')?.trim() || '';
+    const params = new URLSearchParams(window.location.search);
+    const busId = (params.get('busId') ?? params.get('id'))?.trim() || '';
     const maintenanceKey = busId;
     if (grid.dataset.initialized === maintenanceKey) return;
     grid.dataset.initialized = maintenanceKey;

@@ -29,16 +29,26 @@ export const BUS_OPERATIONAL_STATUS_OPTIONS = [
 ] as const;
 for (const [value, label] of BUS_OPERATIONAL_STATUS_OPTIONS) BUS_STATUS_LABELS[value] = label;
 
+// Centralized operational events shared by admin and chofer UI.
+// Canonical five: Start trip · Resume · Stop · Arrived · Finish.
 export const OPERATION_EVENT_LABELS: Record<string, string> = {
   STARTED: 'Iniciar viaje',
-  STOPPED: 'Registrar parada',
-  LUNCH_STARTED: 'Iniciar pausa de almuerzo',
-  LUNCH_ENDED: 'Reanudar viaje',
-  INCIDENT: 'Registrar incidencia',
+  RESUME: 'Reanudar',
+  STOPPED: 'Detener',
+  ARRIVED: 'Llegada',
+  FINISH: 'Finalizar',
+  LUNCH_ENDED: 'Reanudar',
+  LUNCH_STARTED: 'Pausar',
+  INCIDENT: 'Incidencia',
   INCIDENT_RESOLVED: 'Resolver incidencia',
-  ARRIVED: 'Registrar llegada',
-  RETURNED: 'Confirmar retorno',
   CANCELLED: 'Cancelar viaje',
+  RETURNED: 'Confirmar retorno',
+};
+
+export const OPERATION_EVENT_GROUPS = {
+  primary: ['STARTED', 'RESUME', 'STOPPED', 'ARRIVED', 'FINISH'] as const,
+  always: ['INCIDENT'] as const,
+  secondary: ['LUNCH_STARTED', 'LUNCH_ENDED', 'INCIDENT_RESOLVED', 'CANCELLED', 'RETURNED'] as const,
 };
 
 // Keep aliases readable for records from older API versions, but expose one

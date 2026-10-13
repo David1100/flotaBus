@@ -277,6 +277,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
       if (!busId || !category || !cost || !detail) {
         error.hidden = false; error.textContent = 'Completa unidad, categoría, costo y detalle.'; return;
       }
+      const incidentFlow = (window as any).__incidentFlow === true;
       submit.disabled = true;
       try {
         feedback.loading('Guardando reporte…');
@@ -287,8 +288,19 @@ export function getStaticPaths() { return [{ params: {} }]; }
           const data = new FormData(); data.append('photo', photo);
           await api(`/maintenance-records/buses/${busId}/photo`, { method: 'POST', body: data });
         }
+        if (incidentFlow) {
+          try {
+            const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
+            if (tripId) {
+              await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type: 'INCIDENT', notes: detail }) });
+            }
+          } catch (cause) {
+            await feedback.error('El reporte se guardó pero no pudimos actualizar el estado del viaje. Avisa al administrador.', 'Aviso');
+          }
+          (window as any).__incidentFlow = false;
+        }
         Swal.close();
-        await feedback.success('Reporte guardado. El administrador fue notificado.', 'Listo');
+        await feedback.success(incidentFlow ? 'Incidencia registrada y viaje actualizado.' : 'Reporte guardado. El administrador fue notificado.', 'Listo');
         form.reset();
         (document.getElementById('photo-name') as HTMLElement).hidden = true;
         (document.getElementById('photo-preview') as HTMLElement).hidden = true;
@@ -331,22 +343,21 @@ export function getStaticPaths() { return [{ params: {} }]; }
     }
     const params = new URLSearchParams(window.location.search);
     if (params.get('incident') === '1') {
+      (window as any).__incidentFlow = true;
       const busId = (document.getElementById('bus') as HTMLSelectElement).value;
-      if (busId) {
-        try {
-          feedback.loading('Registrando incidencia en el servidor…');
-          const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
-          if (tripId) {
-            await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type: 'INCIDENT', notes: 'Conductor reporta incidencia desde el panel — abre el formulario para registrar el detalle.' }) });
-          }
-          Swal.close();
-          await feedback.success('Incidencia registrada. Ahora completa los detalles abajo.', 'Notificado');
-        } catch (cause) {
-          Swal.close();
-          await feedback.error('No pudimos notificar la incidencia. Completa el reporte manualmente.', 'Aviso');
-        }
-        window.history.replaceState({}, '', `/chofer/historial?busId=${busId}`);
-      }
+      const detail = document.getElementById('detail') as HTMLTextAreaElement | null;
+      const formCategory = document.querySelector<HTMLInputElement>('input[name="category"][value="MANTENIMIENTO"]');
+      formCategory?.click();
+      if (detail) { detail.value = 'Incidencia durante la ruta: '; detail.focus(); detail.setSelectionRange(detail.value.length, detail.value.length); }
+      const banner = document.createElement('div');
+      banner.id = 'incident-banner';
+      banner.className = 'rounded-[.8rem] border border-[rgba(255,116,116,.35)] bg-[rgba(255,116,116,.08)] px-4 py-3 text-[.78rem] text-[#ff9daa]';
+      banner.innerHTML = '<strong>Modo incidencia.</strong> Completa el reporte para registrar el cambio de estado del viaje. Si cancelas, el viaje sigue igual.';
+      const formEl = document.getElementById('hist-form');
+      formEl?.parentElement?.insertBefore(banner, formEl);
+      window.history.replaceState({}, '', busId ? `/chofer/historial?busId=${busId}` : '/chofer/historial');
+    } else {
+      (window as any).__incidentFlow = false;
     }
   }
 

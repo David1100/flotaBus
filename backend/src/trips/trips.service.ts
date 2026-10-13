@@ -10,8 +10,10 @@ export const EDITABLE_TRIP_STATUSES: TripState[] = ['PLANNED', 'ASSIGNED'];
 export const STATE_TRANSITIONS: Record<string, { from: TripState[]; to: TripState }> = {
   STARTED: { from: ['ASSIGNED', 'STOPPED'], to: 'IN_TRANSIT' }, STOPPED: { from: ['IN_TRANSIT'], to: 'STOPPED' },
   LUNCH_STARTED: { from: ['IN_TRANSIT'], to: 'PAUSED_LUNCH' }, LUNCH_ENDED: { from: ['PAUSED_LUNCH'], to: 'IN_TRANSIT' },
+  RESUME: { from: ['STOPPED', 'PAUSED_LUNCH'], to: 'IN_TRANSIT' },
   INCIDENT: { from: ['IN_TRANSIT', 'PAUSED_LUNCH', 'STOPPED'], to: 'INCIDENT' }, INCIDENT_RESOLVED: { from: ['INCIDENT'], to: 'IN_TRANSIT' },
   ARRIVED: { from: ['IN_TRANSIT'], to: 'ARRIVED' }, RETURNED: { from: ['ARRIVED'], to: 'RETURNED' },
+  FINISH: { from: ['ARRIVED'], to: 'RETURNED' },
 };
 export const intervalsOverlap = (from: Date, to: Date, otherFrom: Date, otherTo: Date) => from < otherTo && otherFrom < to;
 const detail = { legs: { orderBy: { sequence: 'asc' as const }, include: { execution: true } }, assignments: { include: { bus: true, driver: { select: { id: true, nombres: true, username: true } }, assignedBy: { select: { id: true, nombres: true, username: true } } } } };

@@ -106,9 +106,9 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
       RETARDADOR: 'Retardador',
       LLANTAS: 'Llantas',
       AIRE_ACONDICIONADO: 'Aire acondicionado',
-      MOTOR: 'Motor',
+      MOTOR: 'Motor'
     };
-    return map[area] ?? area;
+    return (area && map[area]) || 'Sin área específica';
   };
 
   const formatDate = (value) => value ? new Date(value).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
@@ -118,11 +118,11 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
   const init = () => {
     const content = document.querySelector<HTMLElement>('#bus-content');
     if (!content) return;
-    if (content.dataset.ready === 'true') return;
-    content.dataset.ready = 'true';
-
     const requestedId = new URLSearchParams(window.location.search).get('id');
-    const busId = requestedId || 'detail';
+    const busId = requestedId || '';
+    if (content.dataset.ready === busId) return;
+    content.dataset.ready = busId;
+
     const error = document.querySelector<HTMLElement>('#bus-error');
     if (!/^\d+$/.test(busId)) { error.hidden = false; error.textContent = 'No se indicó un bus válido.'; return; }
 

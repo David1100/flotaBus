@@ -141,4 +141,51 @@ describe('BusesService', () => {
     await expect(service.update(1, { isActive: false }, { id: 7, rol: 'ADMINISTRADOR' }))
       .rejects.toBeInstanceOf(ConflictException);
   });
+
+  it('returns full detail including current assignment and history when a non-terminal trip is active', async () => {
+    const now = new Date('2026-10-10T10:00:00.000Z');
+    db.bus.findUnique.mockResolvedValue({
+      id: 8,
+      placa: 'ABC-1',
+      marca: 'Volvo',
+      modelo: 'B8R',
+      kilometraje: 12345,
+      busType: 'NORMAL',
+      isActive: true,
+      photoUrl: null,
+      photoPublicId: null,
+      manualStatus: null,
+      manualStatusUpdatedAt: null,
+      manualStatusUpdatedById: null,
+      createdAt: now,
+      updatedAt: now,
+      defaultDrivers: [],
+      assignments: [{
+        id: 50,
+        status: 'ACTIVE',
+        assignedAt: now,
+        revokedAt: null,
+        trip: { id: 12, code: 'V-12', status: 'ASSIGNED', origin: 'Bucaramanga', initialStartAt: now, legs: [{ destination: 'Bogotá', plannedArrivalAt: now }] },
+        driver: { id: 4, nombres: 'Ana Pérez', username: 'aperez' },
+      }],
+      maintenanceRecords: [{ id: 1, area: 'MOTOR', category: 'MANTENIMIENTO', detail: 'Cambio de aceite', cost: '120000', photoUrl: null, recordedAt: now }],
+      _count: { assignments: 1, maintenanceRecords: 1 },
+    });
+
+    const result = await service.getDetail(8);
+
+    expect(result.id).toBe(8);
+    expect(result.placa).toBe('ABC-1');
+    expect(result.currentAssignment).toEqual(expect.objectContaining({
+      id: 50,
+      tripId: 12,
+      trip: expect.objectContaining({ id: 12, code: 'V-12', status: 'ASSIGNED', origin: 'Bucaramanga' }),
+      driver: expect.objectContaining({ id: 4, nombres: 'Ana Pérez' }),
+    }));
+    expect(result.tripHistory).toHaveLength(1);
+    expect(result.tripHistory[0].trip.code).toBe('V-12');
+    expect(result.maintenanceHistory).toHaveLength(1);
+    expect(result.maintenanceHistory[0].area).toBe('MOTOR');
+    expect(result.stats).toEqual({ tripsTotal: 1, tripsActive: 1, tripsCompleted: 0, maintenanceTotal: 1, maintenanceCostTotal: 120000 });
+  });
 });
