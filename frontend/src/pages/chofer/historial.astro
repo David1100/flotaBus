@@ -127,6 +127,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
 <script>
   import { api, ApiError } from '../../lib/api';
   import { feedback, Swal } from '../../lib/feedback';
+  import { openPhotoLightbox } from '../../lib/photo-lightbox';
 
   const formatMoney = (value: string | number) => Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
   const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
@@ -186,11 +187,21 @@ export function getStaticPaths() { return [{ params: {} }]; }
     if (!filtered.length) { list.innerHTML = '<div class="hist-empty">Sin registros en esta categoría.</div>'; return; }
     list.innerHTML = filtered.map((m) => {
       const cat = categoryLabels[m.category] ?? { name: m.category, icon: '📦' };
-      const thumb = m.photoUrl ? `<img src="${escape(m.photoUrl)}" alt="" class="hist-thumb" loading="lazy" />` : `<span>${cat.icon}</span>`;
+      const thumb = m.photoUrl ? `<img src="${escape(m.photoUrl)}" alt="Foto del reporte ${escape(cat.name)}" class="hist-thumb" loading="lazy" />` : `<span>${cat.icon}</span>`;
       const areaPill = m.area ? `<span class="hist-area">${escape(m.area)}</span>` : '';
       const firstLine = m.detail.split('\n')[0];
-      return `<div class="hist-card is-${escape(m.category)}"><span class="hist-icon">${thumb}</span><div class="grid min-w-0 gap-[.35rem]"><div class="flex items-center gap-[.4rem] flex-wrap"><strong class="hist-title">${escape(cat.name)}</strong>${areaPill}</div><p class="hist-detail m-0">${escape(firstLine)}</p></div><div class="hist-meta"><strong class="hist-cost">${escape(formatMoney(m.cost))}</strong><span class="hist-time">${escape(formatDate(m.recordedAt))}</span></div></div>`;
+      const photoBtn = m.photoUrl ? `<button class="photo-view-btn" type="button" data-photo="${escape(m.photoUrl)}" aria-label="Ver foto del reporte en grande">Ver foto</button>` : '';
+      return `<div class="hist-card is-${escape(m.category)}"><span class="hist-icon">${thumb}</span><div class="grid min-w-0 gap-[.35rem]"><div class="flex items-center gap-[.4rem] flex-wrap"><strong class="hist-title">${escape(cat.name)}</strong>${areaPill}</div><p class="hist-detail m-0">${escape(firstLine)}</p></div><div class="hist-meta"><strong class="hist-cost">${escape(formatMoney(m.cost))}</strong><span class="hist-time">${escape(formatDate(m.recordedAt))}</span>${photoBtn}</div></div>`;
     }).join('');
+  };
+
+  const setupLightbox = () => {
+    const list = document.getElementById('history-list');
+    if (!list) return;
+    list.addEventListener('click', (event) => {
+      const trigger = (event.target as HTMLElement).closest<HTMLElement>('[data-photo]');
+      if (trigger) openPhotoLightbox(trigger.dataset.photo);
+    });
   };
 
   const renderSummary = () => {
@@ -281,13 +292,15 @@ export function getStaticPaths() { return [{ params: {} }]; }
       submit.disabled = true;
       try {
         feedback.loading('Guardando reporte…');
-        const payload: { category: string; cost: string; detail: string; area?: string } = { category, cost, detail };
-        if (category === 'MANTENIMIENTO' && area) payload.area = area;
-        await api(`/maintenance-records/buses/${busId}`, { method: 'POST', body: JSON.stringify(payload) });
+        let photoUrl: string | undefined;
         if (photo) {
           const data = new FormData(); data.append('photo', photo);
-          await api(`/maintenance-records/buses/${busId}/photo`, { method: 'POST', body: data });
+          photoUrl = (await api(`/maintenance-records/buses/${busId}/photo`, { method: 'POST', body: data })).photoUrl;
         }
+        const payload: { category: string; cost: string; detail: string; area?: string; photoUrl?: string } = { category, cost, detail };
+        if (category === 'MANTENIMIENTO' && area) payload.area = area;
+        if (photoUrl) payload.photoUrl = photoUrl;
+        await api(`/maintenance-records/buses/${busId}`, { method: 'POST', body: JSON.stringify(payload) });
         if (incidentFlow) {
           try {
             const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
@@ -336,6 +349,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
     setupCategoryLogic();
     setupPhotoDrop();
     setupForm();
+    setupLightbox();
     try { await loadBuses(); }
     catch (cause) {
       await feedback.error(cause instanceof Error ? cause.message : 'Error inesperado.', 'No se pudo cargar');

@@ -98,6 +98,7 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
 <script>
   import { api, ApiError } from '../../../lib/api';
   import { busStatusClass, busStatusLabel } from '../../../lib/trip-labels';
+  import { openPhotoLightbox } from '../../../lib/photo-lightbox';
 
   const areaLabel = (area) => {
     const map = {
@@ -110,6 +111,12 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
     };
     return (area && map[area]) || 'Sin área específica';
   };
+  const categoryLabel = (category) => ({
+    MANTENIMIENTO: 'Mantenimiento',
+    COMBUSTIBLE: 'Combustible',
+    PINCHAZO: 'Pinchazo',
+    OTRO: 'Otro gasto',
+  }[category] ?? 'Gasto operativo');
 
   const formatDate = (value) => value ? new Date(value).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
   const formatMoney = (value) => Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
@@ -169,14 +176,20 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
         { label: 'Inversión MT.', value: formatMoney(stats.maintenanceCostTotal) },
       ].map(s => `<div class="grid gap-1 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.7rem_.85rem]"><span class="text-[.58rem] font-bold uppercase tracking-[.12em] text-[var(--subtle)]">${escape(s.label)}</span><strong class="font-display text-[1.2rem] tracking-[-.03em] text-[var(--ink)]">${escape(s.value)}</strong></div>`).join('');
 
-      $('bus-trips-count').textContent = `${bus.tripHistory.length} asignaciones`;
-      $('bus-trips').innerHTML = bus.tripHistory.length
-        ? bus.tripHistory.map(t => `<a href="/admin/trips/detail?id=${encodeURIComponent(t.trip.id)}" data-spa-link class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem] no-underline transition-colors duration-200 hover:border-[rgba(72,228,224,.2)] hover:bg-[rgba(72,228,224,.05)]"><span class="grid h-[1.9rem] w-[1.9rem] place-items-center rounded-[.55rem] bg-[rgba(72,228,224,.12)] font-display text-[.7rem] font-semibold text-[var(--cyan)]" aria-hidden="true">→</span><div class="grid min-w-0 gap-1"><strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(t.trip.code)}<small class="ml-[.4rem] text-[.6rem] font-normal text-[var(--subtle)]">${escape(t.driver.nombres || `@${t.driver.username}`)}</small></strong><small class="text-[.66rem] text-[var(--muted)]">${escape(formatDate(t.assignedAt))} · ${escape(tripRoute(t.trip))}</small></div><span class="status-pill ${busStatusClass(t.trip.status)}"><i></i>${busStatusLabel(t.trip.status)}</span></a>`).join('')
+      $('bus-trips-count').textContent = `${new Set(bus.tripHistory.map(t => t.trip.id)).size} rutas`;
+      const groupedTrips = bus.tripHistory.reduce((groups, item) => {
+        const existing = groups.get(item.trip.id);
+        if (existing) existing.drivers.push(item.driver);
+        else groups.set(item.trip.id, { trip: item.trip, assignedAt: item.assignedAt, drivers: [item.driver] });
+        return groups;
+      }, new Map());
+      $('bus-trips').innerHTML = groupedTrips.size
+        ? [...groupedTrips.values()].map(({ trip, assignedAt, drivers }) => `<a href="/admin/trips/detail?id=${encodeURIComponent(trip.id)}" data-spa-link class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem] no-underline transition-colors duration-200 hover:border-[rgba(72,228,224,.2)] hover:bg-[rgba(72,228,224,.05)]"><span class="grid h-[1.9rem] w-[1.9rem] place-items-center rounded-[.55rem] bg-[rgba(72,228,224,.12)] font-display text-[.7rem] font-semibold text-[var(--cyan)]" aria-hidden="true">→</span><div class="grid min-w-0 gap-1"><strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(trip.code)}</strong><small class="text-[.66rem] text-[var(--muted)]">${escape(formatDate(assignedAt))} · ${escape(tripRoute(trip))}</small><div class="mt-[.2rem] flex flex-wrap gap-[.3rem]">${drivers.map((d, index) => `<span class="max-w-full truncate rounded-[.45rem] border border-[rgba(72,228,224,.16)] bg-[rgba(72,228,224,.06)] px-[.4rem] py-[.2rem] text-[.66rem] text-[var(--ink)]" title="${escape(d.nombres || `@${d.username}`)}">Chofer ${index + 1} · ${escape(d.nombres || `@${d.username}`)}</span>`).join('')}</div></div><span class="status-pill ${busStatusClass(trip.status)}"><i></i>${busStatusLabel(trip.status)}</span></a>`).join('')
         : '<p class="m-0 py-[1.5rem] text-center text-[.72rem] text-[var(--subtle)]">Sin asignaciones registradas.</p>';
 
       $('bus-maint-count').textContent = `${bus.maintenanceHistory.length} registros`;
       $('bus-maintenance').innerHTML = bus.maintenanceHistory.length
-        ? bus.maintenanceHistory.map(m => `<div class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]"><span class="grid h-[1.9rem] w-[1.9rem] place-items-center rounded-[.55rem] bg-[rgba(245,173,75,.12)] font-display text-[.7rem] font-extrabold text-[var(--amber)]" aria-hidden="true">${escape(areaLabel(m.area).slice(0, 2).toUpperCase())}</span><div class="grid min-w-0 gap-1"><strong class="text-[.82rem] text-[var(--ink)]">${escape(areaLabel(m.area))}</strong><small class="text-[.66rem] text-[var(--muted)]">${escape(formatDate(m.recordedAt))}</small><p class="m-0 text-[.72rem] text-[var(--muted)]">${escape(m.detail)}</p></div><strong class="font-display text-[.85rem] text-[var(--amber)]">${escape(formatMoney(m.cost))}</strong></div>`).join('')
+        ? bus.maintenanceHistory.map(m => `<div class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]"><span class="h-[3rem] w-[3rem] overflow-hidden rounded-[.55rem] border border-[rgba(234,239,226,.1)]">${m.photoUrl ? `<img src="${escape(m.photoUrl)}" alt="Foto del registro" class="record-photo-thumb" loading="lazy" />` : `<span class="grid h-full w-full place-items-center rounded-[.55rem] bg-[rgba(245,173,75,.12)] font-display text-[.7rem] font-extrabold text-[var(--amber)]" aria-hidden="true">${escape(areaLabel(m.area).slice(0, 2).toUpperCase())}</span>`}</span><div class="grid min-w-0 gap-1"><strong class="text-[.82rem] text-[var(--ink)]">${escape(categoryLabel(m.category))}</strong><small class="text-[.66rem] text-[var(--muted)]">${escape(formatDate(m.recordedAt))} · ${escape(areaLabel(m.area))}</small><p class="m-0 text-[.72rem] text-[var(--muted)]">${escape(m.detail)}</p>${m.photoUrl ? `<button class="photo-view-btn mt-[.35rem] self-start" type="button" data-photo="${escape(m.photoUrl)}" aria-label="Ver foto del registro en grande">Ver foto</button>` : ''}</div><strong class="font-display text-[.85rem] text-[var(--amber)]">${escape(formatMoney(m.cost))}</strong></div>`).join('')
         : '<p class="m-0 py-[1.5rem] text-center text-[.72rem] text-[var(--subtle)]">Sin mantenimientos registrados.</p>';
 
       content.hidden = false;
@@ -194,6 +207,12 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
         error.hidden = false; error.textContent = message;
       }
     };
+
+    const $maintenance = document.getElementById('bus-maintenance');
+    $maintenance?.addEventListener('click', (event) => {
+      const trigger = (event.target as HTMLElement).closest<HTMLElement>('[data-photo]');
+      if (trigger) openPhotoLightbox(trigger.dataset.photo);
+    });
 
     void load();
   };

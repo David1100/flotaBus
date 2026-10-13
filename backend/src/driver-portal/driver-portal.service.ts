@@ -63,7 +63,7 @@ export class DriverPortalService {
           where: { busId: currentBus.id },
           orderBy: { recordedAt: 'desc' },
           take: 5,
-          select: { id: true, area: true, detail: true, cost: true, photoUrl: true, recordedAt: true },
+          select: { id: true, category: true, area: true, detail: true, cost: true, photoUrl: true, recordedAt: true },
         })
       : [];
 

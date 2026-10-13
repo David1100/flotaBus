@@ -71,6 +71,7 @@ describe('TripsService runtime scenarios', () => {
     ['starts lunch', 'IN_TRANSIT', 'LUNCH_STARTED', 'PAUSED_LUNCH'],
     ['resumes lunch', 'PAUSED_LUNCH', 'LUNCH_ENDED', 'IN_TRANSIT'],
     ['records an incident', 'STOPPED', 'INCIDENT', 'INCIDENT'],
+    ['records an incident before departure', 'ASSIGNED', 'INCIDENT', 'INCIDENT'],
     ['resolves an incident', 'INCIDENT', 'INCIDENT_RESOLVED', 'IN_TRANSIT'],
     ['records arrival', 'IN_TRANSIT', 'ARRIVED', 'ARRIVED'],
   ])('%s through the event command', async (_name, status, type, nextStatus) => {
@@ -299,6 +300,7 @@ function eventDb(trip: any) {
   return {
     tx,
     trip: { findUnique: jest.fn().mockResolvedValue(trip) },
+    user: { findUnique: jest.fn().mockResolvedValue({ nombres: 'Jhon Lopez', username: '13959130' }) },
     $transaction: jest.fn(async (callback: any) => callback(tx)),
   };
 }

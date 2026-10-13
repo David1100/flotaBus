@@ -17,6 +17,7 @@ describe('route management critical rules', () => {
     expect(STATE_TRANSITIONS.RETURNED.from).toEqual(['ARRIVED']);
     expect(STATE_TRANSITIONS.RESUME).toEqual({ from: ['STOPPED', 'PAUSED_LUNCH'], to: 'IN_TRANSIT' });
     expect(STATE_TRANSITIONS.FINISH).toEqual({ from: ['ARRIVED'], to: 'RETURNED' });
+    expect(STATE_TRANSITIONS.INCIDENT).toEqual({ from: ['ASSIGNED', 'IN_TRANSIT', 'PAUSED_LUNCH', 'STOPPED'], to: 'INCIDENT' });
   });
 
   it('denies an unassigned driver before loading or mutating the trip', async () => {

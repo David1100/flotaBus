@@ -113,6 +113,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
   import { api, ApiError } from '../../lib/api';
   import { feedback, Swal } from '../../lib/feedback';
   import { OPERATION_EVENT_GROUPS, operationEventLabel, tripStatusClass, tripStatusLabel } from '../../lib/trip-labels';
+  import { openPhotoLightbox } from '../../lib/photo-lightbox';
 
   const formatDate = (value: string | null | undefined) => value ? new Date(value).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
   const formatMoney = (value: string | number) => Number(value || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
@@ -121,6 +122,12 @@ export function getStaticPaths() { return [{ params: {} }]; }
   let currentRouteFilter: RouteFilter = 'IN_PROGRESS';
   let allTripsCache: any[] = [];
   const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
+  const maintenanceCategoryLabels: Record<string, { name: string; icon: string }> = {
+    MANTENIMIENTO: { name: 'Mantenimiento', icon: '🛠' },
+    COMBUSTIBLE: { name: 'Tanqueo', icon: '⛽' },
+    PINCHAZO: { name: 'Pinchazo', icon: '🛞' },
+    OTRO: { name: 'Otro gasto', icon: '📦' },
+  };
 
   const init = async () => {
     const greeting = document.getElementById('dashboard-greeting');
@@ -181,8 +188,16 @@ allTripsCache = allTrips;
       renderRouteList(allTrips);
 
       maintenanceList.innerHTML = maintenance.length
-          ? maintenance.map((m: any) => `<div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]"><span class="grid h-[1.9rem] w-[1.9rem] place-items-center rounded-[.55rem] bg-[rgba(245,173,75,.12)] font-display text-[.7rem] font-extrabold text-[var(--amber)]">${escape((m.area || '').slice(0, 2).toUpperCase())}</span><div class="grid min-w-0 gap-1"><strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(m.area)}</strong><small class="text-[.66rem] text-[var(--muted)]">${escape(formatDate(m.recordedAt))}</small></div><strong class="font-display text-[.82rem] text-[var(--amber)]">${escape(formatMoney(m.cost))}</strong></div>`).join('')
+          ? maintenance.map((m: any) => `<div class="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.85rem]"><span class="h-[2.6rem] w-[2.6rem] overflow-hidden rounded-[.55rem] border border-[rgba(234,239,226,.1)]">${m.photoUrl ? `<img src="${escape(m.photoUrl)}" alt="Foto del mantenimiento" class="record-photo-thumb" loading="lazy" />` : `<span class="grid h-full w-full place-items-center rounded-[.55rem] bg-[rgba(245,173,75,.12)] text-[1.15rem]" aria-hidden="true">${maintenanceCategoryLabels[m.category]?.icon ?? '🧰'}</span>`}</span><div class="grid min-w-0 gap-1"><strong class="truncate text-[.82rem] text-[var(--ink)]">${escape(maintenanceCategoryLabels[m.category]?.name ?? 'Registro técnico')}</strong><small class="text-[.66rem] text-[var(--muted)]">${escape(m.area || 'Sin área')} · ${escape(formatDate(m.recordedAt))}</small>${m.photoUrl ? `<button class="photo-view-btn mt-[.25rem] self-start" type="button" data-photo="${escape(m.photoUrl)}" aria-label="Ver foto del mantenimiento en grande">Ver foto</button>` : ''}</div><strong class="font-display text-[.82rem] text-[var(--amber)]">${escape(formatMoney(m.cost))}</strong></div>`).join('')
           : '<div class="grid place-items-center px-5 py-3.5 border border-dashed border-[rgba(234,239,226,.1)] rounded-xl text-[var(--subtle)] text-[.78rem] text-center">Sin mantenimientos recientes.</div>';
+
+      if (maintenanceList.dataset.photoBound !== 'true') {
+        maintenanceList.dataset.photoBound = 'true';
+        maintenanceList.addEventListener('click', (event) => {
+          const trigger = (event.target as HTMLElement).closest<HTMLElement>('[data-photo]');
+          if (trigger) openPhotoLightbox(trigger.dataset.photo);
+        });
+      }
 
       greeting.dataset.ready = 'true';
     } catch (cause) {
