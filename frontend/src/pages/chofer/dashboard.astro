@@ -5,7 +5,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
 ---
 
 <DriverShell title="Mi ruta · flotaBus" active="dashboard">
-  <div class="driver-dashboard grid gap-5">
+  <div class="driver-dashboard grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5">
     <header class="fade-in">
       <div class="eyebrow">CONDUCTOR · PANEL DE OPERACIONES</div>
       <h1 id="dashboard-greeting" class="m-0 mt-2 font-display tracking-[-.035em] text-[var(--ink)]">Hola, <em id="dashboard-name">cargando.</em></h1>
@@ -83,7 +83,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
             <div class="eyebrow">MIS RUTAS</div>
             <h2 class="m-0 mt-1 font-display text-[1.2rem] text-[var(--ink)]">Viajes asignados</h2>
           </div>
-          <div class="flex items-center gap-1 rounded-full border border-[rgba(234,239,226,.08)] bg-[rgba(5,11,14,.3)] p-1">
+          <div class="flex w-full flex-wrap items-center gap-1 rounded-full border border-[rgba(234,239,226,.08)] bg-[rgba(5,11,14,.3)] p-1">
             <button class="route-tab px-[.75rem] py-[.35rem] rounded-full border border-transparent bg-transparent text-[var(--muted)] text-[.72rem] font-bold cursor-pointer transition-all duration-200 hover:text-[var(--ink)] hover:bg-[rgba(72,228,224,.06)] is-active:text-[var(--ink)] is-active:bg-[rgba(72,228,224,.16)] is-active:border-[rgba(72,228,224,.3)]" data-route-filter="IN_PROGRESS" type="button">En curso</button>
             <button class="route-tab px-[.75rem] py-[.35rem] rounded-full border border-transparent bg-transparent text-[var(--muted)] text-[.72rem] font-bold cursor-pointer transition-all duration-200 hover:text-[var(--ink)] hover:bg-[rgba(72,228,224,.06)] is-active:text-[var(--ink)] is-active:bg-[rgba(72,228,224,.16)] is-active:border-[rgba(72,228,224,.3)]" data-route-filter="UPCOMING" type="button">Próximos</button>
             <button class="route-tab px-[.75rem] py-[.35rem] rounded-full border border-transparent bg-transparent text-[var(--muted)] text-[.72rem] font-bold cursor-pointer transition-all duration-200 hover:text-[var(--ink)] hover:bg-[rgba(72,228,224,.06)] is-active:text-[var(--ink)] is-active:bg-[rgba(72,228,224,.16)] is-active:border-[rgba(72,228,224,.3)]" data-route-filter="COMPLETED" type="button">Completados</button>
