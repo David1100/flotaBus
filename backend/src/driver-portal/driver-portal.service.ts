@@ -1,7 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
-const ACTIVE_TRIP_STATUSES = ['ASSIGNED', 'IN_TRANSIT', 'STOPPED', 'PAUSED_LUNCH'] as const;
+/**
+ * Estados en los que el viaje sigue siendo responsabilidad operativa del chofer:
+ * debe ver la tarjeta con sus acciones. INCIDENT y ARRIVED se incluyen porque el
+ * chofer aún debe resolver la incidencia o confirmar el retorno; excluirlos hacía
+ * que el viaje desapareciera de su panel y quedara trabado sin salida.
+ */
+const ACTIVE_TRIP_STATUSES = ['ASSIGNED', 'IN_TRANSIT', 'STOPPED', 'PAUSED_LUNCH', 'INCIDENT', 'ARRIVED'] as const;
 
 @Injectable()
 export class DriverPortalService {

@@ -275,19 +275,24 @@ export function getStaticPaths() { return [{ params: {} }]; }
         if (category === 'MANTENIMIENTO' && area) payload.area = area;
         if (photoUrl) payload.photoUrl = photoUrl;
         await api(`/maintenance-records/buses/${busId}`, { method: 'POST', body: JSON.stringify(payload) });
+        let incidentSynced = false;
         if (incidentFlow) {
-          try {
+          const syncIncident = async () => {
             const tripId = (await api('/driver-portal/dashboard')).activeTrip?.id;
-            if (tripId) {
-              await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type: 'INCIDENT', notes: detail }) });
+            if (!tripId) throw new Error('sin viaje activo');
+            await api(`/trips/${tripId}/events`, { method: 'POST', body: JSON.stringify({ type: 'INCIDENT', notes: detail }) });
+          };
+          for (let attempt = 0; attempt < 2 && !incidentSynced; attempt += 1) {
+            try { await syncIncident(); incidentSynced = true; }
+            catch (cause) {
+              if (attempt) await feedback.error('El reporte se guardó pero no pudimos actualizar el estado del viaje. Avisa al administrador.', 'Aviso');
+              else await new Promise((resolve) => setTimeout(resolve, 700));
             }
-          } catch (cause) {
-            await feedback.error('El reporte se guardó pero no pudimos actualizar el estado del viaje. Avisa al administrador.', 'Aviso');
           }
           (window as any).__incidentFlow = false;
         }
-        Swal.close();
-        await feedback.success(incidentFlow ? 'Incidencia registrada y viaje actualizado.' : 'Reporte guardado. El administrador fue notificado.', 'Listo');
+        if (incidentSynced || !incidentFlow) Swal.close();
+        await feedback.success(incidentFlow && incidentSynced ? 'Incidencia registrada y viaje actualizado.' : 'Reporte guardado. El administrador fue notificado.', 'Listo');
         form.reset();
         (document.getElementById('photo-name') as HTMLElement).hidden = true;
         (document.getElementById('photo-preview') as HTMLElement).hidden = true;

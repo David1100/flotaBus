@@ -68,6 +68,7 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
     ARRIVED: 'success',
     FINISH: 'success',
     INCIDENT: 'warn',
+    INCIDENT_RESOLVED: 'success',
   };
 
   const init = () => {
@@ -90,7 +91,11 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
     if (!/^\d+$/.test(tripId)) { setError('No se indicó un viaje válido.'); return; }
 
     const renderEventActions = (status: string) => {
-      const list = [...OPERATION_EVENT_GROUPS.primary, ...OPERATION_EVENT_GROUPS.always];
+      let list: string[];
+      if (status === 'INCIDENT') list = ['INCIDENT_RESOLVED'];
+      else if (status === 'ARRIVED') list = ['FINISH'];
+      else if (['RETURNED', 'CANCELLED'].includes(status)) list = [];
+      else list = [...OPERATION_EVENT_GROUPS.primary, ...OPERATION_EVENT_GROUPS.always];
       const buttons = list.map((type) => {
         const tone = PRIMARY_TONES[type] ?? 'cyan';
         return `<button class="${BASE_BTN} ${TONE_CLASS[tone]}" data-event="${type}" type="button"><span class="inline-block w-[.55rem] h-[.55rem] rounded-full bg-[var(--${tone})]" aria-hidden="true"></span>${escape(operationEventLabel(type))}</button>`;

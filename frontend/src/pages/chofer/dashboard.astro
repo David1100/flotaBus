@@ -267,10 +267,10 @@ allTripsCache = allTrips;
       warn: 'border-[rgba(255,116,116,.35)] bg-[rgba(5,11,14,.35)] text-[#ff9daa] hover:border-[rgba(255,116,116,.55)] hover:bg-[rgba(255,116,116,.08)]',
     };
     const primaryTone: Record<string, string> = {
-      STARTED: 'cyan', RESUME: 'cyan', STOPPED: 'amber', ARRIVED: 'success', FINISH: 'success', INCIDENT: 'warn',
+      STARTED: 'cyan', RESUME: 'cyan', STOPPED: 'amber', ARRIVED: 'success', FINISH: 'success', INCIDENT: 'warn', INCIDENT_RESOLVED: 'success',
     };
     const dotColor: Record<string, string> = {
-      STARTED: 'var(--cyan)', RESUME: 'var(--cyan)', STOPPED: '#d4a72c', ARRIVED: '#5ec592', FINISH: 'var(--amber)', INCIDENT: '#ff7474',
+      STARTED: 'var(--cyan)', RESUME: 'var(--cyan)', STOPPED: '#d4a72c', ARRIVED: '#5ec592', FINISH: 'var(--amber)', INCIDENT: '#ff7474', INCIDENT_RESOLVED: '#5ec592',
     };
     const primaryBtn = (type: string) => {
       const tone = primaryTone[type] ?? 'cyan';
@@ -283,6 +283,10 @@ allTripsCache = allTrips;
 
     if (tripFinished) {
       buttons.push(`<div class="text-[.78rem] text-[#5ec592] font-bold">✓ Viaje finalizado</div>`);
+    } else if (tripStatus === 'INCIDENT') {
+      buttons.push(primaryBtn('INCIDENT_RESOLVED'));
+    } else if (tripStatus === 'ARRIVED') {
+      buttons.push(primaryBtn('FINISH'));
     } else {
       if (tripIsStopped) buttons.push(primaryBtn('RESUME'));
       else if (tripIsPaused) buttons.push(primaryBtn('RESUME'));
@@ -308,7 +312,7 @@ allTripsCache = allTrips;
 
   async function sendEvent(button: HTMLButtonElement) {
     const type = button.dataset.event ?? '';
-    const allowed = [...OPERATION_EVENT_GROUPS.primary, ...OPERATION_EVENT_GROUPS.always];
+    const allowed = [...OPERATION_EVENT_GROUPS.primary, ...OPERATION_EVENT_GROUPS.always, ...OPERATION_EVENT_GROUPS.secondary];
     if (!allowed.includes(type as (typeof allowed)[number])) return;
     if (type === 'INCIDENT') {
       const dashboard = await api('/driver-portal/dashboard');
