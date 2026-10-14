@@ -18,7 +18,7 @@ export function setupPhotoPicker(form: HTMLFormElement, options: PhotoPickerOpti
   if (form.dataset.photoPickerReady) return;
   form.dataset.photoPickerReady = 'true';
   const field = document.createElement('div');
-  field.className = 'grid gap-[.45rem] col-span-full';
+  field.className = 'grid gap-[.45rem] col-span-full mt-4';
   field.innerHTML = `<span class="text-[.82rem] text-[#c9d2cc]">${options.title}</span>
     <div class="grid gap-[.6rem]" data-photo-picker>
       <input id="${options.inputId}" class="sr-only" type="file" accept="image/jpeg,image/png,image/webp,image/gif" aria-describedby="${options.inputId}-help ${options.inputId}-error">

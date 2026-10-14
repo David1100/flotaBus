@@ -7,19 +7,19 @@ import AdminShell from '../../../components/AdminShell.astro';
     <section class="drivers-hero fade-in flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
       <div><div class="eyebrow">OPERACIÓN · VIAJES COMPLETOS</div><h1>Rutas <em>en control.</em></h1><p>Planifica trayectos, asigna unidad y sigue eventos operativos.</p></div>
     </section>
-    <section class="glass fleet-card drivers-table-card fade-in" style="animation-delay:.08s">
-      <div class="toolbar">
+    <section class="glass fleet-card drivers-table-card fade-in px-4 py-6" style="animation-delay:.08s">
+      <div class="toolbar mb-4">
         <label class="search-field"><span aria-hidden="true">⌕</span><input id="trip-search" class="input" placeholder="Buscar por código, ruta u observaciones…" aria-label="Buscar viajes" /></label>
         <div class="flex items-center gap-[.8rem] max-md:w-full max-md:flex-col max-md:items-stretch max-md:gap-[.55rem]"><select id="trip-filter" class="input w-auto min-w-40 max-md:w-full max-md:min-w-0" aria-label="Filtrar viajes por estado"><option value="">Todos los estados</option></select><button id="new-trip" class="btn btn-primary" type="button">+ Añadir viaje</button></div>
       </div>
-       <div class="trips-table-wrap -mx-1 overflow-x-auto overflow-y-hidden pb-1 [scrollbar-gutter:stable] md:mx-0 md:overflow-hidden"><table class="w-full min-w-[42rem] border-collapse text-[.82rem] max-md:min-w-0 max-md:text-[.78rem]"><thead class="sticky top-0 z-[1] bg-[rgba(17,27,30,.96)]"><tr class="[&_th]:whitespace-nowrap [&_th]:px-[1.15rem] [&_th]:py-[.82rem] [&_th]:text-left [&_th]:text-[.63rem] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-[.14em] [&_th]:text-[var(--subtle)] max-md:[&_th]:hidden"><th>Viaje</th><th>Salida</th><th>Ruta</th><th>Estado</th><th class="text-right">Acciones</th></tr></thead><tbody id="trip-state-body"><tr><td class="px-6 py-[2.8rem] text-center text-[var(--subtle)]" colspan="5"><div id="trip-state" class="state" role="status" aria-live="polite">Cargando viajes…</div></td></tr></tbody><tbody id="trip-list" hidden></tbody></table></div>
+       <div class="trips-table-wrap -mx-1 overflow-x-auto overflow-y-hidden [scrollbar-gutter:stable] md:mx-0 md:overflow-hidden"><table class="w-full min-w-[42rem] border-collapse text-[.82rem] max-md:min-w-0 max-md:text-[.78rem]"><thead class="sticky top-0 z-[1] bg-[rgba(17,27,30,.96)]"><tr class="[&_th]:whitespace-nowrap [&_th]:px-[1.15rem] [&_th]:py-[.82rem] [&_th]:text-left [&_th]:text-[.63rem] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-[.14em] [&_th]:text-[var(--subtle)] max-md:[&_th]:hidden"><th>Viaje</th><th>Salida</th><th>Ruta</th><th>Estado</th><th class="text-right">Acciones</th></tr></thead><tbody id="trip-state-body"><tr><td class="px-6 py-[2.8rem] text-center text-[var(--subtle)]" colspan="5"><div id="trip-state" class="state" role="status" aria-live="polite">Cargando viajes…</div></td></tr></tbody><tbody id="trip-list" hidden></tbody></table></div>
     </section>
   </div>
 
   <div id="trip-modal" class="modal-backdrop" hidden aria-hidden="true">
     <div class="glass modal-card admin-modal-card trip-modal-card" role="dialog" aria-modal="true" aria-labelledby="trip-modal-title">
       <div class="modal-heading"><div><div class="eyebrow">PLANIFICACIÓN DE VIAJE</div><h2 id="trip-modal-title" class="font-display">Nuevo viaje</h2><p class="modal-subtitle">Configura la ruta, sus trayectos y los recursos asignados.</p></div><button id="trip-close" class="icon-button" type="button" aria-label="Cerrar">×</button></div>
-      <nav class="trip-stepper -mt-[.35rem] mb-[1.15rem] flex items-stretch gap-[.55rem] max-md:flex-col max-md:gap-[.4rem]" aria-label="Progreso del formulario">
+      <nav class="trip-stepper -mt-[.35rem] mb-[1.15rem] flex items-stretch gap-[.55rem]  max-md:gap-[.4rem]" aria-label="Progreso del formulario">
         <button class="trip-step group" type="button" data-step="0"><span>01</span><strong>Información</strong><small>Datos del viaje</small></button>
         <span class="trip-step-line" aria-hidden="true"></span>
         <button class="trip-step group" type="button" data-step="1"><span>02</span><strong>Trayectos</strong><small>Ruta y tiempos</small></button>
