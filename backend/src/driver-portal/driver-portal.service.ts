@@ -33,16 +33,21 @@ export class DriverPortalService {
       orderBy: { assignedAt: 'desc' },
     });
 
-    const activeAssignment = activeAssignments.find((a): a is typeof a & { trip: NonNullable<typeof a.trip> } => ACTIVE_TRIP_STATUSES.includes((a as any).trip?.status as any)) ?? null;
+    // activeAssignment manda sobre activeTrip: sólo viajes abiertos muestran controles.
+    // La unidad, en cambio, es la de la asignación activa aunque el viaje ya haya
+    // cerrado: el chofer siempre tiene bus y no debe perderlo de su panel al finalizar.
+    const assignmentsWithTrip = activeAssignments.filter((a): a is typeof a & { trip: NonNullable<typeof a.trip> } => Boolean(a.trip));
+    const activeAssignment = assignmentsWithTrip.find((a) => ACTIVE_TRIP_STATUSES.includes(a.trip.status as any)) ?? null;
+    const busAssignment = activeAssignment ?? assignmentsWithTrip[0] ?? null;
 
-    const currentBus = activeAssignment
+    const currentBus = busAssignment
       ? {
-          ...activeAssignment.bus,
-          status: !activeAssignment.bus.isActive ? 'INACTIVE' : activeAssignment.trip.status,
+          ...busAssignment.bus,
+          status: !busAssignment.bus.isActive ? 'INACTIVE' : busAssignment.trip.status,
           currentAssignment: {
-            id: activeAssignment.id,
-            tripId: activeAssignment.tripId,
-            trip: { code: activeAssignment.trip.code, status: activeAssignment.trip.status },
+            id: busAssignment.id,
+            tripId: busAssignment.tripId,
+            trip: { code: busAssignment.trip.code, status: busAssignment.trip.status },
           },
         }
       : null;

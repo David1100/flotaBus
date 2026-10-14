@@ -18,10 +18,23 @@ export function getStaticPaths() { return [{ params: {} }]; }
       <div class="eyebrow">NUEVO REGISTRO</div>
       <h2 class="m-0 mt-1 font-display text-[1.3rem] text-[var(--ink)]">¿Qué pasó con el bus?</h2>
       <form id="hist-form" class="mt-4 grid gap-4" novalidate>
-        <label class="grid gap-[.45rem] text-[.82rem] text-[#c9d2cc]">Unidad
-          <select id="bus" class="input" required></select>
-          <small id="bus-hint" class="text-[.66rem] text-[var(--subtle)]" hidden>Esta unidad se asignó automáticamente según tu viaje activo.</small>
-        </label>
+        <div class="grid gap-[.45rem] text-[.82rem] text-[#c9d2cc]" id="bus-field">
+          <span>Unidad</span>
+          <div id="bus-card" class="relative grid min-h-[5.25rem] grid-cols-[4.25rem_minmax(0,1fr)] items-center gap-[.85rem] overflow-hidden rounded-[1.1rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.35)] p-[.85rem]" hidden>
+            <img id="bus-photo" class="h-[4.25rem] w-[4.25rem] rounded-[.9rem] border border-[rgba(234,239,226,.1)] object-cover" alt="" hidden />
+            <span id="bus-photo-fallback" class="grid h-[4.25rem] w-[4.25rem] place-items-center rounded-[.9rem] border border-[rgba(72,228,224,.3)] bg-[rgba(72,228,224,.08)] font-display text-[1.05rem] font-semibold text-[var(--cyan)]" aria-hidden="true">—</span>
+            <div class="grid min-w-0 gap-[.3rem]">
+              <strong id="bus-placa" class="truncate text-[1.02rem] font-extrabold tracking-[-.01em] text-[var(--ink)]">—</strong>
+              <small id="bus-brand" class="truncate text-[.74rem] text-[var(--muted)]">—</small>
+            </div>
+            <small id="bus-note" class="col-span-2 text-[.72rem] leading-[1.5] text-[#ff9daa]" hidden></small>
+          </div>
+          <div id="bus-empty" class="rounded-[1.1rem] border border-dashed border-[rgba(234,239,226,.12)] bg-[rgba(5,11,14,.18)] px-[.95rem] py-[1.6rem] text-center" hidden>
+            <strong class="mb-[.25rem] block text-[.9rem] text-[var(--ink)]">Sin unidad asignada</strong>
+            <span class="text-[.75rem] text-[var(--subtle)]">El administrador aún no te ha asignado un bus.</span>
+          </div>
+          <span id="bus-skeleton" class="skeleton h-[5.25rem] w-full" aria-hidden="true"></span>
+        </div>
         <fieldset class="m-0 grid gap-2 p-0">
           <legend class="text-[.82rem] text-[#c9d2cc]">Categoría</legend>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup">
@@ -59,7 +72,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
         </div>
         <div class="flex flex-wrap items-center gap-3 pt-2">
           <button id="submit" class="btn btn-primary" type="submit">Guardar reporte</button>
-          <button id="reset" class="btn btn-secondary" type="reset">Limpiar</button>
+          <button id="clear-form" class="btn btn-secondary" type="reset">Limpiar</button>
         </div>
       </form>
     </article>
@@ -102,44 +115,69 @@ export function getStaticPaths() { return [{ params: {} }]; }
     OTRO: { name: 'Otro', icon: '📦' },
   };
 
-  type Bus = { id: number; placa: string; marca: string; modelo: string };
+  type Bus = { id: number; placa: string; marca: string; modelo: string; photoUrl?: string | null; currentAssignment?: { id: number; tripId: number; trip?: { code: string; status: string } } };
   type RecordItem = { id: number; busId: number; category: keyof typeof categoryLabels; area?: string | null; cost: string | number; detail: string; photoUrl: string | null; recordedAt: string };
 
   let currentFilter: keyof typeof categoryLabels | 'ALL' = 'ALL';
   let currentRecords: RecordItem[] = [];
+  let currentBusId: number | null = null;
+  // El backend rechaza (403) registrar gastos cuando el viaje ya está RETURNED/CANCELLED:
+  // si es el caso se avisa en la tarjeta y el botón queda inhabilitado.
+  let currentTripClosed = false;
 
-  const fillBusSelect = (select: HTMLSelectElement, includeDefault = true) => {
-    const buses = (window as any).__busesCache as Bus[] | undefined;
-    if (!buses) { select.innerHTML = ''; return; }
-    const head = includeDefault ? '<option value="">Selecciona la unidad</option>' : '';
-    select.innerHTML = head + buses.map((b) => `<option value="${b.id}">${escape(b.placa)} · ${escape(b.marca)} ${escape(b.modelo)}</option>`).join('');
+  // La unidad ya no se elige: se muestra la del viaje activo con su foto. Mientras se
+  // resuelve (dashboard puede tardar segundos) se ve un skeleton; si no hay viaje activo
+  // aparece un estado vacío y el formulario queda inhabitable.
+  const setBusLoading = (loading: boolean) => {
+    const skeleton = document.getElementById('bus-skeleton') as HTMLElement | null;
+    const submit = document.getElementById('submit') as HTMLButtonElement | null;
+    // Sólo el skeleton representa la carga. La tarjeta y el estado vacío los controlan
+    // renderBusCard/showBusEmpty: revelar ambos aquí mostraba 'Sin unidad asignada'
+    // junto a la tarjeta de la unidad.
+    if (skeleton) skeleton.hidden = !loading;
+    if (submit) submit.disabled = loading || currentBusId === null || currentTripClosed;
+  };
+
+  const renderBusCard = (bus: Bus & { photoUrl?: string | null }) => {
+    const card = document.getElementById('bus-card') as HTMLElement | null;
+    const empty = document.getElementById('bus-empty') as HTMLElement | null;
+    const photo = document.getElementById('bus-photo') as HTMLImageElement | null;
+    const fallback = document.getElementById('bus-photo-fallback') as HTMLElement | null;
+    const placa = document.getElementById('bus-placa') as HTMLElement | null;
+    const brand = document.getElementById('bus-brand') as HTMLElement | null;
+    const note = document.getElementById('bus-note') as HTMLElement | null;
+    if (!card || !empty) return;
+    currentBusId = bus.id;
+    currentTripClosed = bus.currentAssignment?.trip?.status === 'RETURNED' || bus.currentAssignment?.trip?.status === 'CANCELLED';
+    card.hidden = false;
+    empty.hidden = true;
+    const initials = escape(bus.placa || '—').slice(0, 2).toUpperCase();
+    if (photo && bus.photoUrl) { photo.src = bus.photoUrl; photo.alt = `Foto del bus ${escape(bus.placa)}`; photo.hidden = false; if (fallback) fallback.hidden = true; }
+    else if (photo) { photo.hidden = true; if (fallback) { fallback.hidden = false; fallback.textContent = initials; } }
+    if (placa) placa.textContent = bus.placa || '—';
+    if (brand) brand.textContent = [bus.marca, bus.modelo].filter(Boolean).join(' · ') || 'Sin datos del vehículo';
+    if (note) {
+      note.hidden = !currentTripClosed;
+      note.textContent = currentTripClosed ? 'El viaje de esta unidad ya finalizó: no se pueden registrar más gastos.' : '';
+    }
+  };
+
+  const showBusEmpty = () => {
+    currentBusId = null;
+    currentTripClosed = false;
+    const card = document.getElementById('bus-card') as HTMLElement | null;
+    const empty = document.getElementById('bus-empty') as HTMLElement | null;
+    const note = document.getElementById('bus-note') as HTMLElement | null;
+    if (card) card.hidden = true;
+    if (empty) empty.hidden = false;
+    if (note) note.hidden = true;
   };
 
   const loadBuses = async () => {
     const dashboard = await api('/driver-portal/dashboard');
-    const busSelect = document.getElementById('bus') as HTMLSelectElement;
-    const hint = document.getElementById('bus-hint');
-    const currentBus = dashboard?.currentBus;
-    if (currentBus && currentBus.id) {
-      const busOption: Bus = { id: currentBus.id, placa: currentBus.placa, marca: currentBus.marca, modelo: currentBus.modelo };
-      (window as any).__busesCache = [busOption];
-      fillBusSelect(busSelect);
-      busSelect.value = String(currentBus.id);
-      busSelect.disabled = true;
-      if (hint) { hint.textContent = 'Esta unidad se asignó automáticamente según tu viaje activo.'; hint.hidden = false; }
-    } else {
-      try {
-        const result = await api('/buses/catalog');
-        const all: Bus[] = (result?.data ?? (Array.isArray(result) ? result : [])).map((b: any) => ({ id: b.id, placa: b.placa, marca: b.marca, modelo: b.modelo }));
-        (window as any).__busesCache = all;
-        fillBusSelect(busSelect);
-        busSelect.disabled = false;
-        if (hint) { hint.textContent = 'No tienes viaje activo. Selecciona la unidad manualmente.'; hint.hidden = false; }
-      } catch {
-        busSelect.disabled = false;
-        if (hint) { hint.textContent = 'No se pudo cargar la lista de unidades.'; hint.hidden = false; }
-      }
-    }
+    if (dashboard?.currentBus?.id) renderBusCard(dashboard.currentBus);
+    else showBusEmpty();
+    setBusLoading(false);
     await loadHistory();
   };
 
@@ -194,9 +232,9 @@ export function getStaticPaths() { return [{ params: {} }]; }
   };
 
   const loadHistory = async () => {
-    const busId = (document.getElementById('bus') as HTMLSelectElement).value;
+    const busId = currentBusId;
     const list = document.getElementById('history-list') as HTMLElement;
-    if (!busId) { list.innerHTML = '<div class="rounded-[.8rem] border border-dashed border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.18)] px-[.85rem] py-[1.75rem] text-center text-[.78rem] text-[var(--subtle)]"><strong class="mb-[.25rem] block text-[.9rem] text-[var(--ink)]">Sin unidad seleccionada</strong>Elige un bus arriba para ver su historial.</div>'; currentRecords = []; renderSummary(); return; }
+    if (!busId) { list.innerHTML = '<div class="rounded-[.8rem] border border-dashed border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.18)] px-[.85rem] py-[1.75rem] text-center text-[.78rem] text-[var(--subtle)]"><strong class="mb-[.25rem] block text-[.9rem] text-[var(--ink)]">Sin unidad asignada</strong>El historial aparece cuando tienes un viaje activo.</div>'; currentRecords = []; renderSummary(); return; }
     list.innerHTML = historySkeleton().repeat(3);
     const summary = document.getElementById('hist-summary');
     if (summary) summary.innerHTML = '<span class="skeleton skeleton-pill"></span><span class="skeleton skeleton-pill"></span>';
@@ -253,14 +291,14 @@ export function getStaticPaths() { return [{ params: {} }]; }
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       error.hidden = true;
-      const busId = (document.getElementById('bus') as HTMLSelectElement).value;
+      const busId = currentBusId ?? '';
       const category = (document.querySelector<HTMLInputElement>('input[name="category"]:checked')?.value ?? '') as 'MANTENIMIENTO' | 'COMBUSTIBLE' | 'PINCHAZO' | 'OTRO';
       const area = (document.getElementById('area') as HTMLSelectElement).value || undefined;
       const cost = (document.getElementById('cost') as HTMLInputElement).value;
       const detail = (document.getElementById('detail') as HTMLTextAreaElement).value.trim();
       const photo = (document.getElementById('photo') as HTMLInputElement).files?.[0];
       if (!busId || !category || !cost || !detail) {
-        error.hidden = false; error.textContent = 'Completa unidad, categoría, costo y detalle.'; return;
+        error.hidden = false; error.textContent = 'Completa categoría, costo y detalle.'; return;
       }
       const incidentFlow = (window as any).__incidentFlow === true;
       submit.disabled = true;
@@ -289,7 +327,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
               else await new Promise((resolve) => setTimeout(resolve, 700));
             }
           }
-          (window as any).__incidentFlow = false;
+        (window as any).__incidentFlow = false;
         }
         if (incidentSynced || !incidentFlow) Swal.close();
         await feedback.success(incidentFlow && incidentSynced ? 'Incidencia registrada y viaje actualizado.' : 'Reporte guardado. El administrador fue notificado.', 'Listo');
@@ -314,8 +352,7 @@ export function getStaticPaths() { return [{ params: {} }]; }
         submit.disabled = false;
       }
     });
-    document.getElementById('reset')?.addEventListener('click', () => setTimeout(setupCategoryLogic, 0));
-    document.getElementById('history-bus')?.addEventListener('change', () => { void loadHistory(); });
+    document.getElementById('clear-form')?.addEventListener('click', () => setTimeout(setupCategoryLogic, 0));
     document.querySelectorAll<HTMLButtonElement>('.hist-tab').forEach((button) => {
       button.addEventListener('click', () => {
         currentFilter = (button.dataset.filter ?? 'ALL') as typeof currentFilter;
@@ -327,7 +364,6 @@ export function getStaticPaths() { return [{ params: {} }]; }
         renderHistory();
       });
     });
-    (document.getElementById('bus') as HTMLSelectElement)?.addEventListener('change', () => { void loadHistory(); });
   };
 
   const init = async () => {
@@ -337,15 +373,24 @@ export function getStaticPaths() { return [{ params: {} }]; }
     setupPhotoDrop();
     setupForm();
     setupLightbox();
+    // Estado de carga inicial: skeleton de unidad + skeletons del historial, para que
+    // la página nunca se vea vacía esperando la unidad.
+    setBusLoading(true);
+    const list = document.getElementById('history-list') as HTMLElement | null;
+    if (list) list.innerHTML = historySkeleton().repeat(3);
+    const summary = document.getElementById('hist-summary');
+    if (summary) summary.innerHTML = '<span class="skeleton skeleton-pill"></span><span class="skeleton skeleton-pill"></span>';
     try { await loadBuses(); }
     catch (cause) {
+      setBusLoading(false);
+      showBusEmpty();
       await feedback.error(cause instanceof Error ? cause.message : 'Error inesperado.', 'No se pudo cargar');
       return;
     }
     const params = new URLSearchParams(window.location.search);
     if (params.get('incident') === '1') {
       (window as any).__incidentFlow = true;
-      const busId = (document.getElementById('bus') as HTMLSelectElement).value;
+      const busId = currentBusId;
       const detail = document.getElementById('detail') as HTMLTextAreaElement | null;
       const formCategory = document.querySelector<HTMLInputElement>('input[name="category"][value="MANTENIMIENTO"]');
       formCategory?.click();
