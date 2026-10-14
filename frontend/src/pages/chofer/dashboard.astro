@@ -233,7 +233,6 @@ allTripsCache = allTrips;
     if (!legs.length) return;
     const currentLeg = legs.find((l) => !l.execution || l.execution.status === 'NOT_STARTED' || l.execution.status === 'RUNNING') ?? legs[legs.length - 1];
     const legStatus = currentLeg.execution?.status ?? 'NOT_STARTED';
-    const isFirstPending = legs.filter((l) => l.execution?.status !== 'FINISHED').length === legs.length;
     const allFinished = legs.every((l) => l.execution?.status === 'FINISHED');
     const tripFinished = ['RETURNED', 'CANCELLED'].includes(tripStatus);
     const tripIsPaused = tripStatus === 'PAUSED_LUNCH';
@@ -288,11 +287,14 @@ allTripsCache = allTrips;
     } else if (tripStatus === 'ARRIVED') {
       buttons.push(primaryBtn('FINISH'));
     } else {
-      if (tripIsStopped) buttons.push(primaryBtn('RESUME'));
-      else if (tripIsPaused) buttons.push(primaryBtn('RESUME'));
-      else if (legStatus === 'NOT_STARTED' && isFirstPending) buttons.push(primaryBtn('STARTED'));
+      // currentLeg es por definición el primer tramo sin llegada confirmada, así que
+      // sus anteriores ya están FINISHED: "Iniciar viaje" aplica a cualquier tramo,
+      // no sólo al primero. Reanudar e iniciar llevan al viaje al mismo estado
+      // (IN_TRANSIT), por eso pueden ofrecerse juntos cuando el bus está detenido.
+      if (tripIsStopped || tripIsPaused) buttons.push(primaryBtn('RESUME'));
+      if (legStatus === 'NOT_STARTED') buttons.push(primaryBtn('STARTED'));
       else if (legStatus === 'RUNNING') {
-        buttons.push(primaryBtn('STOPPED'));
+        if (tripInTransit) buttons.push(primaryBtn('STOPPED'));
         buttons.push(primaryBtn('ARRIVED'));
       } else if (allFinished) buttons.push(primaryBtn('FINISH'));
       buttons.push(incidentBtn);
