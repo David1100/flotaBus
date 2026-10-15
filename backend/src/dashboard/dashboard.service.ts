@@ -50,7 +50,7 @@ export class DashboardService {
       ...(query.busId ? { assignments: { some: { busId: query.busId, status: 'ACTIVE' } } } : {}),
     };
 
-    const [buses, maintenanceAggregate, maintenanceByBus, trips, activeDrivers, activeTripCount] = await Promise.all([
+    const [buses, maintenanceAggregate, maintenanceByBus, maintenanceByCategory, trips, activeDrivers, activeTripCount] = await Promise.all([
       this.db.bus.findMany({
         where: busWhere,
         select: {
@@ -66,6 +66,7 @@ export class DashboardService {
       }),
       this.db.maintenanceRecord.aggregate({ where: maintenanceWhere, _sum: { cost: true }, _count: { _all: true } }),
       this.db.maintenanceRecord.groupBy({ by: ['busId'], where: maintenanceWhere, _sum: { cost: true }, _count: { _all: true }, orderBy: { _sum: { cost: 'desc' } } }),
+      this.db.maintenanceRecord.groupBy({ by: ['category', 'busId'], where: maintenanceWhere, _sum: { cost: true }, _count: { _all: true } }),
       this.db.trip.findMany({
         where: tripWhere,
         orderBy: { initialStartAt: 'asc' },
@@ -85,6 +86,17 @@ export class DashboardService {
       total: Number(row._sum.cost ?? 0),
       records: row._count._all,
     }));
+    const categoryTotals = new Map<string, { total: number; records: number }>();
+    for (const row of maintenanceByCategory) {
+      if (query.status && !selectedBusIds.has(row.busId)) continue;
+      const bucket = categoryTotals.get(row.category) ?? { total: 0, records: 0 };
+      bucket.total += Number(row._sum.cost ?? 0);
+      bucket.records += row._count._all;
+      categoryTotals.set(row.category, bucket);
+    }
+    const maintenanceByCategoryRows = [...categoryTotals]
+      .map(([category, bucket]) => ({ category, total: bucket.total, records: bucket.records }))
+      .sort((a, b) => b.total - a.total);
     const maintenanceBuses = filteredBuses.filter((bus) => statusOf(bus) === BusOperationalStatus.MAINTENANCE).map((bus) => ({ id: bus.id, placa: bus.placa, marca: bus.marca, modelo: bus.modelo }));
     const unassignedBuses = filteredBuses.filter((bus) => !bus.assignments.length).map((bus) => ({ id: bus.id, placa: bus.placa, status: statusOf(bus), defaultDriver: bus.defaultDrivers[0] ?? null }));
     const activeTrips = trips.filter((trip) => !query.busId || trip.assignments.some((assignment) => assignment.bus.id === query.busId)).map((trip) => ({ ...trip, assignments: trip.assignments.map((assignment) => ({ bus: assignment.bus, driver: assignment.driver })) }));
@@ -104,6 +116,7 @@ export class DashboardService {
         maintenanceRecords: maintenanceAggregate._count._all,
       },
       maintenanceByBus: costs,
+      maintenanceByCategory: maintenanceByCategoryRows,
       busesInMaintenance: maintenanceBuses,
       activeTrips,
       unassignedBuses,

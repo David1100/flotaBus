@@ -48,6 +48,25 @@ describe('DashboardService', () => {
     expect(result.busesInMaintenance).toHaveLength(1);
   });
 
+  it('aggregates maintenance spend by category for the dashboard chart', async () => {
+    const db = emptyDb();
+    db.bus.findMany.mockResolvedValue([
+      { id: 1, placa: 'ABC123', marca: 'Volvo', modelo: '2020', manualStatus: null, assignments: [], defaultDrivers: [] },
+    ]);
+    db.maintenanceRecord.groupBy
+      .mockResolvedValueOnce([{ busId: 1, _sum: { cost: 300000 }, _count: { _all: 3 } }])
+      .mockResolvedValueOnce([
+        { category: 'MANTENIMIENTO', busId: 1, _sum: { cost: 200000 }, _count: { _all: 2 } },
+        { category: 'COMBUSTIBLE', busId: 1, _sum: { cost: 100000 }, _count: { _all: 1 } },
+      ]);
+    const result = await new DashboardService(db as any).overview({});
+
+    expect(result.maintenanceByCategory).toEqual([
+      { category: 'MANTENIMIENTO', total: 200000, records: 2 },
+      { category: 'COMBUSTIBLE', total: 100000, records: 1 },
+    ]);
+  });
+
   it('rejects an inverted period', async () => {
     await expect(new DashboardService(emptyDb() as any).overview({ from: '2026-10-10', to: '2026-10-01' })).rejects.toBeInstanceOf(BadRequestException);
   });

@@ -220,38 +220,10 @@ import AdminShell from "../../components/AdminShell.astro";
       true,
     );
   };
-  const decorateBusPhotos = async () => {
-    try {
-      const result = await api("/buses");
-      const buses = result.data ?? [];
-      const paint = () =>
-        document
-          .querySelectorAll<HTMLElement>(".bus-card")
-          .forEach((card, index) => {
-            const url = buses[index]?.photoUrl;
-            if (!url || card.querySelector(".bus-photo-avatar")) return;
-            const image = document.createElement("img");
-            image.className =
-              "bus-photo-avatar absolute inset-[.65rem] z-[1] h-[4.5rem] w-[4.5rem] rounded-[.9rem] object-cover opacity-90";
-            image.src = url;
-            image.alt = `Foto del bus ${buses[index].placa}`;
-            card.querySelector(".bus-visual-stage")?.prepend(image);
-          });
-      new MutationObserver(paint).observe(
-        document.querySelector("#bus-grid")!,
-        { childList: true },
-      );
-      paint();
-    } catch {
-      /* La foto es decorativa; no bloquea la flota. */
-    }
-  };
   document.addEventListener("astro:page-load", () => {
     setupBusPhoto();
-    decorateBusPhotos();
   });
   setupBusPhoto();
-  decorateBusPhotos();
 </script>
 <script>
   import { api } from "../../lib/api";
@@ -288,23 +260,6 @@ import AdminShell from "../../components/AdminShell.astro";
   };
   type PhotoForm = HTMLFormElement & {
     photoPicker?: { setCurrent: (url?: string) => void };
-  };
-  const MODEL_VIEWER_SRC =
-    "https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js";
-
-  const ensureModelViewer = () => {
-    if (
-      customElements.get("model-viewer") ||
-      document.querySelector('script[data-model-viewer-loader="true"]')
-    )
-      return;
-    const script = document.createElement("script");
-    script.type = "module";
-    script.src = MODEL_VIEWER_SRC;
-    script.dataset.modelViewerLoader = "true";
-    script.onerror = () =>
-      (document.documentElement.dataset.modelViewerUnavailable = "true");
-    document.head.append(script);
   };
   const svgIcon = (paths: string[], attrs: Record<string, string> = {}) => {
     const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -348,34 +303,29 @@ import AdminShell from "../../components/AdminShell.astro";
     label.textContent = text;
     return label;
   };
-  const makeModelStage = () => {
+  const makePhotoStage = (bus: Bus) => {
     const stage = document.createElement("div");
     stage.className =
       "bus-visual-stage relative h-[9.2rem] overflow-hidden border-b border-[rgba(234,239,226,.08)] bg-[radial-gradient(circle_at_50%_40%,rgba(72,228,224,.12),transparent_70%)]";
-    const model = document.createElement("model-viewer");
-    model.className = "bus-model block h-full w-full";
-    model.setAttribute("src", "/buses/gafas_home.glb");
-    model.setAttribute("camera-controls", "");
-    model.setAttribute("auto-rotate", "");
-    model.setAttribute("interaction-prompt", "none");
-    model.setAttribute("loading", "lazy");
-    model.setAttribute("alt", "Modelo 3D de un autobús de la flota");
-    model.setAttribute("shadow-intensity", "0.8");
-    model.setAttribute("exposure", "1.05");
+    if (bus.photoUrl) {
+      const image = document.createElement("img");
+      image.className = "absolute inset-0 z-[1] h-full w-full object-cover";
+      image.src = bus.photoUrl;
+      image.alt = `Foto del bus ${bus.placa}`;
+      image.loading = "lazy";
+      stage.append(image);
+      return stage;
+    }
     const fallback = document.createElement("div");
     fallback.className =
-      "model-fallback absolute inset-0 grid place-content-center justify-items-center gap-2 text-[var(--muted)] pointer-events-none";
+      "absolute inset-0 grid place-content-center justify-items-center";
     fallback.setAttribute("aria-hidden", "true");
     const mark = document.createElement("span");
     mark.className =
       "model-fallback-mark grid h-12 w-12 place-items-center rounded-[1rem] border border-[rgba(72,228,224,.3)] font-display text-base font-semibold text-[var(--cyan)]";
-    mark.textContent = "3D";
-    const copy = document.createElement("span");
-    copy.className =
-      "model-fallback-copy text-[.65rem] uppercase tracking-[.12em]";
-    copy.textContent = "Visor de unidad";
-    fallback.append(mark, copy);
-    stage.append(model, fallback);
+    mark.textContent = "BUS";
+    fallback.append(mark);
+    stage.append(fallback);
     return stage;
   };
 
@@ -383,7 +333,6 @@ import AdminShell from "../../components/AdminShell.astro";
     const grid = document.querySelector<HTMLElement>("#bus-grid");
     if (!grid || grid.dataset.ready === "true") return;
     grid.dataset.ready = "true";
-    ensureModelViewer();
     const $ = <T extends Element>(selector: string) =>
       document.querySelector<T>(selector)!;
     const state = $("#state");
@@ -427,7 +376,7 @@ import AdminShell from "../../components/AdminShell.astro";
           "aria-label",
           `Unidad ${bus.placa}, estado ${busStatusLabel(bus.status)}`,
         );
-        card.append(makeModelStage());
+        card.append(makePhotoStage(bus));
         const body = document.createElement("div");
         body.className = "flex min-w-0 flex-col p-[1.1rem]";
         const heading = document.createElement("div");

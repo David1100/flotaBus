@@ -57,21 +57,29 @@ import AdminShell from '../../components/AdminShell.astro';
         <div class="flex items-center gap-[.55rem] text-[.6rem] font-extrabold uppercase tracking-[.14em] text-[var(--subtle)] max-md:flex-wrap max-md:gap-y-[.35rem]"><span class="font-display text-[var(--amber)]">05</span><span>Registro financiero</span></div>
          <div class="mt-[1.35rem] flex items-end justify-between gap-4 max-md:flex-col max-md:items-start max-md:gap-3"><div><h2 id="spend-title" class="m-0 font-display text-[1.6rem] font-medium leading-[.94] tracking-[-.06em] text-[var(--ink)] max-md:text-[1.45rem]">Mantenimiento por bus</h2><p class="mb-0 mt-[.6rem] text-[.74rem] leading-[1.45] text-[var(--muted)]">Inversión registrada en el periodo consultado.</p></div><strong id="period-cost" class="font-display text-[1.8rem] font-medium tracking-[-.05em] text-[var(--amber)] max-md:max-w-full max-md:break-words max-[430px]:text-[1.5rem]">$0</strong></div>
         <div id="spend-empty" class="mt-5 grid grid-cols-[auto_1fr] items-center gap-x-[.8rem] gap-y-[.1rem] rounded-[.8rem] border border-dashed border-[rgba(245,173,75,.3)] bg-[rgba(245,173,75,.035)] p-4" hidden><span class="row-span-2 font-display text-[2rem] text-[var(--amber)]" aria-hidden="true">$</span><strong class="text-[.8rem] text-[var(--ink)]">Sin inversión registrada</strong><p class="m-0 text-[.68rem] text-[var(--muted)]">El periodo no contiene costos de mantenimiento.</p></div>
-        <div class="mt-5 overflow-hidden rounded-[.8rem] border border-white/10" id="spend-table-wrap"><table class="w-full border-collapse text-[.82rem]"><thead class="max-md:sr-only"><tr class="[&_th]:px-2 [&_th]:py-[.7rem] [&_th]:text-left [&_th]:text-[.63rem] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-[.14em] [&_th]:text-[var(--subtle)] [&_th:first-child]:pl-[.8rem] [&_th:last-child]:pr-[.8rem] [&_th:last-child]:text-right"><th>Unidad</th><th>Registros</th><th>Costo</th></tr></thead><tbody id="maintenance-rows" class="max-md:block"></tbody></table></div>
-      </section>
+         <div class="mt-5 overflow-hidden rounded-[.8rem] border border-white/10" id="spend-table-wrap"><table class="w-full border-collapse text-[.82rem]"><thead class="max-md:sr-only"><tr class="[&_th]:px-2 [&_th]:py-[.7rem] [&_th]:text-left [&_th]:text-[.63rem] [&_th]:font-bold [&_th]:uppercase [&_th]:tracking-[.14em] [&_th]:text-[var(--subtle)] [&_th:first-child]:pl-[.8rem] [&_th:last-child]:pr-[.8rem] [&_th:last-child]:text-right"><th>Unidad</th><th>Registros</th><th>Costo</th></tr></thead><tbody id="maintenance-rows" class="max-md:block"></tbody></table></div>
+       </section>
+
+       <section class="col-span-full min-w-0 overflow-hidden rounded-[1.25rem] border border-[rgba(72,228,224,.16)] bg-[rgba(11,18,22,.96)] px-[clamp(1.1rem,3vw,2.25rem)] pb-[1.6rem] pt-[1.35rem] shadow-[0_16px_34px_rgba(0,0,0,.12)] max-md:mt-[.85rem] max-md:px-4" aria-labelledby="category-title">
+        <div class="flex items-center gap-[.55rem] text-[.6rem] font-extrabold uppercase tracking-[.14em] text-[var(--subtle)] max-md:flex-wrap max-md:gap-y-[.35rem]"><span class="font-display text-[var(--amber)]">06</span><span>Composición del gasto</span></div>
+         <div class="mt-[1.35rem] flex items-end justify-between gap-4 max-md:flex-col max-md:items-start max-md:gap-3"><div class="min-w-0"><h2 id="category-title" class="m-0 font-display text-[1.6rem] font-medium leading-[.94] tracking-[-.06em] text-[var(--ink)] max-md:text-[1.45rem]">Gasto por categoría</h2><p class="mb-0 mt-[.6rem] text-[.74rem] leading-[1.45] text-[var(--muted)]">Cuánto aporta cada tipo de gasto al total del periodo consultado.</p></div><strong id="category-total" class="font-display text-[1.8rem] font-medium tracking-[-.05em] text-[var(--cyan)] whitespace-nowrap max-md:max-w-full max-md:break-words max-[430px]:text-[1.5rem]">$0</strong></div>
+         <div id="category-empty" class="mt-5 rounded-[.8rem] border border-dashed border-[rgba(72,228,224,.25)] bg-[rgba(72,228,224,.035)] p-[.85rem] text-[.73rem] text-[var(--muted)]" hidden>Sin gastos registrados en este periodo.</div>
+         <ul id="category-chart" class="mt-5 grid gap-[.85rem]"></ul>
+       </section>
     </main>
   </div>
 </AdminShell>
 
 <script>
   import { api } from '../../lib/api';
-  type Overview = { period: { from: string; to: string; defaulted: boolean }; kpis: { totalBuses: number; availableBuses: number; operationalBuses: number; maintenanceBuses: number; activeDrivers: number; activeTrips: number; maintenanceCost: number }; maintenanceByBus: Array<{ busId: number; placa: string; total: number; records: number }>; busesInMaintenance: Array<{ id: number; placa: string; marca: string; modelo: string }>; activeTrips: Array<{ code: string; origin: string; status: string; initialStartAt: string; assignments: Array<{ bus: { placa: string }; driver: { nombres: string } }> }>; unassignedBuses: Array<{ id: number; placa: string; status: string; defaultDriver: { nombres: string } | null }> };
+  type Overview = { period: { from: string; to: string; defaulted: boolean }; kpis: { totalBuses: number; availableBuses: number; operationalBuses: number; maintenanceBuses: number; activeDrivers: number; activeTrips: number; maintenanceCost: number }; maintenanceByBus: Array<{ busId: number; placa: string; total: number; records: number }>; maintenanceByCategory: Array<{ category: string; total: number; records: number }>; busesInMaintenance: Array<{ id: number; placa: string; marca: string; modelo: string }>; activeTrips: Array<{ code: string; origin: string; status: string; initialStartAt: string; assignments: Array<{ bus: { placa: string }; driver: { nombres: string } }> }>; unassignedBuses: Array<{ id: number; placa: string; status: string; defaultDriver: { nombres: string } | null }> };
   type Bus = { id: number; placa: string };
   const $ = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
   const currency = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
   const date = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
   const statusLabel: Record<string, string> = { PLANNED: 'Planeado', ASSIGNED: 'Asignado', IN_TRANSIT: 'En ruta', STOPPED: 'Detenido', PAUSED_LUNCH: 'Pausa', INCIDENT: 'Incidente', AVAILABLE: 'Disponible', MAINTENANCE: 'Mantenimiento' };
   const escapeHtml = (value: string) => value.replace(/[&<>'"]/g, (char) => ({ '&': '&#38;', '<': '&#60;', '>': '&#62;', "'": '&#39;', '"': '&#34;' }[char] ?? char));
+  const categoryLabels: Record<string, string> = { MANTENIMIENTO: 'Mantenimiento', COMBUSTIBLE: 'Combustible', PINCHAZO: 'Pinchazo', OTRO: 'Otro gasto' };
   const empty = (message: string) => `<div class="py-[1.35rem] text-[.73rem] text-[var(--subtle)]">${message}</div>`;
   function render(data: Overview) {
     const k = data.kpis;
@@ -91,7 +99,21 @@ import AdminShell from '../../components/AdminShell.astro';
     $('#period-cost').textContent = currency.format(totalCost);
     $('#spend-empty').hidden = totalCost !== 0 || data.maintenanceByBus.length > 0;
     $('#spend-table-wrap').hidden = totalCost === 0 && data.maintenanceByBus.length === 0;
+    renderCategoryChart(data);
     $('#period-note').textContent = `Periodo: ${date.format(new Date(data.period.from))} — ${date.format(new Date(data.period.to))}`;
+  }
+  function renderCategoryChart(data: Overview) {
+    const rows = data.maintenanceByCategory;
+    const max = rows.reduce((peak, row) => Math.max(peak, row.total), 0);
+    const total = data.kpis.maintenanceCost;
+    $('#category-total').textContent = currency.format(rows.reduce((sum, row) => sum + row.total, 0));
+    $('#category-empty').hidden = rows.length > 0;
+    $('#category-chart').innerHTML = rows.map((row) => {
+      const label = escapeHtml(categoryLabels[row.category] ?? row.category);
+      const width = max > 0 ? Math.max(Math.round(row.total / max * 100), 2) : 0;
+      const share = total > 0 ? Math.round(row.total / total * 100) : 0;
+      return `<li class="grid gap-[.35rem]"><div class="flex items-baseline justify-between gap-3"><strong class="truncate text-[.78rem] font-semibold text-[var(--ink)]">${label}</strong><span class="whitespace-nowrap text-[.72rem] font-bold text-[var(--amber)]">${currency.format(row.total)}</span></div><div class="h-[.55rem] overflow-hidden rounded-full bg-[rgba(234,239,226,.08)]"><i class="block h-full rounded-full bg-[var(--amber)] transition-[width] duration-700 ease-out" style="width:${width}%"></i></div><small class="text-[.64rem] text-[var(--subtle)]">${row.records} registro${row.records === 1 ? '' : 's'} · ${share}% del periodo</small></li>`;
+    }).join('');
   }
   async function loadBuses() { try { const result = await api('/buses/catalog'); const buses: Bus[] = result.data ?? result; $('#bus').innerHTML += buses.map((bus) => `<option value="${bus.id}">${escapeHtml(bus.placa)}</option>`).join(''); } catch { /* El filtro sigue disponible aunque el catálogo falle. */ } }
   async function load() { const state = $('#dashboard-state'); state.hidden = false; state.textContent = 'Actualizando resumen…'; state.classList.remove('error'); const params = new URLSearchParams(); for (const id of ['from', 'to', 'bus', 'status']) { const value = ($(`#${id}`) as HTMLInputElement | HTMLSelectElement).value; if (value) params.set(id === 'bus' ? 'busId' : id, value); } try { const data: Overview = await api(`/dashboard/overview?${params}`); render(data); $('#dashboard-content').hidden = false; state.hidden = true; } catch (error) { state.textContent = error instanceof Error ? error.message : 'No se pudo cargar el dashboard.'; state.classList.add('error'); } }

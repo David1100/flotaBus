@@ -72,6 +72,19 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
         <article class="glass fleet-card min-w-0 rounded-[1.25rem] p-[1.25rem]">
           <div class="flex items-start justify-between gap-3">
             <div>
+              <div class="eyebrow">MANTENIMIENTOS</div>
+              <h2 class="m-0 mt-1 font-display text-[1.3rem] text-[var(--ink)]">Gasto por categoría</h2>
+            </div>
+            <strong id="bus-category-total" class="whitespace-nowrap font-display text-[1.15rem] tracking-[-.03em] text-[var(--amber)]">—</strong>
+          </div>
+          <p class="m-0 mt-[.4rem] text-[.72rem] text-[var(--muted)]">Cuánto aporta cada tipo de gasto al total de la unidad.</p>
+          <div id="bus-category-empty" class="mt-4 rounded-[.8rem] border border-dashed border-[rgba(72,228,224,.25)] bg-[rgba(72,228,224,.035)] p-[.85rem] text-[.72rem] text-[var(--muted)]" hidden>Sin gastos registrados en esta unidad.</div>
+          <ul id="bus-category-chart" class="mt-4 grid gap-[.85rem]"></ul>
+        </article>
+
+        <article class="glass fleet-card min-w-0 rounded-[1.25rem] p-[1.25rem]">
+          <div class="flex items-start justify-between gap-3">
+            <div>
               <div class="eyebrow">HISTORIAL DE VIAJES</div>
               <h2 class="m-0 mt-1 font-display text-[1.3rem] text-[var(--ink)]">Asignaciones del bus</h2>
             </div>
@@ -175,6 +188,25 @@ export function getStaticPaths() { return [{ params: { id: 'detail' } }]; }
         { label: 'Mantenimientos', value: stats.maintenanceTotal },
         { label: 'Inversión MT.', value: formatMoney(stats.maintenanceCostTotal) },
       ].map(s => `<div class="grid gap-1 rounded-[.8rem] border border-[rgba(234,239,226,.1)] bg-[rgba(5,11,14,.24)] p-[.7rem_.85rem]"><span class="text-[.58rem] font-bold uppercase tracking-[.12em] text-[var(--subtle)]">${escape(s.label)}</span><strong class="font-display text-[1.2rem] tracking-[-.03em] text-[var(--ink)]">${escape(s.value)}</strong></div>`).join('');
+
+      const history = Array.isArray(bus.maintenanceHistory) ? bus.maintenanceHistory : [];
+      const categoryTotals = new Map();
+      for (const m of history) {
+        const bucket = categoryTotals.get(m.category) ?? { total: 0, records: 0 };
+        bucket.total += Number(m.cost || 0);
+        bucket.records += 1;
+        categoryTotals.set(m.category, bucket);
+      }
+      const categoryRows = [...categoryTotals].map(([category, bucket]) => ({ category, ...bucket })).sort((a, b) => b.total - a.total);
+      const maxCategory = categoryRows.reduce((peak, row) => Math.max(peak, row.total), 0);
+      const categoryGrand = categoryRows.reduce((sum, row) => sum + row.total, 0);
+      $('bus-category-total').textContent = formatMoney(categoryGrand);
+      $('bus-category-empty').hidden = categoryRows.length > 0;
+      $('bus-category-chart').innerHTML = categoryRows.map(row => {
+        const width = maxCategory > 0 ? Math.max(Math.round(row.total / maxCategory * 100), 2) : 0;
+        const share = categoryGrand > 0 ? Math.round(row.total / categoryGrand * 100) : 0;
+        return `<li class="grid gap-[.35rem]"><div class="flex items-baseline justify-between gap-3"><strong class="truncate text-[.78rem] text-[var(--ink)]">${escape(categoryLabel(row.category))}</strong><span class="whitespace-nowrap text-[.72rem] font-bold text-[var(--amber)]">${escape(formatMoney(row.total))}</span></div><div class="h-[.55rem] overflow-hidden rounded-full bg-[rgba(234,239,226,.08)]"><i class="block h-full rounded-full bg-[var(--amber)] transition-[width] duration-700 ease-out" style="width:${width}%"></i></div><small class="text-[.64rem] text-[var(--muted)]">${row.records} registro${row.records === 1 ? '' : 's'} · ${share}% del total</small></li>`;
+      }).join('');
 
       $('bus-trips-count').textContent = `${new Set(bus.tripHistory.map(t => t.trip.id)).size} rutas`;
       const groupedTrips = bus.tripHistory.reduce((groups, item) => {
